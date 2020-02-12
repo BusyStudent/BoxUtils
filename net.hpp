@@ -5,13 +5,19 @@
 #include <curl/curl.h>
 namespace BoxUtils{
 	namespace Net{
+		typedef size_t (*CURLCallBack)(void*,size_t,size_t,void*);
+		size_t WriteContentToMem(void*,size_t,size_t,void*);//写出内容
+		size_t WriteHeadersToMem(void*,size_t,size_t,void*);//写出应答头
 		class Response{
 			public:
-				Response(CURL*,void*);
+				~Response();
+				std::string headers_string;//字符串头部
+				std::string content;//内容
+				void build_headers();//构建头部
+				long status_code;
 			private:
-				std::string buffer;
-				void *_session;
-				CURL *handle;
+				void *_session = nullptr;
+				CURL *handle = nullptr;
 			friend class Session;
 		};
 		class Headers{
@@ -29,25 +35,28 @@ namespace BoxUtils{
 				curl_slist *get_slist();
 			private:
 				curl_slist *slist;//单链表
+			friend class Session;
 		};
 		class Session{
 			public:
-				Session();
+				Session(int default_handles = 2);//初始存放handle
 				~Session();
-				Response *Get();
-				Response *Post();
+				Response *get(const char *url,Headers *headers=nullptr,long timeout=0);
+				Response *post();
 				void clear_handles();//清空Handles
 				void add_handle(CURL *handle);
 				CURL *allocate_handle();//得到handle
 				//属性
 				Headers headers;
 			private:
+				CURLCallBack write_content_func;//默认写出内容的函数
+				CURLCallBack write_headers_func;//默认写出请求头
 				std::vector <CURL*> handles_pool;
 		};
-		extern Session *_session;//会话
+		extern Session *session;//会话
 		void Init(long flag = CURL_GLOBAL_ALL);
 		void Quit();
-		Response *Get();
+		Response *Get(const char *url,Headers *headers=nullptr,long timeout=0);
 		Response *Post();
 	};
 };
