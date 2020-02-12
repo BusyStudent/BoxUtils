@@ -36,14 +36,7 @@ Json *Json::CreateFalse(){
 Json *Json::CreateBool(bool boolen){
 	//创建Bool
 	//防止C++的bool和cjson的bool不一样
-	cJSON_bool j_bool;
-	if(boolen == true){
-		j_bool =cJSON_True;
-	}
-	else{
-		j_bool = cJSON_False;
-	}
-	return new Json(cJSON_CreateBool(j_bool));
+	return new Json(cJSON_CreateBool((cJSON_bool)boolen));
 }
 Json *Json::CreateNumber(double number){
 	//创建一个数字
@@ -56,12 +49,32 @@ Json *Json::CreateStringRef(const char *str){
 	return new Json(cJSON_CreateStringReference(str));
 }
 Json *Json::LoadFile(const char *filename){
-	std::fstream stream;
-	stream.open(filename,std::ios::in);
+	std::ifstream stream(filename);
 	//打开文件
-	std::string str;
-	stream >> str;//写入字符串
+	std::istreambuf_iterator<char> beg(stream),end;
+	std::string str(beg,end);
+	//读入所有字符
 	Json *json = ParseString(str.c_str());//解析字符串
 	stream.close();
 	return json;
+}
+//类型判断
+bool Json::is_bool(){
+	return (bool)cJSON_IsBool(item);
+}
+bool Json::is_list(){
+	//是否是列表 和数组一样
+	return (bool)cJSON_IsArray(item);
+}
+bool Json::is_null(){
+	return (bool)cJSON_IsNull(item);
+}
+bool Json::is_array(){
+	return (bool)cJSON_IsArray(item);
+}
+bool Json::is_number(){
+	return (bool)cJSON_IsNumber(item);
+}
+bool Json::is_string(){
+	return (bool)cJSON_IsString(item);
 }

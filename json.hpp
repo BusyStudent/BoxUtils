@@ -7,6 +7,16 @@ namespace BoxUtils{
 			Json(cJSON *item);
 			~Json();
 			const char *to_string();//转化字符串
+			//类型判断
+			bool is_null();
+			bool is_bool();
+			bool is_list();//是否是列表
+			bool is_array();
+			bool is_string();//是否是字符串
+			bool is_number();
+			//
+			Json &operator [](const char*);//查找数据
+			Json &operator [](int val);
 			//构造Json的类型
 			static Json *ParseString(const char *);
 			static Json *CreateNull();
