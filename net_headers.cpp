@@ -1,6 +1,7 @@
 #include <curl/curl.h>
 #include <sstream>
 #include <cstring>
+#include <vector>
 #include "net.hpp"
 using namespace BoxUtils::Net;
 Headers::Headers(){
@@ -41,6 +42,30 @@ void Headers::clear(){
 	//清空
 	curl_slist_free_all(slist);
 	slist = nullptr;
+}
+void Headers::parse_string(const char *cstring){
+	//解析字符串
+	char *buf = strdup(cstring);
+	char *line = buf;
+	char *line_end = buf;//结尾
+	while(*line!='\0'){
+		line_end = strchr(line_end,'\n');
+		if(line_end == nullptr){
+			break;
+		}
+		if(*(line_end - 1)=='\r'){
+			//去除'\r'
+			*(line_end - 1)= '\0';
+		}
+		*line_end = '\0';//截断一行
+		line_end ++ ;//跳过换行符号
+		if(strchr(line,':') != nullptr){
+			//加入链表
+			slist = curl_slist_append(slist,line);
+		}
+		line = line_end ++;
+	}
+	free(buf);
 }
 curl_slist *Headers::get_slist(){
 	return slist;
