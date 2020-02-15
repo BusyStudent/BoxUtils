@@ -35,9 +35,22 @@ Json *Json::copy(){
 	//直接复制一个
 	return new Json(cJSON_Duplicate(item,cJSON_True));
 }
-char *Json::to_string(){
+char *Json::to_cstring(){
 	//字符串化
 	return cJSON_Print(item);
+}
+std::string Json::to_string(){
+	//到C++的字符串
+	char *c_str = cJSON_Print(item);
+	std::string str(c_str);
+	free(c_str);
+	return str;
+}
+void Json::print(){
+	//打印一下
+	char *str = cJSON_Print(item);
+	puts(str);
+	free(str);
 }
 //解析函数
 Json *Json::ParseString(const char *str){

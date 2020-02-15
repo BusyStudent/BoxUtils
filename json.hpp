@@ -12,10 +12,13 @@ namespace BoxUtils{
 			Json(cJSON *item,bool independence=true);
 			Json(const Json &);
 			~Json();
+			//打印等调试
+			void print();
 			//复制
 			Json *copy();
 			const char *get_type_string();//得到类型字符串
-			char *to_string();//转化字符串
+			char *to_cstring();//转化字符串
+			std::string to_string();
 			//类型判断
 			bool is_null();
 			bool is_bool();
