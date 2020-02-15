@@ -23,7 +23,7 @@ BoxUtils::TypeError::TypeError(const char *excepted,const char *gived){
 	this->excepted = excepted;
 	this->gived = gived;
 	std::stringstream stream;
-	stream << "excepted type:" << excepted << " gived type:" << gived;
+	stream << "excepted type:" <<"'"<< excepted <<"'"<<" gived type:" <<"'"<<gived<<"'";
 	this->reason = stream.str();
 }
 const char *BoxUtils::TypeError::what() const throw(){

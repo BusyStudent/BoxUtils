@@ -1,7 +1,11 @@
 #ifndef _BOXUTILS_JSON_HPP_
 #define _BOXUTILS_JSON_HPP_
+#include <string>
 #include "cJSON.h"
 namespace BoxUtils{
+	class JsonIterator;
+	class JsonArrayIterator;
+	class JsonTableIterator;
 	class Json{
 		public:
 			//初始化是是否独立的
@@ -11,10 +15,12 @@ namespace BoxUtils{
 			//复制
 			Json *copy();
 			const char *get_type_string();//得到类型字符串
-			const char *to_string();//转化字符串
+			char *to_string();//转化字符串
 			//类型判断
 			bool is_null();
 			bool is_bool();
+			bool is_true();//是真
+			bool is_false();//是假
 			bool is_string();//是否是字符串
 			bool is_number();
 			
@@ -23,6 +29,18 @@ namespace BoxUtils{
 			
 			bool is_object();//是否是对象 或者说表
 			bool is_table();
+			
+			//类型检查
+			void check_is_array();//检查是数组
+			void check_is_object();//检查是对象
+			
+			void add_string(const char *str);
+			
+			void add_item(Json &item);//加入另一个节点到数组
+			void add_item(Json &item,const char *key);//加入对象里面 不就是字典么
+			//得到一些信息
+			int get_array_size();
+			JsonArrayIterator iter_array();//迭代数组
 			//
 			Json operator [](const char*);//查找数据
 			Json operator [](int val);
@@ -31,6 +49,7 @@ namespace BoxUtils{
 			void operator >> (int &i);//得到int
 			void operator >> (double &number);//得到number
 			void operator >> (char *&str);//得到复制过后的字符串
+			void operator >> (std::string &str);
 			void operator >> (const char * & str);//得到字符串
 			void operator >> (bool &boolen);
 			cJSON *get_cjson();
@@ -40,16 +59,53 @@ namespace BoxUtils{
 			static Json *CreateBool(bool boolen);
 			static Json *CreateTrue();
 			static Json *CreateFalse();
+			static Json *CreateArray();//创建一个数组
+			static Json *CreateIntArray(int *array,int count);//创建一个Int的Array
 			static Json *CreateNumber(double number);
 			static Json *CreateString(const char *str);//创建一个字符串
 			static Json *CreateStringRef(const char *str);//引用字符串
 			//格式化字符串
-			void MinifyString(char *str);
+			static void MinifyString(char *str);
 			//文件函数
+			static void  SaveFile(Json &json,const char *filename);
 			static Json *LoadFile(const char *filename);
 		private:
 			bool independence;//是否独立
 			cJSON *item;//对象
+		friend class JsonArrayIterator;
+		friend class JsonTableIterator;
+	};
+	class JsonIterator{
+		public:
+			JsonIterator();
+			JsonIterator(const JsonIterator &iter);
+			~JsonIterator();
+			Json &operator *(){
+				return *now_item;
+			}
+			Json *operator ->(){
+				return now_item;
+			}
+		protected:
+			int *refcount;
+			Json *item =  nullptr;
+			Json *now_item = nullptr;
+		friend class Json;
+	};
+	class JsonArrayIterator:public JsonIterator{
+		public:
+			bool operator ++(){
+				cJSON *cjson = now_item->item->next;//得到下一个
+				if(cjson == nullptr){
+					return false;
+				}
+				now_item->item = cjson;//赋值一下
+				return true;
+			}
+		friend class Json;
+	};
+	class JsonTableIterator:public JsonIterator{
+		friend class Json;
 	};
 };
 #endif

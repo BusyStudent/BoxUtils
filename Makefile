@@ -3,8 +3,8 @@ CFLAGS=-g -fPIC -Wall -Wextra
 CXX=g++
 CXXFLAGS=-g -fPIC -Wall -Wextra
 OBJ=random.o net.o net_session.o net_headers.o net_callback.o net_response.o net_exception.o cJSON.o json.o \
-	exception.o
-LDFLAGS=-lcurl
+	exception.o iconv.o
+LDFLAGS=-lcurl 
 libbox_utils.so:$(OBJ)
 	$(CXX) $(LDFLAGS) $(OBJ) -shared -o libbox_utils.so
 random.o:random.cpp random.hpp
@@ -23,5 +23,7 @@ net_response.o:net_response.cpp net.hpp
 net_exception.o:net_exception.cpp net_exception.hpp
 #异常
 excepton.o:exception.cpp exception.hpp
+iconv.o:iconv.cpp iconv.hpp
+#字符串编码
 clean:
 	rm $(OBJ) libbox_utils.so
