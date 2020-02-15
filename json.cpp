@@ -63,6 +63,9 @@ Json *Json::CreateBool(bool boolen){
 	//防止C++的bool和cjson的bool不一样
 	return new Json(cJSON_CreateBool((cJSON_bool)boolen));
 }
+Json *Json::CreateTable(){
+	return new Json(cJSON_CreateObject());
+}
 Json *Json::CreateArray(){
 	return new Json(cJSON_CreateArray());
 }
@@ -245,6 +248,10 @@ void Json::add_string(const char *str){
 	check_is_array();//检查类型
 	cJSON_AddItemToArray(item,cJSON_CreateString(str));
 }
+void Json::add_number(double number){
+	check_is_array();
+	cJSON_AddItemToArray(item,cJSON_CreateNumber(number));
+}
 void Json::add_item(Json &item){
 	//加入数组
 	check_is_array();
@@ -274,8 +281,15 @@ void Json::add_item(Json &item,const char *key){
 JsonArrayIterator Json::iter_array(){
 	check_is_array();
 	JsonArrayIterator iter;
-	iter.item = new Json(this->item,false);
 	iter.now_item = new Json(this->item->child,false);
+	return iter;
+}
+JsonTableIterator Json::iter_table(){
+	//遍历表
+	check_is_object();//检查一下
+	JsonTableIterator iter;
+	iter.now_item = new Json(this->item->child,false);
+	iter.name = this->item->child->string;//表的名字
 	return iter;
 }
 //
@@ -286,14 +300,12 @@ JsonIterator::JsonIterator(){
 JsonIterator::JsonIterator(const JsonIterator &iter){
 	this->refcount = iter.refcount;
 	this->now_item = iter.now_item;
-	this->item = iter.item;
 	(*(this->refcount))++;
 }
 JsonIterator::~JsonIterator(){
 	(*refcount) -- ;
 	if(*refcount == 0){
 		//没有引用了
-		delete item;
 		delete now_item;
 		delete refcount;
 	}

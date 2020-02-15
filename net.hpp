@@ -8,6 +8,7 @@ namespace BoxUtils{
 		typedef size_t (*CURLCallBack)(void*,size_t,size_t,void*);
 		size_t WriteContentToMem(void*,size_t,size_t,void*);//写出内容
 		size_t WriteHeadersToMem(void*,size_t,size_t,void*);//写出应答头
+		class Session;
 		class Response{
 			public:
 				~Response();
@@ -16,7 +17,7 @@ namespace BoxUtils{
 				void build_headers();//构建头部
 				long status_code;
 			private:
-				void *_session = nullptr;
+				Session *_session = nullptr;
 				CURL *handle = nullptr;
 			friend class Session;
 		};

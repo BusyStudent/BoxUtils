@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cerrno>
 #include "iconv.hpp"
+#define PLUS_BUFFER 100
 using namespace BoxUtils;
 Iconv::Iconv(const char *to,const char *from){
 	cd = iconv_open(to,from);
@@ -19,7 +20,7 @@ char *Iconv::ConvertString(iconv_t cd,char *str){
 	size_t inlen = strlen(str);
 	size_t outlen = inlen + 10;
 	char *buf = (char*)malloc(outlen);
-	memset(buf,'\0',outlen);
+	//memset(buf,'\0',outlen);
 	char *outbuf = buf;
 	//缓冲区
 	while(true){
@@ -27,6 +28,13 @@ char *Iconv::ConvertString(iconv_t cd,char *str){
 			perror("Iconv");
 			if(errno == E2BIG){
 				//缓冲区用完了可以解决
+				size_t converted = (outbuf - buf)/sizeof(char);
+				//已经转换过的
+				buf = (char*)realloc(buf,converted + PLUS_BUFFER + 1);
+				outbuf = buf + converted;//跳转到那时的位置
+				outlen += PLUS_BUFFER;
+				//memset(outbuf,'\0',PLUS_BUFFER+1);
+				//添加'\0'
 				continue;
 			}
 			free(buf);
@@ -37,6 +45,7 @@ char *Iconv::ConvertString(iconv_t cd,char *str){
 			break;
 		}
 	}
+	*outbuf = '\0';
 	return buf;
 }
 //内置转换

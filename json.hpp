@@ -35,12 +35,14 @@ namespace BoxUtils{
 			void check_is_object();//检查是对象
 			
 			void add_string(const char *str);
+			void add_number(double number);
 			
 			void add_item(Json &item);//加入另一个节点到数组
 			void add_item(Json &item,const char *key);//加入对象里面 不就是字典么
 			//得到一些信息
 			int get_array_size();
 			JsonArrayIterator iter_array();//迭代数组
+			JsonTableIterator iter_table();//迭代表
 			//
 			Json operator [](const char*);//查找数据
 			Json operator [](int val);
@@ -59,6 +61,7 @@ namespace BoxUtils{
 			static Json *CreateBool(bool boolen);
 			static Json *CreateTrue();
 			static Json *CreateFalse();
+			static Json *CreateTable();//创建一个表
 			static Json *CreateArray();//创建一个数组
 			static Json *CreateIntArray(int *array,int count);//创建一个Int的Array
 			static Json *CreateNumber(double number);
@@ -88,7 +91,6 @@ namespace BoxUtils{
 			}
 		protected:
 			int *refcount;
-			Json *item =  nullptr;
 			Json *now_item = nullptr;
 		friend class Json;
 	};
@@ -105,6 +107,17 @@ namespace BoxUtils{
 		friend class Json;
 	};
 	class JsonTableIterator:public JsonIterator{
+		public:
+			const char *name;
+			bool operator ++(){
+				cJSON *cjson = now_item->item->next;//得到下一个
+				if(cjson == nullptr){
+					return false;
+				}
+				now_item->item = cjson;//赋值一下
+				name = cjson->string;
+				return true;
+			}
 		friend class Json;
 	};
 };
