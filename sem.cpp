@@ -62,7 +62,7 @@ void ThreadEvent::set(){
 	for (int i = 0; i < sleepers; i++){
 		Sem::post();
 	}
-	
+	sleepers = 0;
 	mutex.unlock();
 }
 void ThreadEvent::wait(){
