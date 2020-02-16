@@ -261,6 +261,10 @@ void Json::add_string(const char *str){
 	check_is_array();//检查类型
 	cJSON_AddItemToArray(item,cJSON_CreateString(str));
 }
+void Json::add_string(const char *key,const char *str){
+	check_is_object();
+	cJSON_AddStringToObject(item,key,str);
+}
 void Json::add_number(double number){
 	check_is_array();
 	cJSON_AddItemToArray(item,cJSON_CreateNumber(number));
@@ -278,7 +282,7 @@ void Json::add_item(Json &item){
 		cJSON_AddItemToArray(this->item,cJSON_Duplicate(item.item,true));
 	}
 }
-void Json::add_item(Json &item,const char *key){
+void Json::add_item(const char *key,Json &item){
 	check_is_object();
 	if(item.independence == true){
 		//独立的 直接合并进去

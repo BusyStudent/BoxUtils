@@ -38,10 +38,11 @@ namespace BoxUtils{
 			void check_is_object();//检查是对象
 			
 			void add_string(const char *str);
+			void add_string(const char *key,const char *str);
 			void add_number(double number);
 			
 			void add_item(Json &item);//加入另一个节点到数组
-			void add_item(Json &item,const char *key);//加入对象里面 不就是字典么
+			void add_item(const char *key,Json &item);//加入对象里面 不就是字典么
 			//得到一些信息
 			int get_array_size();
 			JsonArrayIterator iter_array();//迭代数组
@@ -57,6 +58,8 @@ namespace BoxUtils{
 			void operator >> (std::string &str);
 			void operator >> (const char * & str);//得到字符串
 			void operator >> (bool &boolen);
+			void operator << (int &i);
+			void operator << (double &number);
 			cJSON *get_cjson();
 			//构造Json的类型
 			static Json *ParseString(const char *);
