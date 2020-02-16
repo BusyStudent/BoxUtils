@@ -84,7 +84,7 @@ Response *Session::get(const char *url,Headers *u_headers,long timeout){
 	curl_easy_setopt(handle,CURLOPT_WRITEDATA,&(resp->content));
 	
 	curl_easy_setopt(handle,CURLOPT_HEADERFUNCTION,write_headers_func);
-	curl_easy_setopt(handle,CURLOPT_HEADERDATA,&(resp->headers_string));
+	curl_easy_setopt(handle,CURLOPT_HEADERDATA,&(resp->headers));
 	//设置头数据回调
 	if(timeout!=0){
 		//设置超时时间
@@ -97,7 +97,6 @@ Response *Session::get(const char *url,Headers *u_headers,long timeout){
 		ThrowExceptionByCURLcode(code,handle,url);
 	}
 	//得到状态代码
-	resp->headers.parse_string(resp->headers_string.c_str());
 	//解析头部
 	curl_easy_getinfo(handle,CURLINFO_HTTP_CODE,&(resp->status_code));
 	return resp;

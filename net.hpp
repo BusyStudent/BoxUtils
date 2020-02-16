@@ -35,9 +35,7 @@ namespace BoxUtils{
 			public:
 				~Response();
 				Headers headers;
-				std::string headers_string;//字符串头部
 				std::string content;//内容
-				void build_headers();//构建头部
 				long status_code;
 				Json *json();//解析到Json
 			private:
