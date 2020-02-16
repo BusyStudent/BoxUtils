@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <curl/curl.h>
+#include "json.hpp"
 namespace BoxUtils{
 	namespace Net{
 		typedef size_t (*CURLCallBack)(void*,size_t,size_t,void*);
@@ -19,10 +20,13 @@ namespace BoxUtils{
 				void add_string(const char *str);//添加字符串
 				void update(const Headers &);
 				void clear();//清空
+				void print();//打印一下
 				void parse_string(const char *str);//解析字符串
 				const char *find_value(const char *key);//查询值
 				const char *operator [](const char *key);
 				curl_slist *get_slist();
+				Json *to_json();//转换到Json
+				void load_json(Json &json);//加载Json到头部
 			private:
 				curl_slist *slist;//单链表
 			friend class Session;
@@ -35,6 +39,7 @@ namespace BoxUtils{
 				std::string content;//内容
 				void build_headers();//构建头部
 				long status_code;
+				Json *json();//解析到Json
 			private:
 				Session *_session = nullptr;
 				CURL *handle = nullptr;

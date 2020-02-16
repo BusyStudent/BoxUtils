@@ -3,6 +3,7 @@
 #include <cstring>
 #include <vector>
 #include "net.hpp"
+#include "json.hpp"
 using namespace BoxUtils::Net;
 Headers::Headers(){
 	slist = nullptr;
@@ -42,6 +43,13 @@ void Headers::clear(){
 	//清空
 	curl_slist_free_all(slist);
 	slist = nullptr;
+}
+void Headers::print(){
+	curl_slist *next = slist;
+	while(next!=nullptr){
+		puts(next->data);
+		next = next->next;
+	}
 }
 void Headers::parse_string(const char *cstring){
 	//解析字符串
@@ -85,4 +93,52 @@ const char *Headers::find_value(const char *key){
 }
 const char *Headers::operator [](const char *key){
 	return find_value(key);
+}
+BoxUtils::Json *Headers::to_json(){
+	auto json = BoxUtils::Json::CreateTable();
+	//创建一个表
+	curl_slist *next = slist;
+	char *buf = nullptr;
+	char *cut;
+	const char *vaule = nullptr;
+	while(next != nullptr){
+		//遍历
+		buf = (char*)realloc(buf,(strlen(next->data)+1));
+		strcpy(buf,next->data);
+		//复制字符串
+		cut = strchr(buf,':');
+		//查找分割符号
+		if(cut != nullptr){
+			*cut = '\0';
+			//切割一下
+			cut++;
+			while(*cut == ' '){
+				//跳过空格
+				cut ++;
+			}
+			vaule = cut;
+		}
+		else{
+			vaule = nullptr;
+		}
+		json->add_string(buf,vaule);//加入字典
+		next = next->next;
+	}
+	free(buf);
+	return json;
+}
+void Headers::load_json(BoxUtils::Json &json){
+	auto iter = json.iter_table();//遍历表
+	std::stringstream stream;
+	std::string key;
+	std::string vaule;
+	do{
+		stream.clear();
+		key = iter.name;
+		(*iter) >> vaule;
+		//导出名字和键值
+		stream << key<<":"<<vaule;
+		slist = curl_slist_append(slist,stream.str().c_str());
+	}
+	while(++iter);
 }
