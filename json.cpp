@@ -105,6 +105,14 @@ Json *Json::LoadFile(const char *filename){
 	stream.close();
 	return json;
 }
+void Json::SaveFile(Json &json,const char *filename){
+	//写出文件
+	std::ofstream stream(filename);
+	char *str = json.to_cstring();
+	stream << str;
+	stream.close();
+	free(str);
+}
 void Json::MinifyString(char *str){
 	cJSON_Minify(str);
 }
@@ -168,21 +176,13 @@ Json Json::operator [](int val){
 }
 void Json::operator >>(int &i){
 	//得到int类型数据
-	if(cJSON_IsNumber(item)){
-		i = item->valueint;
-	}
-	else{
-		throw TypeError("Number",get_type_string());
-	}
+	check_is_number();
+	i = item->valueint;
 }
 void Json::operator >>(double &number){
 	//得到double
-	if(cJSON_IsNumber(item)){
-		number = item->valuedouble;
-	}
-	else{
-		throw TypeError("Number",get_type_string());
-	}
+	check_is_number();
+	number = item->valuedouble;
 }
 void Json::operator >>(char * & str){
 	const char *raw_str;
@@ -198,12 +198,8 @@ void Json::operator >>(std::string &str){
 }
 void Json::operator >>(const char * &str){
 	//得到复制的字符串
-	if(cJSON_IsString(item)){
-		str = item->valuestring;
-	}
-	else{
-		throw TypeError("String",get_type_string());
-	}
+	check_is_string();
+	str = item->valuestring;
 }
 void Json::operator >>(bool &boolen){
 	//得到bool值
@@ -213,6 +209,28 @@ void Json::operator >>(bool &boolen){
 	else{
 		throw TypeError("Bool",get_type_string());
 	}
+}
+//写入数据
+void Json::operator <<(int &i){
+	check_is_number();
+	cJSON_SetIntValue(item,i);
+}
+void Json::operator <<(double &number){
+	check_is_number();
+	cJSON_SetNumberHelper(item,number);
+}
+void Json::operator <<(std::string &str){
+	//转换成C的字符串
+	Json::operator <<(str.c_str());
+}
+void Json::operator <<(const char *str){
+	check_is_string();
+	if(item->valuestring != nullptr){
+		//释放原有的字符串
+		cJSON_free(item->valuestring);
+	}
+	item->valuestring = (char*)cJSON_malloc((strlen(str)+1)*sizeof(char));
+	strcpy(item->valuestring,str);
 }
 //类型
 const char *Json::get_type_string(){
@@ -254,6 +272,16 @@ void Json::check_is_array(){
 void Json::check_is_object(){
 	if((item->type & 0xFF) != cJSON_Object){
 		throw TypeError("Object",get_type_string());
+	}
+}
+void Json::check_is_string(){
+	if((item->type & 0xFF) != cJSON_String){
+		throw TypeError("String",get_type_string());
+	}
+}
+void Json::check_is_number(){
+	if((item->type & 0xFF) != cJSON_Number){
+		throw TypeError("Number",get_type_string());
 	}
 }
 //加入其他节点

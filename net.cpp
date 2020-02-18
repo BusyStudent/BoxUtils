@@ -1,6 +1,7 @@
 #include <sstream>
 #include <string>
 #include <curl/curl.h>
+#include <thread>
 #include "net.hpp"
 using namespace BoxUtils::Net;
 Session *BoxUtils::Net::session = nullptr;

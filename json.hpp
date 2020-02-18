@@ -36,6 +36,8 @@ namespace BoxUtils{
 			//类型检查
 			void check_is_array();//检查是数组
 			void check_is_object();//检查是对象
+			void check_is_number();//检查是数字
+			void check_is_string();
 			
 			void add_string(const char *str);
 			void add_string(const char *key,const char *str);
@@ -58,8 +60,11 @@ namespace BoxUtils{
 			void operator >> (std::string &str);
 			void operator >> (const char * & str);//得到字符串
 			void operator >> (bool &boolen);
+			void operator << (bool &boolen);
 			void operator << (int &i);
 			void operator << (double &number);
+			void operator << (std::string &str);
+			void operator << (const char *str);
 			cJSON *get_cjson();
 			//构造Json的类型
 			static Json *ParseString(const char *);
