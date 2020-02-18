@@ -1,13 +1,19 @@
 name: C/C++ CI
 
-on: [push]
+on:
+  push:
+    branches:
+    - master
+  
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
-    
+  
     steps:
+    - name:curl install
+      run:apt install libcurl-dev
     - uses: actions/checkout@v2
     - name: make
       run: make
