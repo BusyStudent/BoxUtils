@@ -3,7 +3,7 @@ CFLAGS=-g -fPIC -Wall -Wextra
 CXX=g++
 CXXFLAGS=-g -fPIC -Wall -Wextra
 OBJ=random.o net.o net_session.o net_headers.o net_callback.o net_response.o net_exception.o cJSON.o json.o \
-	exception.o iconv.o sem.o
+	exception.o iconv.o sem.o base64.o
 LDFLAGS=-lcurl 
 libbox_utils.so:$(OBJ)
 	$(CXX) $(LDFLAGS) $(OBJ) -shared -o libbox_utils.so
@@ -27,5 +27,6 @@ iconv.o:iconv.cpp iconv.hpp
 #字符串编码
 sem.o:sem.cpp sem.hpp
 #信号量
+base64.o:base64.cpp base64.hpp
 clean:
 	rm $(OBJ) libbox_utils.so
