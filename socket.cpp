@@ -1,105 +1,131 @@
 #include "socket.hpp"
+#include <string>
+#include <cerrno>
 #include <cstring>
+#include <cstdlib>
 #include <stdexcept>
 using namespace BoxUtils;
-static inline int bind_socket(int fd,void *addr,socklen_t len){
-	return bind(fd,(struct sockaddr *)addr,len);
-}
-static inline int close_socket(int fd){
-	//关闭Socket
+//内连函数
+static inline int sock_close(int fd){
+	//关闭
 	return close(fd);
 }
-static inline int connect_socket(int fd,void *addr,socklen_t len){
-	return connect(fd,(struct sockaddr*)addr,len);
+static inline int sock_open(int domain,int protocol){
+	//申请一个Socket
+	return socket(domain,protocol,0);
 }
-static inline int accept_socket(int fd,void *addr,socklen_t len){
-	//接受Socket
-	return accept(fd,(struct sockaddr*)addr,&len);
+static inline int sock_bind(int fd,void *addr,socklen_t len){
+	//绑定
+	return bind(fd,(struct sockaddr*)addr,len);
 }
-static inline int listen_socket(int fd,int backlog){
+static inline int sock_listen(int fd,int backlog){
+	//监听
 	return listen(fd,backlog);
 }
-static inline ssize_t write_fd(int fd,const void *buf,size_t len){
+static inline ssize_t sock_write(int fd,const void *buf,size_t len){
 	return write(fd,buf,len);
 }
-static inline ssize_t read_fd(int fd,void *buf,size_t len){
+static inline ssize_t sock_read(int fd,void *buf,size_t len){
 	return read(fd,buf,len);
 }
-
-SocketV4::Address::Address(const char *ip,unsigned int port){
-	//通过地址
-	memset(&addr,0,sizeof(struct sockaddr_in));
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(port);
-	addr.sin_addr.s_addr = inet_addr(ip);
-	this->ip = ip;
-	this->port = port;
+//内置函数
+Socket::~Socket(){
+	sock_close(fd);
 }
-void SocketV4::Address::load_struct(struct sockaddr_in &addr){
-	//通过结构体
-	memcpy(&(this->addr),&addr,sizeof(struct sockaddr_in));
-	this->port = htons(addr.sin_port);
-	this->ip = inet_ntoa(addr.sin_addr);
+int Socket::get_fd(){
+	//得到fd
+	return fd;
 }
-SocketV4::Socket::~Socket(){
-	close_socket(fd);
+const char *Socket::GetError(){
+	//得到错误
+	return strerror(errno);
 }
-SocketV4::Socket::Socket(int fd){
-	this->fd = fd;
+//绑定
+bool Socket::bind(SockAddress &addr){
+	if(sock_bind(fd,&(addr.addr),addr.len()) < 0){
+		//绑定错误
+		throw_for_errno();
+		return false;
+	}
+	return true;
 }
-void SocketV4::Socket::bind(const char *ip,unsigned int port){
-	SocketV4::Address addr(ip,port);
-	bind(addr);
+bool Socket::listen(int backlog){
+	if(sock_listen(fd,backlog) < 0){
+		throw_for_errno();
+		return false;
+	}
+	return true;
 }
-void SocketV4::Socket::bind(SocketV4::Address &addr){
-	//绑定
-	int ret = bind_socket(fd,&(addr.addr),sizeof(sockaddr_in));
+bool Socket::close(){
+	if(sock_close(fd) < 0){
+		//失败
+		throw_for_errno();
+		return false;
+	}
+	else{
+		return true;
+	}
+}
+ssize_t Socket::write(const void *buf,size_t len){
+	//写
+	auto ret = sock_write(fd,buf,len);
 	if(ret < 0){
 		//失败
-		throw std::bad_exception();
+		throw_for_errno();
+	}
+	return ret;
+}
+ssize_t Socket::read(void *buf,size_t len){
+	auto ret = sock_read(fd,buf,len);
+	if(ret < 0){
+		throw_for_errno();
+	}
+	return ret;
+}
+//通过errno抛出异常
+void Socket::throw_for_errno(){
+	if(noexcept_){
+		//不抛出异常
+		return;
+	}
+	switch(errno){
+		default:
+			//未知类型一致抛出Runtime
+			throw std::runtime_error(GetError());
 	}
 }
-void SocketV4::Socket::connect(SocketV4::Address &addr){
-	int ret = connect_socket(fd,&(addr.addr),sizeof(sockaddr_in));
-	if(ret<0){
-		throw std::bad_exception();
+void Socket::set_noexcept(){
+	noexcept_ = true;
+}
+//地址
+SockAddress::SockAddress(){
+	//初始化清空
+	memset(this,0,sizeof(SockAddress));
+}
+socklen_t SockAddress::len(){
+	switch(type){
+		//判断类型
+		case V4:
+			//IPV4地址长度
+			return sizeof(struct sockaddr_in);
+		case V6:
+			return sizeof(struct sockaddr_in6);
+		default:
+			throw std::invalid_argument("Unkown Address Type");
 	}
 }
-void SocketV4::Socket::listen(int backlog){
-	if(listen_socket(fd,backlog) <0){
-		throw std::bad_exception();
+//TCP
+TCPSocket::TCPSocket(bool v4){
+	if(v4){
+		//IPV4
+		fd = sock_open(AF_INET,SOCK_STREAM);
 	}
-}
-void SocketV4::Socket::close(){
-	close_socket(fd);
-}
-ssize_t SocketV4::Socket::write(const void *buf,size_t len){
-	return write_fd(fd,buf,len);
-}
-ssize_t SocketV4::Socket::read(void *buf,size_t len){
-	return read_fd(fd,buf,len);
-}
-ssize_t SocketV4::Socket::operator <<(std::string &str){
-	return this->write(str.c_str(),str.length());
-}
-
-
-SocketV4::TCP::TCP(){
-	fd = socket(AF_INET,SOCK_STREAM,0);
-	if(fd == -1){
-		throw std::bad_alloc();
+	else{
+		//IPV6
+		fd = sock_open(AF_INET6,SOCK_STREAM);
 	}
-}
-SocketV4::TCP *SocketV4::TCP::accept(SocketV4::Address *addr){
-	//接受连接
-	struct sockaddr_in new_addr;
-	int fd = accept_socket(this->fd,&new_addr,sizeof(sockaddr_in));
 	if(fd < 0){
 		//失败
 		throw std::bad_alloc();
 	}
-	if(addr != nullptr){
-		addr->load_struct(new_addr);
-	}
-	return (SocketV4::TCP*)new SocketV4::Socket(fd);
 }
