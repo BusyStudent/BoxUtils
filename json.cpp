@@ -297,6 +297,10 @@ void Json::add_number(double number){
 	check_is_array();
 	cJSON_AddItemToArray(item,cJSON_CreateNumber(number));
 }
+void Json::add_number(const char *key,double number){
+	check_is_object();
+	cJSON_AddItemToObject(item,key,cJSON_CreateNumber(number));
+}
 void Json::add_item(Json &item){
 	//加入数组
 	check_is_array();

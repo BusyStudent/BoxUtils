@@ -42,6 +42,7 @@ namespace BoxUtils{
 			void add_string(const char *str);
 			void add_string(const char *key,const char *str);
 			void add_number(double number);
+			void add_number(const char *key,double number);
 			
 			void add_item(Json &item);//加入另一个节点到数组
 			void add_item(const char *key,Json &item);//加入对象里面 不就是字典么
