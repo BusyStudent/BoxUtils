@@ -251,3 +251,10 @@ int Xv::poll_event(Event *ev){
 	pthread_mutex_unlock(&mutex);
 	return true;
 }
+int Xv::wait_event(Event *ev){
+	while(!poll_event(ev)){
+		sleep(timeout.tv_sec);
+		usleep(timeout.tv_usec);
+	}
+	return 1;
+}
