@@ -46,15 +46,15 @@ Xv::Xv(){
 }
 Xv::~Xv(){
 	//析构时候Join线程
-	pthread_cancel(thread);//关闭线程
+	pthread_cancel(thread);//关闭子线程
 	pthread_join(thread,nullptr);
 	pthread_mutex_destroy(&mutex);
 	//删除Socket
 	std::vector <Socket*> ::iterator iter;
-	for(iter = rw_socks.end();iter != rw_socks.end();++iter){
+	for(iter = rw_socks.begin();iter != rw_socks.end();++iter){
 		delete *iter;
 	}
-	for(iter = ap_socks.end();iter != ap_socks.end();++iter){
+	for(iter = ap_socks.begin();iter != ap_socks.end();++iter){
 		delete *iter;
 	}
 }
@@ -109,6 +109,9 @@ void Xv::run(){
 						pop_in_vec(ap_socks,ev.sock);
 						FD_CLR(ev.sock->fd,&ap_set);
 						delete ev.sock;
+						break;
+					case Event::XV_QUIT:
+						pthread_exit(nullptr);
 						break;
 					default:
 						errno = EINVAL;
@@ -257,4 +260,12 @@ int Xv::wait_event(Event *ev){
 		usleep(timeout.tv_usec);
 	}
 	return 1;
+}
+void Xv::quit(){
+	//退出
+	Event ev;
+	ev.type = Event::XV_QUIT;
+	push_xv_event(ev);
+	push_event(ev);
+	//两边都发送消息
 }

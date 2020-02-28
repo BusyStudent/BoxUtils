@@ -33,6 +33,16 @@ static inline ssize_t sock_read(int fd,void *buf,size_t len){
 static inline int sock_accept(int fd,void *addr,socklen_t *len){
 	return accept(fd,(struct sockaddr*)addr,len);
 }
+static inline ssize_t sock_recvfrom(int fd,void *buf,
+									size_t len,int flag,
+									void *addr,socklen_t *slen){
+	return recvfrom(fd,buf,len,flag,(struct sockaddr*)addr,slen);
+}
+static inline ssize_t sock_sendto(int fd,const void *buf,
+								size_t len,int flag,
+								void *addr,socklen_t slen){
+	return sendto(fd,buf,len,flag,(struct sockaddr*)addr,slen);
+}
 //内置函数
 Socket::~Socket(){
 	sock_close(fd);
@@ -149,6 +159,10 @@ void SockAddress::LoadStruct(SockAddress& addr,const struct sockaddr_in &v4_addr
 	memcpy(&(addr.addr.v4),&v4_addr,sizeof(struct sockaddr_in));
 	addr.type = V4;
 }
+void SockAddress::LoadStruct(SockAddress& addr,const struct sockaddr_in6 &v6_addr){
+	memcpy(&(addr.addr.v6),&v6_addr,sizeof(struct sockaddr_in6));
+	addr.type = V6;
+}
 std::string SockAddress::get_ip(){
 	switch(type){
 		case V6:
@@ -195,27 +209,125 @@ TCPSocket::TCPSocket(bool v4){
 	}
 	if(fd < 0){
 		//失败
-		throw std::bad_alloc();
+		throw_for_errno();
 	}
+	this->v4 = v4;//设置是否是IPV4
 }
 TCPSocket *TCPSocket::accept(SockAddress *addr){
 	//接入链接
-	struct sockaddr_in v4_addr;
-	//地址
-	socklen_t addrlen = sizeof(struct sockaddr_in);
-	auto new_fd = sock_accept(fd,&v4_addr,&addrlen);
-	//接入链接
-	if(new_fd < 0){
-		//失败
-		throw_for_errno();
-		return nullptr;
+	int new_fd;
+	if(v4){
+		//IPV4
+		struct sockaddr_in v4_addr;
+		//地址
+		socklen_t addrlen = sizeof(struct sockaddr_in);
+		new_fd = sock_accept(fd,&v4_addr,&addrlen);
+		//接入链接
+		if(new_fd < 0){
+			//失败
+			throw_for_errno();
+			return nullptr;
+		}
+		//
+		if(addr != nullptr){
+			//复制地址
+			SockAddress::LoadStruct(*addr,v4_addr);
+		}
 	}
-	//
-	if(addr != nullptr){
-		//复制地址
-		SockAddress::LoadStruct(*addr,v4_addr);
+	else{
+		//IPV6
+		struct sockaddr_in6 v6_addr;
+		socklen_t addrlen = sizeof(struct sockaddr_in6);
+		new_fd = sock_accept(fd,&v6_addr,&addrlen);
+		if(new_fd < 0){
+			//是白
+			throw_for_errno();
+			return nullptr;
+		}
+		if(addr != nullptr){
+			SockAddress::LoadStruct(*addr,v6_addr);
+		}
 	}
 	TCPSocket *sock = (TCPSocket*)new Socket();
 	sock->fd = new_fd;
 	return sock;
+}
+//UDPSocket
+UDPSocket::UDPSocket(bool v4){
+	if(v4){
+		//IPV4 UDP
+		fd = sock_open(AF_INET,SOCK_DGRAM);
+	}
+	else{
+		//IPV6 UDP
+		fd = sock_open(AF_INET6,SOCK_DGRAM);
+	}
+	if(fd < 0){
+		//失败 抛出异常
+		throw_for_errno();
+	}
+	this->v4 = v4;
+}
+ssize_t UDPSocket::recvfrom(void *buf,size_t len,SockAddress *addr){
+	//UDP接收数据
+	ssize_t ret;//接受数据大小
+	if(v4){
+		//IPV4
+		struct sockaddr_in v4_addr;
+		socklen_t addrlen = sizeof(sockaddr_in);
+		//地址和大小
+		ret = sock_recvfrom(fd,buf,len,0,&v4_addr,&addrlen);
+		if(ret < 0){
+			//失败
+			throw_for_errno();
+			return ret;
+		}
+		if(addr != nullptr){
+			SockAddress::LoadStruct(*addr,v4_addr);
+		}
+	}
+	else{
+		//IPV6
+		struct sockaddr_in6 v6_addr;
+		socklen_t addrlen = sizeof(struct sockaddr_in6);
+		ret = sock_recvfrom(fd,buf,len,0,&v6_addr,&addrlen);
+		if(ret < 0){
+			throw_for_errno();
+			return ret;
+		}
+		if(addr != nullptr){
+			//赋值地址
+			SockAddress::LoadStruct(*addr,v6_addr);
+		}
+	}
+	return ret;
+}
+ssize_t UDPSocket::recvfrom(void *buf,size_t len,const char **ip,uint16_t *port){
+	SockAddress addr;
+	auto ret = this->recvfrom(buf,len,&addr);
+	//调用底层
+	if(ret < 0){
+		//出错而且没有抛出异常 直接返回
+		return ret;
+	}
+	if(ip != nullptr){
+		*ip = strdup(addr.get_ip().c_str());
+	}
+	if(port != nullptr){
+		*port = addr.get_port();
+	}
+	return ret;
+}
+ssize_t UDPSocket::sendto(const void *buf,size_t len,SockAddress &addr){
+	//发送数据
+	auto ret = sock_sendto(fd,buf,len,0,&(addr.addr),addr.len());
+	if(ret < 0){
+		//出错
+		throw_for_errno();
+	}
+	return ret;
+}
+ssize_t UDPSocket::sendto(const void *buf,size_t len,const char *ip,uint16_t port){
+	SockAddress addr(ip,port);
+	return this->sendto(buf,len,addr);
 }

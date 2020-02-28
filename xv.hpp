@@ -24,6 +24,7 @@ namespace BoxUtils{
 					XV_DELETE_ACCEPT_SOCK,
 					XV_REMOVE_ACCEPT_SOCK,//移除Accept Socket
 					XV_REMOVE_SOCK,//移除Socket
+					XV_QUIT//退出子线程
 				}type;
 				int errno_;
 				Socket *sock;
@@ -35,6 +36,7 @@ namespace BoxUtils{
 			~Xv();
 			void add_socket(Socket *);
 			void add_accept_socket(Socket *);//
+			void quit();//退出
 			void run();//启动
 			static void *ThreadMain(void *);//线程启动点
 			void set_timeout(time_t s,long us);//设置超时时间

@@ -16,6 +16,13 @@
 #include <string>
 namespace BoxUtils{
 	//基本的Socket
+	namespace SocketType{
+		//socket类型
+		enum SocketType{
+			IPV4 = true,
+			IPV6 = false
+		};
+	};
 	class SockAddress;
 	class Socket{
 		public:
@@ -55,7 +62,7 @@ namespace BoxUtils{
 			uint16_t get_port();//得到端口
 			
 			static void LoadStruct(SockAddress&,const struct sockaddr_in &);//加载结构体
-			
+			static void LoadStruct(SockAddress&,const struct sockaddr_in6&);
 		private:
 			union{
 				struct sockaddr_in v4;//IPV4
@@ -68,6 +75,7 @@ namespace BoxUtils{
 			}type;//类型
 		friend class Socket;
 		friend class TCPSocket;
+		friend class UDPSocket;
 	};
 	class TCPSocket:public Socket{
 		public:
@@ -76,10 +84,21 @@ namespace BoxUtils{
 			//默认是IPV4的Socket
 			TCPSocket *accept(SockAddress *addr = nullptr);
 			//等待接入
+		private:
+			bool v4;
 	};
 	class UDPSocket:public Socket{
 		public:
+			UDPSocket(bool v4 = true);
 			UDPSocket(const UDPSocket &) = delete;
+			//UDP特有的sendto和recvfrom
+			ssize_t sendto(const void *buf,size_t len,SockAddress &addr);//发送信息
+			ssize_t sendto(const void *buf,size_t len,const char *ip,uint16_t port);//发送信息
+			ssize_t recvfrom(void *buf,size_t len,SockAddress *addr = nullptr);//接收信息
+			ssize_t recvfrom(void *buf,size_t len,const char **ip = nullptr,uint16_t *port = nullptr);//接收信息
+		private:
+			bool v4;//是否是IPV4 
+			//要么就IPV6
 	};
 };
 #endif
