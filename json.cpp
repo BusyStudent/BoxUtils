@@ -4,7 +4,7 @@
 #include <cstring>
 #include <string>
 #include <fstream>
-using namespace BoxUtils;
+using namespace Box;
 Json::Json(cJSON *item,bool independence){
 	//用一个cJSON指针初始化
 	this->item = item;

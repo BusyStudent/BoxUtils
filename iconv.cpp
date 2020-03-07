@@ -5,7 +5,7 @@
 #include <cerrno>
 #include "iconv.hpp"
 #define PLUS_BUFFER 100
-using namespace BoxUtils;
+using namespace Box;
 Iconv::Iconv(const char *to,const char *from){
 	cd = iconv_open(to,from);
 }

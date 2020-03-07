@@ -1,8 +1,8 @@
-#ifndef _BOXUTILS_ICONV_HPP_
-#define _BOXUTILS_ICONV_HPP_
+#ifndef _BOX_ICONV_HPP_
+#define _BOX_ICONV_HPP_
 //转换
 #include <iconv.h>
-namespace BoxUtils{
+namespace Box{
 	class Iconv{
 		public:
 			Iconv(const char *to,const char *from);

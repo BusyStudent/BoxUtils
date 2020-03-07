@@ -1,8 +1,8 @@
-#ifndef _BOXUTILS_JSON_HPP_
-#define _BOXUTILS_JSON_HPP_
+#ifndef _BOX_JSON_HPP_
+#define _BOX_JSON_HPP_
 #include <string>
 #include "cJSON.h"
-namespace BoxUtils{
+namespace Box{
 	class JsonIterator;
 	class JsonArrayIterator;
 	class JsonTableIterator;

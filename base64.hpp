@@ -1,7 +1,7 @@
-#ifndef _BOXUTILS_BASE64_HPP_
-#define _BOXUTILS_BASE64_HPP_
+#ifndef _BOX_BASE64_HPP_
+#define _BOX_BASE64_HPP_
 #include <string>
-namespace BoxUtils{
+namespace Box{
 	namespace Base64{
 		//Base64的表
 		extern const char *EncodeTable;

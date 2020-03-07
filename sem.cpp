@@ -9,7 +9,7 @@
 #include <cstdio>
 #include <cerrno>
 #include "sem.hpp"
-using namespace BoxUtils;
+using namespace Box;
 Sem::Sem(unsigned int value){
 	if(sem_init(&sem,0,value) !=0 ){
 		//失败了

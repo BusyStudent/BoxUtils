@@ -1,5 +1,5 @@
-#ifndef _BOXUTILS_SOCKET_HPP_
-#define _BOXUTILS_SOCKET_HPP_
+#ifndef _BOX_SOCKET_HPP_
+#define _BOX_SOCKET_HPP_
 //Socket部分
 #ifdef _WIN32
 	#include <winsock.h>
@@ -14,7 +14,7 @@
 	#include <netinet/in.h> 
 #endif
 #include <string>
-namespace BoxUtils{
+namespace Box{
 	//基本的Socket
 	namespace SocketType{
 		//socket类型

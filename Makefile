@@ -3,7 +3,7 @@ CFLAGS=-g -fPIC -Wall -Wextra
 CXX=g++
 CXXFLAGS=-g -fPIC -Wall -Wextra
 OBJ=random.o cJSON.o json.o \
-	exception.o iconv.o sem.o base64.o socket.o xv.o
+	exception.o iconv.o sem.o base64.o socket.o string.o dns.o
 LDFLAGS=-pthread
 libbox_utils.so:$(OBJ)
 	$(CXX) $(LDFLAGS) $(OBJ) -shared -o libbox_utils.so
@@ -29,6 +29,8 @@ sem.o:sem.cpp sem.hpp
 #信号量
 base64.o:base64.cpp base64.hpp
 socket.o:socket.cpp socket.hpp
-xv.o:xv.cpp xv.hpp socket.o
+#xv.o:xv.cpp xv.hpp socket.o
+string.o:string.cpp string.hpp
+dns.o:dns.cpp dns.hpp
 clean:
 	rm $(OBJ) libbox_utils.so

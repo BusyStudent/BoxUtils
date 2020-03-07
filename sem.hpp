@@ -1,5 +1,5 @@
-#ifndef _BOXUTILS_SEM_HPP_
-#define _BOXUTILS_SEM_HPP_
+#ifndef _BOX_SEM_HPP_
+#define _BOX_SEM_HPP_
 #ifdef _WIN32
 	#include <windows.h>
 #else
@@ -7,7 +7,7 @@
 	#include <semaphore.h>
 	#include <sys/sem.h>
 #endif
-namespace BoxUtils{
+namespace Box{
 	class Sem{
 		//信号量
 		public:

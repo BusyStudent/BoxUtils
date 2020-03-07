@@ -4,7 +4,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <stdexcept>
-using namespace BoxUtils;
+using namespace Box;
 //内连函数
 static inline int sock_close(int fd){
 	//关闭

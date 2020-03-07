@@ -1,8 +1,8 @@
-#ifndef _BOXUTILS_EXCEPTION_HPP_
-#define _BOXUTILS_EXCEPTION_HPP_
+#ifndef _BOX_EXCEPTION_HPP_
+#define _BOX_EXCEPTION_HPP_
 //一下异常
 #include <stdexcept>
-namespace BoxUtils{
+namespace Box{
 	class IndexError:public std::exception{
 		public:
 			IndexError(int index);

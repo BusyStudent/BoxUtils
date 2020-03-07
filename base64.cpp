@@ -2,7 +2,7 @@
 #include <cstring>
 #include <climits>
 #include "base64.hpp"
-using namespace BoxUtils;
+using namespace Box;
 const char *Base64::EncodeTable="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const char Base64::DecodeTable[]=
 {
