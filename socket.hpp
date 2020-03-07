@@ -24,6 +24,7 @@ namespace BoxUtils{
 		};
 	};
 	class SockAddress;
+	class SocketSet;
 	class Socket{
 		public:
 			virtual ~Socket();
@@ -45,11 +46,27 @@ namespace BoxUtils{
 			//忽略异常
 			void set_noexcept();
 			static const char *GetError();
+			static int Select(SocketSet *r,SocketSet *w,SocketSet *e,struct timeval *t);
+			//Select套接字
 		protected:
 			bool noexcept_ = false;
 			//默认抛出异常
 			int fd;
 		friend class Xv;
+		friend class SocketSet;
+	};
+	class SocketSet{
+		//Socket集合
+		public:
+			SocketSet();
+			void add(Socket *);//加入一个
+			//移除要自己清空 以为如果fd会发生变化
+			void clear();
+			bool is_set(Socket *);//被设置了
+		private:
+			int maxfd;
+			fd_set _set;
+		friend class Socket;
 	};
 	class SockAddress{
 		public:

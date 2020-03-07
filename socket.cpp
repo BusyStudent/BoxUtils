@@ -331,3 +331,53 @@ ssize_t UDPSocket::sendto(const void *buf,size_t len,const char *ip,uint16_t por
 	SockAddress addr(ip,port);
 	return this->sendto(buf,len,addr);
 }
+//SocketSet
+SocketSet::SocketSet(){
+	this->clear();//清空自己
+}
+void SocketSet::clear(){
+	//清空集合
+	FD_ZERO(&_set);
+	maxfd = 0;
+}
+void SocketSet::add(Socket *sock){
+	if(sock->fd > maxfd){
+		//最大的fd
+		maxfd = sock->fd;
+	}
+	FD_SET(sock->fd,&_set);
+}
+bool SocketSet::is_set(Socket *sock){
+	//已被设置
+	return FD_ISSET(sock->fd,&_set);
+}
+//Select
+int Socket::Select(SocketSet *r,SocketSet *w,SocketSet *e,struct timeval *t){
+	fd_set *r_set = nullptr;
+	fd_set *w_set = nullptr;
+	fd_set *e_set = nullptr;
+	//三个集合
+	int maxfd = 0;
+	if(r != nullptr){
+		r_set = &(r->_set);
+		if(r->maxfd > maxfd){
+			//得到最大fd
+			maxfd = r->maxfd;
+		}
+	}
+	if(w != nullptr){
+		w_set = &(w->_set);
+		if(w->maxfd > maxfd){
+			//得到最大fd
+			maxfd = w->maxfd;
+		}
+	}
+	if(e != nullptr){
+		e_set = &(e->_set);
+		if(e->maxfd > maxfd){
+			//得到最大fd
+			maxfd = e->maxfd;
+		}
+	}
+	return select(maxfd+1,r_set,w_set,e_set,t);
+}
