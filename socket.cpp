@@ -18,6 +18,9 @@ static inline int sock_bind(int fd,void *addr,socklen_t len){
 	//绑定
 	return bind(fd,(struct sockaddr*)addr,len);
 }
+static inline int sock_connect(int fd,void *addr,socklen_t len){
+	return connect(fd,(struct sockaddr*)addr,len);
+}
 static inline int sock_listen(int fd,int backlog){
 	//监听
 	return listen(fd,backlog);
@@ -54,6 +57,19 @@ int Socket::get_fd(){
 const char *Socket::GetError(){
 	//得到错误
 	return strerror(errno);
+}
+//连接
+bool Socket::connect(const char *ip,uint16_t port){
+	SockAddress addr(ip,port);
+	return this->connect(addr);
+}
+bool Socket::connect(SockAddress &addr){
+	if(sock_connect(fd,&(addr.addr),addr.len())<0){
+		//失败
+		throw_for_errno();
+		return false;
+	}
+	return true;
 }
 //绑定
 bool Socket::bind(SockAddress &addr){

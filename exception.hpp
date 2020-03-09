@@ -24,5 +24,8 @@ namespace Box{
 			std::string excepted;
 			std::string reason;
 	};
+	class UnknownHost:public std::exception{
+		
+	};
 };
 #endif

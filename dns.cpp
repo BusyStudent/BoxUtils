@@ -14,7 +14,7 @@ DNS::HostInfo DNS::ParseName(const char *name){
 	ent = gethostbyname(name);
 	if(ent == nullptr){
 		//失败
-		throw std::runtime_error(hstrerror(h_errno));
+		return info;
 	}
 	if(ent->h_addrtype == AF_INET){
 		info.type = SocketType::IPV4;

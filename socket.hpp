@@ -28,6 +28,8 @@ namespace Box{
 	class Socket{
 		public:
 			virtual ~Socket();
+			bool connect(const char *ip,uint16_t port);
+			bool connect(SockAddress &);//连接服务器
 			bool bind(const char *ip,uint16_t port);
 			bool bind(SockAddress &);//绑定
 			bool close();//关闭
