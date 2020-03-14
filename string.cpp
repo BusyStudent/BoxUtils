@@ -3,7 +3,7 @@
 #include <vector>
 #include "string.hpp"
 using namespace Box;
-StringVector Utils::SplitSting(
+String::Vector String::Split(
 	const char *str,
 	const char *subs){
 	std::vector <std::string> vec;
@@ -27,7 +27,7 @@ StringVector Utils::SplitSting(
 	}
 	return vec;
 }
-StringVector Utils::SplitSting(
+String::Vector String::Split(
 	const char *str,
 	const char *subs,
 	int max){
