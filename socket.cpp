@@ -46,6 +46,9 @@ static inline ssize_t sock_sendto(int fd,const void *buf,
 								void *addr,socklen_t slen){
 	return sendto(fd,buf,len,flag,(struct sockaddr*)addr,slen);
 }
+static inline int sock_flush(int fd){
+	return fdatasync(fd);
+}
 //内置函数
 Socket::~Socket(){
 	sock_close(fd);
@@ -100,6 +103,14 @@ bool Socket::close(){
 	else{
 		return true;
 	}
+}
+bool Socket::flush(){
+	//刷新socket
+	if(sock_flush(fd) < 0){
+		throw_for_errno();
+		return false;
+	}
+	return true;
 }
 ssize_t Socket::write(const void *buf,size_t len){
 	//写

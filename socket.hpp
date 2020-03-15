@@ -34,11 +34,11 @@ namespace Box{
 			bool bind(SockAddress &);//绑定
 			bool close();//关闭
 			bool listen(int backlog);//监听
+			bool flush();
 			bool set_flags();
 			void set_noblock();//设置非阻塞
 			void set_block();//设置阻塞
 			//读取和写
-			
 			ssize_t write(const void *buf,size_t len);
 			ssize_t read(void *buf,size_t len);
 			//得到 fd
@@ -54,7 +54,7 @@ namespace Box{
 			bool noexcept_ = false;
 			//默认抛出异常
 			int fd;
-		friend class Xv;
+		//friend class Xv;
 		friend class SocketSet;
 	};
 	class SocketSet{
