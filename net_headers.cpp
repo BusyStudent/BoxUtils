@@ -2,12 +2,14 @@
 #include <string>
 #include <sstream>
 #include <curl/curl.h>
+#include <functional>
 #include "json.hpp"
 #include "exception.hpp"
 #include "net_headers.hpp"
 #if defined(_MSC_VER) 
 	#define strncasecmp _strnicmp 
 #endif
+#define LEN(STR) ((strchr((STR),':') - (STR))/sizeof(char))
 using namespace Box::Net;
 Headers::Headers(){
 	slist = nullptr;
@@ -40,10 +42,10 @@ void Headers::update(const Headers &h){
 }
 const char *Headers::get_value(const char *key){
 	//查找值
-	size_t keylen = strlen(key);//key的长度
+	//size_t keylen = strlen(key);//key的长度
 	struct curl_slist *next = (struct curl_slist*)(slist);
 	while(next != nullptr){
-		if(strncasecmp(next->data,key,keylen) == 0){
+		if(strncasecmp(next->data,key,LEN(next->data)) == 0){
 			//找到了
 			return strchr(next->data,':') + 1;
 		}
@@ -70,12 +72,12 @@ bool Headers::has_key(const char *key){
 }
 bool Headers::remove(const char *key){
 	bool status = false;
-	size_t keylen = strlen(key);//key的长度
+	//size_t keylen = strlen(key);//key的长度
 	struct curl_slist *new_list = nullptr;//新的链表
 	struct curl_slist *next = (struct curl_slist*)(slist);
 	while(next != nullptr){
 		//遍历链表 加入值
-		if(strncasecmp(next->data,key,keylen) == 0){
+		if(strncasecmp(next->data,key,LEN(next->data)) == 0){
 			//找到这个值 忽略它
 			status = true;//找到
 		}
@@ -111,4 +113,19 @@ Box::Json *Headers::json(){
 		next = next->next;
 	}
 	return json;
+}
+//遍历
+void Headers::for_each(std::function <void(const char*,const char*)> fn){
+	struct curl_slist *next = (struct curl_slist*)(slist);
+	std::string key;
+	const char *splist_mark;
+	while(next != nullptr){
+		splist_mark = strchr(next->data,':');
+		key.clear();
+		key.append(next->data,(splist_mark - (next->data))/sizeof(char));
+		
+		fn(key.c_str(),splist_mark+1);
+		//调用函数
+		next = next->next;
+	}
 }

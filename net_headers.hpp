@@ -1,5 +1,6 @@
 #ifndef _BOXNET_HEADERS_HPP_
 #define _BOXNET_HEADERS_HPP_
+#include <functional>
 namespace Box{
 	class Json;
 	namespace Net{
@@ -18,6 +19,7 @@ namespace Box{
 				bool has_key(const char *key);//是否有这键
 				const char *get_value(const char *key);//得到值(没有异常)
 				const char *operator[](const char *key);//有异常的
+				void for_each(std::function <void(const char*,const char*)>);//遍历头
 			private:
 				void *slist;
 			friend class Easy;

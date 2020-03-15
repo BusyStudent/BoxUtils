@@ -1,7 +1,8 @@
 #ifndef _BOX_JSON_HPP_
 #define _BOX_JSON_HPP_
+#include <functional>
 #include <string>
-#include "cJSON.h"
+struct cJSON;//替代了#include "cJSON.h"
 namespace Box{
 	class JsonIterator;
 	class JsonArrayIterator;
@@ -48,9 +49,15 @@ namespace Box{
 			void add_item(const char *key,Json &item);//加入对象里面 不就是字典么
 			//得到一些信息
 			int get_array_size();
+			int get_int();//得到int
+			double get_number();
+			
 			JsonArrayIterator iter_array();//迭代数组
 			JsonTableIterator iter_table();//迭代表
-			//
+			//迭代
+			void for_array(std::function <void(Json&)>);//迭代数组
+			void for_table(std::function <void(const char*,Json&)>);//迭代表
+			
 			Json operator [](const char*);//查找数据
 			Json operator [](int val);
 			//比较Json
@@ -95,12 +102,8 @@ namespace Box{
 			JsonIterator();
 			JsonIterator(const JsonIterator &iter);
 			~JsonIterator();
-			Json &operator *(){
-				return *now_item;
-			}
-			Json *operator ->(){
-				return now_item;
-			}
+			Json *operator ->();
+			Json &operator * ();
 		protected:
 			int *refcount;
 			Json *now_item = nullptr;
@@ -108,28 +111,13 @@ namespace Box{
 	};
 	class JsonArrayIterator:public JsonIterator{
 		public:
-			bool operator ++(){
-				cJSON *cjson = now_item->item->next;//得到下一个
-				if(cjson == nullptr){
-					return false;
-				}
-				now_item->item = cjson;//赋值一下
-				return true;
-			}
+			bool operator ++();
 		friend class Json;
 	};
 	class JsonTableIterator:public JsonIterator{
 		public:
 			const char *name;
-			bool operator ++(){
-				cJSON *cjson = now_item->item->next;//得到下一个
-				if(cjson == nullptr){
-					return false;
-				}
-				now_item->item = cjson;//赋值一下
-				name = cjson->string;
-				return true;
-			}
+			bool operator ++();
 		friend class Json;
 	};
 };

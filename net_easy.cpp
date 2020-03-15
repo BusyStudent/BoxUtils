@@ -1,9 +1,13 @@
 #include <curl/curl.h>
 #include <string>
 #include <cstring>
+#include "net_exception.hpp"
 #include "net_headers.hpp"
 #include "net_easy.hpp"
 using namespace Box::Net;
+Easy::Easy(void *hd){
+	handle = hd;
+}
 Easy::Easy(){
 	handle = curl_easy_init();
 	#ifndef NDEBUG
@@ -29,11 +33,45 @@ void Easy::reset(){
 }
 void Easy::perform(){
 	//进行传输
-	curl_easy_perform(handle);
+	auto code = curl_easy_perform(handle);
+	if(code != CURLE_OK){
+		ErrType type;//类型
+		switch(code){
+			//能分辨出来的错误代码
+			case CURLE_OPERATION_TIMEDOUT:
+				type = ErrType::TIMEOUT;
+				//超时
+				break;
+			default:
+				type = ErrType::UNKNOWN;
+		}
+		throw EasyException(type,curl_easy_strerror(code));
+	}
 }
 void Easy::set_url(const char *url){
 	//设置URL
 	curl_easy_setopt(handle,CURLOPT_URL,url);
+}
+void Easy::set_method(Method method){
+	//设置方法
+	switch(method){
+		case Method::POST:{
+			curl_easy_setopt(handle,CURLOPT_POST,1L);
+			break;
+		}
+		case Method::GET:{
+			curl_easy_setopt(handle,CURLOPT_HTTPGET,1L);
+			break;
+		}
+		case Method::PUT:{
+			curl_easy_setopt(handle,CURLOPT_PUT,1L);
+			break;
+		}
+	}
+}
+void Easy::set_timeout(long timeout){
+	//设置超时
+	curl_easy_setopt(handle,CURLOPT_CONNECTTIMEOUT,&timeout);
 }
 void Easy::set_proxy(const char *proxy){
 	curl_easy_setopt(handle,CURLOPT_PROXY,proxy);
@@ -41,6 +79,10 @@ void Easy::set_proxy(const char *proxy){
 void Easy::set_useragent(const char *str){
 	//设置User-Agent
 	curl_easy_setopt(handle,CURLOPT_USERAGENT,str);
+}
+void Easy::set_referer(const char *str){
+	//设置referer
+	curl_easy_setopt(handle,CURLOPT_REFERER,str);
 }
 void Easy::set_headers(){
 	//重置会原有的请求头
@@ -64,6 +106,42 @@ void Easy::set_oheaders(Headers &h){
 	//设置输出的响应头
 	curl_easy_setopt(handle,CURLOPT_HEADERFUNCTION,WriteToHeaders);
 	curl_easy_setopt(handle,CURLOPT_HEADERDATA,&h);
+}
+void Easy::set_followlocation(){
+	//自动更寻重定向
+	curl_easy_setopt(handle,CURLOPT_FOLLOWLOCATION,1L);
+	curl_easy_setopt(handle,CURLOPT_AUTOREFERER,1L);
+}
+void Easy::set_write_cb(EasyCallBack cb,void *param){
+	//写的CALLBACK
+	curl_easy_setopt(handle,CURLOPT_WRITEFUNCTION,cb);
+	curl_easy_setopt(handle,CURLOPT_WRITEDATA,param);
+}
+void Easy::set_header_cb(EasyCallBack cb,void *param){
+	//头的callback
+	curl_easy_setopt(handle,CURLOPT_HEADERFUNCTION,cb);
+	curl_easy_setopt(handle,CURLOPT_HEADERDATA,param);
+}
+void *Easy::get_handle(){
+	//得到CURL的Handle
+	return handle;
+}
+long Easy::status_code(){
+	//得到状态代码
+	long code;
+	curl_easy_getinfo(handle,CURLINFO_RESPONSE_CODE,&code);
+	return code;
+}
+bool Easy::ok(){
+	if(status_code() == 200){
+		return true;
+	}
+	else{
+		return false;
+	}
+}
+Easy *Easy::clone(){
+	return new Easy(curl_easy_duphandle(handle));
 }
 //回调函数
 size_t Easy::WriteToFILE(char *buf,size_t size,size_t block,void *param){

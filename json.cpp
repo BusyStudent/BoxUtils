@@ -1,9 +1,11 @@
-#include "cJSON.h"
-#include "json.hpp"
-#include "exception.hpp"
+#include <functional>
 #include <cstring>
 #include <string>
 #include <fstream>
+
+#include "cJSON.h"
+#include "json.hpp"
+#include "exception.hpp"
 using namespace Box;
 Json::Json(cJSON *item,bool independence){
 	//用一个cJSON指针初始化
@@ -263,6 +265,11 @@ int Json::get_array_size(){
 	check_is_array();
 	return cJSON_GetArraySize(item);
 }
+int Json::get_int(){
+	//得到数字
+	check_is_number();
+	return item->valueint;
+}
 //类型检查
 void Json::check_is_array(){
 	if((item->type & 0xFF) != cJSON_Array){
@@ -341,7 +348,30 @@ JsonTableIterator Json::iter_table(){
 	iter.name = this->item->child->string;//表的名字
 	return iter;
 }
-//
+//内部迭代
+void Json::for_array(std::function <void(Json&)> fn){
+	//迭代数组
+	check_is_array();
+	Json json(nullptr,false);//一个不独立的Json
+	cJSON * elem;
+	cJSON_ArrayForEach(elem,item){
+		//遍历数组
+		json.item = elem;
+		fn(json);
+	}
+}
+void Json::for_table(std::function <void(const char*,Json&)> fn){
+	//迭代表
+	check_is_object();
+	Json json(nullptr,false);
+	cJSON *next = item;
+	while(next != nullptr){
+		json.item = next;
+		fn(next->string,json);
+		next = next->next;
+	}
+}
+//迭代器的实现
 JsonIterator::JsonIterator(){
 	refcount = new int;
 	(*refcount) = 1;
@@ -359,4 +389,27 @@ JsonIterator::~JsonIterator(){
 		delete refcount;
 	}
 	
+}
+Json *JsonIterator::operator ->(){
+	return now_item;
+}
+Json &JsonIterator::operator *(){
+	return *now_item;
+}
+bool JsonArrayIterator::operator ++(){
+	cJSON *cjson = now_item->item->next;//得到下一个
+	if(cjson == nullptr){
+		return false;
+	}
+	now_item->item = cjson;//赋值一下
+	return true;
+}
+bool JsonTableIterator::operator ++(){
+	cJSON *cjson = now_item->item->next;//得到下一个
+	if(cjson == nullptr){
+		return false;
+	}
+	now_item->item = cjson;//赋值一下
+	name = cjson->string;
+	return true;
 }
