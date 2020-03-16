@@ -3,8 +3,11 @@ CFLAGS=-g -fPIC -Wall -Wextra
 CXX=g++
 CXXFLAGS=-g -fPIC -Wall -Wextra
 OBJ=random.o cJSON.o json.o net.o net_easy.o net_factory.o net_headers.o net_exception.o\
-	exception.o iconv.o sem.o base64.o socket.o string.o dns.o xv.o filesystem.o
-LDFLAGS=-pthread -lcurl
+	exception.o iconv.o sem.o base64.o socket.o string.o dns.o xv.o filesystem.o\
+	xml.o xpath.o
+LDFLAGS=-pthread -lcurl `xml2-config --libs`
+XMLFLAGS=`xml2-config --cflags`
+#LIBXML的配置文件
 libbox_utils.so:$(OBJ)
 	$(CXX) $(LDFLAGS) $(OBJ) -shared -o libbox_utils.so
 random.o:random.cpp random.hpp
@@ -35,5 +38,10 @@ xv.o:xv.cpp xv.hpp socket.o
 string.o:string.cpp string.hpp
 dns.o:dns.cpp dns.hpp
 filesystem.o:filesystem.cpp filesystem.hpp
+xml.o:xml.cpp xml.hpp
+	$(CXX) $(CXXFLAGS) $(XMLFLAGS) xml.cpp -c
+xpath.o:xpath.cpp xpath.hpp xml.hpp
+	$(CXX) $(CXXFLAGS) $(XMLFLAGS) xpath.cpp -c
+#XML解析
 clean:
 	rm $(OBJ) libbox_utils.so

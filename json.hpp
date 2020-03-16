@@ -74,23 +74,26 @@ namespace Box{
 			void operator << (std::string &str);
 			void operator << (const char *str);
 			cJSON *get_cjson();
+			//一些操作
+			Json *clone();//克隆一个Json
+			Json *move_toheap();//把数据转移到堆上
 			//构造Json的类型
-			static Json *ParseString(const char *);
-			static Json *CreateNull();
-			static Json *CreateBool(bool boolen);
-			static Json *CreateTrue();
-			static Json *CreateFalse();
-			static Json *CreateTable();//创建一个表
-			static Json *CreateArray();//创建一个数组
-			static Json *CreateIntArray(int *array,int count);//创建一个Int的Array
-			static Json *CreateNumber(double number);
-			static Json *CreateString(const char *str);//创建一个字符串
-			static Json *CreateStringRef(const char *str);//引用字符串
+			static Json ParseString(const char *);
+			static Json CreateNull();
+			static Json CreateBool(bool boolen);
+			static Json CreateTrue();
+			static Json CreateFalse();
+			static Json CreateTable();//创建一个表
+			static Json CreateArray();//创建一个数组
+			static Json CreateIntArray(int *array,int count);//创建一个Int的Array
+			static Json CreateNumber(double number);
+			static Json CreateString(const char *str);//创建一个字符串
+			static Json CreateStringRef(const char *str);//引用字符串
 			//格式化字符串
 			static void MinifyString(char *str);
 			//文件函数
 			static void  SaveFile(Json &json,const char *filename);
-			static Json *LoadFile(const char *filename);
+			static Json LoadFile(const char *filename);
 		private:
 			bool independence;//是否独立
 			cJSON *item;//对象

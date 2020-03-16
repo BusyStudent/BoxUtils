@@ -29,3 +29,7 @@ Box::TypeError::TypeError(const char *excepted,const char *gived){
 const char *Box::TypeError::what() const throw(){
 	return reason.c_str();
 }
+//空指针错误
+const char *Box::NullPtrException::what() const throw(){
+	return "Got nullptr";
+}

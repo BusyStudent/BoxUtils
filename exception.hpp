@@ -24,8 +24,10 @@ namespace Box{
 			std::string excepted;
 			std::string reason;
 	};
-	class UnknownHost:public std::exception{
-		
+	class NullPtrException:public std::exception{
+		//空指针错误
+		public:
+			const char *what() const throw();
 	};
 };
 #endif

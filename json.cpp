@@ -55,55 +55,55 @@ void Json::print(){
 	free(str);
 }
 //解析函数
-Json *Json::ParseString(const char *str){
+Json Json::ParseString(const char *str){
 	cJSON *item_ = cJSON_Parse(str);
 	if(item_ == nullptr){
 		//解析失败
 		return nullptr;
 	}
-	return new Json(item_);
+	return Json(item_);
 }
 //构造函数
-Json *Json::CreateNull(){
-	return new Json(cJSON_CreateNull());
+Json Json::CreateNull(){
+	return Json(cJSON_CreateNull());
 }
-Json *Json::CreateTrue(){
-	return new Json(cJSON_CreateTrue());
+Json Json::CreateTrue(){
+	return Json(cJSON_CreateTrue());
 }
-Json *Json::CreateFalse(){
-	return new Json(cJSON_CreateFalse());
+Json Json::CreateFalse(){
+	return Json(cJSON_CreateFalse());
 }
-Json *Json::CreateBool(bool boolen){
+Json Json::CreateBool(bool boolen){
 	//创建Bool
 	//防止C++的bool和cjson的bool不一样
-	return new Json(cJSON_CreateBool((cJSON_bool)boolen));
+	return Json(cJSON_CreateBool((cJSON_bool)boolen));
 }
-Json *Json::CreateTable(){
-	return new Json(cJSON_CreateObject());
+Json Json::CreateTable(){
+	return Json(cJSON_CreateObject());
 }
-Json *Json::CreateArray(){
-	return new Json(cJSON_CreateArray());
+Json Json::CreateArray(){
+	return Json(cJSON_CreateArray());
 }
-Json *Json::CreateIntArray(int *numbers,int count){
-	return new Json(cJSON_CreateIntArray(numbers,count));
+Json Json::CreateIntArray(int *numbers,int count){
+	return Json(cJSON_CreateIntArray(numbers,count));
 }
-Json *Json::CreateNumber(double number){
+Json Json::CreateNumber(double number){
 	//创建一个数字
-	return new Json(cJSON_CreateNumber(number));
+	return Json(cJSON_CreateNumber(number));
 }
-Json *Json::CreateString(const char *str){
-	return new Json(cJSON_CreateString(str));
+Json Json::CreateString(const char *str){
+	return Json(cJSON_CreateString(str));
 }
-Json *Json::CreateStringRef(const char *str){
-	return new Json(cJSON_CreateStringReference(str));
+Json Json::CreateStringRef(const char *str){
+	return Json(cJSON_CreateStringReference(str));
 }
-Json *Json::LoadFile(const char *filename){
+Json Json::LoadFile(const char *filename){
 	std::ifstream stream(filename);
 	//打开文件
 	std::istreambuf_iterator<char> beg(stream),end;
 	std::string str(beg,end);
 	//读入所有字符
-	Json *json = ParseString(str.c_str());//解析字符串
+	Json json = ParseString(str.c_str());//解析字符串
 	stream.close();
 	return json;
 }
@@ -370,6 +370,17 @@ void Json::for_table(std::function <void(const char*,Json&)> fn){
 		fn(next->string,json);
 		next = next->next;
 	}
+}
+//特殊操作
+Json *Json::clone(){
+	//克隆自己
+	return new Json(*this);
+}
+Json *Json::move_toheap(){
+	//数据转移到堆上
+	Json *j = new Json(item,independence);
+	item = nullptr;
+	return j;
 }
 //迭代器的实现
 JsonIterator::JsonIterator(){

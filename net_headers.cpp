@@ -109,10 +109,10 @@ Box::Json *Headers::json(){
 		}
 		key.clear();//清空一下
 		key.append(next->data,(splist_mark - (next->data))/sizeof(char));
-		json->add_string(key.c_str(),  splist_mark + 1);
+		json.add_string(key.c_str(),  splist_mark + 1);
 		next = next->next;
 	}
-	return json;
+	return json.move_toheap();//把数据转移到heap
 }
 //遍历
 void Headers::for_each(std::function <void(const char*,const char*)> fn){
