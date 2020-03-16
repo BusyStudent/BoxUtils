@@ -1,7 +1,7 @@
-#ifndef _BOXUTILS_RANDOM_HPP_
-#define _BOXUTILS_RANDOM_HPP_
+#ifndef _BOX_RANDOM_HPP_
+#define _BOX_RANDOM_HPP_
 #include <ctime>
-namespace BoxUtils{
+namespace Box{
 	class Random{
 		public:
 			Random();

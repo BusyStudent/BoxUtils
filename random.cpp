@@ -1,12 +1,12 @@
 #include <ctime>
 #include "random.hpp"
-BoxUtils::Random::Random(){
+Box::Random::Random(){
 	this->seed = (unsigned int) time(nullptr);
 }
-void BoxUtils::Random::set_seed(unsigned int seed){
+void Box::Random::set_seed(unsigned int seed){
 	this->seed = seed;
 }
-int BoxUtils::Random::randint(int begin,int end){
+int Box::Random::randint(int begin,int end){
 	(this->seed) = (this->seed) *1103515245 +12345;
 	int number = (unsigned int )((this->seed)/65536) % 32768;
 	number = number % (end + 1);
@@ -17,6 +17,6 @@ int BoxUtils::Random::randint(int begin,int end){
 		return number;
 	}
 }
-unsigned int BoxUtils::Random::get_seed(){
+unsigned int Box::Random::get_seed(){
 	return this->seed;
 }

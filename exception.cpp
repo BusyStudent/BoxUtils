@@ -1,24 +1,24 @@
 #include <sstream>
 #include <stdexcept>
 #include "exception.hpp"
-BoxUtils::IndexError::IndexError(int index){
+Box::IndexError::IndexError(int index){
 	this->index = index;
 	std::stringstream stream;
 	stream << "IndexError:out of range " << index;
 	this->reason = stream.str();
 }
-const char*BoxUtils::IndexError::what()const throw(){
+const char*Box::IndexError::what()const throw(){
 	return reason.c_str();
 }
 
-BoxUtils::KeyError::KeyError(const char *key){
+Box::KeyError::KeyError(const char *key){
 	this->key = key;
 }
-const char *BoxUtils::KeyError::what()const throw(){
+const char *Box::KeyError::what()const throw(){
 	return key.c_str();
 }
 
-BoxUtils::TypeError::TypeError(const char *excepted,const char *gived){
+Box::TypeError::TypeError(const char *excepted,const char *gived){
 	//类型错误
 	this->excepted = excepted;
 	this->gived = gived;
@@ -26,6 +26,10 @@ BoxUtils::TypeError::TypeError(const char *excepted,const char *gived){
 	stream << "excepted type:" <<"'"<< excepted <<"'"<<" gived type:" <<"'"<<gived<<"'";
 	this->reason = stream.str();
 }
-const char *BoxUtils::TypeError::what() const throw(){
+const char *Box::TypeError::what() const throw(){
 	return reason.c_str();
+}
+//空指针错误
+const char *Box::NullPtrException::what() const throw(){
+	return "Got nullptr";
 }

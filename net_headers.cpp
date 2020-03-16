@@ -1,144 +1,131 @@
-#include <curl/curl.h>
-#include <sstream>
 #include <cstring>
-#include <vector>
-#include "net.hpp"
+#include <string>
+#include <sstream>
+#include <curl/curl.h>
+#include <functional>
 #include "json.hpp"
-using namespace BoxUtils::Net;
+#include "exception.hpp"
+#include "net_headers.hpp"
+#if defined(_MSC_VER) 
+	#define strncasecmp _strnicmp 
+#endif
+#define LEN(STR) ((strchr((STR),':') - (STR))/sizeof(char))
+using namespace Box::Net;
 Headers::Headers(){
 	slist = nullptr;
 }
-Headers::Headers(const Headers &headers){
-	//复制构造器
+Headers::Headers(const Headers &h){
 	slist = nullptr;
-	update(headers);
+	this->update(h);
 }
 Headers::~Headers(){
-	//释放单链表
-	curl_slist_free_all(slist);
-}
-Headers *Headers::copy(){
-	Headers *headers = new Headers();
-	//复制自己作为备份
-	headers->update(*this);
-	return headers;
-}
-void Headers::update(const Headers & headers){
-	curl_slist *next = headers.slist;
-	//遍历链表 复制一下
-	while(next != nullptr){
-		slist = curl_slist_append(slist,next->data);
-		next = next->next;
-	}
+	curl_slist_free_all((struct curl_slist*)slist);
 }
 void Headers::add_string(const char *str){
-	slist = curl_slist_append(slist,str);
+	//添加字符串
+	slist = curl_slist_append((struct curl_slist*)slist,str);
 }
-void Headers::append(const char *key,const char *val){
+void Headers::add(const char *key,const char *value){
+	//加入值
 	std::stringstream stream;
-	stream << key << ":" << val;
+	stream << key << ':' << value;
 	add_string(stream.str().c_str());
 }
-void Headers::clear(){
-	//清空
-	curl_slist_free_all(slist);
-	slist = nullptr;
-}
-void Headers::print(){
-	curl_slist *next = slist;
-	while(next!=nullptr){
-		puts(next->data);
+void Headers::update(const Headers &h){
+	//从另一个头里加入值
+	struct curl_slist *next = (struct curl_slist*)(h.slist);
+	while(next != nullptr){
+		//遍历链表 加入值
+		add_string(next->data);
 		next = next->next;
 	}
 }
-void Headers::parse_string(const char *cstring){
-	//解析字符串
-	char *buf = strdup(cstring);
-	char *line = buf;
-	char *line_end = buf;//结尾
-	while(*line!='\0'){
-		line_end = strchr(line_end,'\n');
-		if(line_end == nullptr){
-			break;
-		}
-		if(*(line_end - 1)=='\r'){
-			//去除'\r'
-			*(line_end - 1)= '\0';
-		}
-		*line_end = '\0';//截断一行
-		line_end ++ ;//跳过换行符号
-		if(strchr(line,':') != nullptr){
-			//加入链表
-			slist = curl_slist_append(slist,line);
-		}
-		line = line_end ++;
-	}
-	free(buf);
-}
-curl_slist *Headers::get_slist(){
-	return slist;
-}
-const char *Headers::find_value(const char *key){
-	size_t keylen = strlen(key);
-	curl_slist *next = slist;
+const char *Headers::get_value(const char *key){
+	//查找值
+	//size_t keylen = strlen(key);//key的长度
+	struct curl_slist *next = (struct curl_slist*)(slist);
 	while(next != nullptr){
-		if(strncmp(next->data,key,keylen)==0){
-			//键值符合
-			return strstr(next->data,":")+1;
-			//返回vaule
+		if(strncasecmp(next->data,key,LEN(next->data)) == 0){
+			//找到了
+			return strchr(next->data,':') + 1;
 		}
 		next = next->next;
 	}
 	return nullptr;
 }
 const char *Headers::operator [](const char *key){
-	return find_value(key);
+	auto value = get_value(key);
+	if(value == nullptr){
+		throw Box::KeyError(key);
+	}
+	return value;
 }
-BoxUtils::Json *Headers::to_json(){
-	auto json = BoxUtils::Json::CreateTable();
-	//创建一个表
-	curl_slist *next = slist;
-	char *buf = nullptr;
-	char *cut;
-	const char *vaule = nullptr;
+bool Headers::has_key(const char *key){
+	//有这个值
+	auto val = get_value(key);
+	if(val == nullptr){
+		return false;
+	}
+	else{
+		return true;
+	}
+}
+bool Headers::remove(const char *key){
+	bool status = false;
+	//size_t keylen = strlen(key);//key的长度
+	struct curl_slist *new_list = nullptr;//新的链表
+	struct curl_slist *next = (struct curl_slist*)(slist);
 	while(next != nullptr){
-		//遍历
-		buf = (char*)realloc(buf,(strlen(next->data)+1));
-		strcpy(buf,next->data);
-		//复制字符串
-		cut = strchr(buf,':');
-		//查找分割符号
-		if(cut != nullptr){
-			*cut = '\0';
-			//切割一下
-			cut++;
-			while(*cut == ' '){
-				//跳过空格
-				cut ++;
-			}
-			vaule = cut;
+		//遍历链表 加入值
+		if(strncasecmp(next->data,key,LEN(next->data)) == 0){
+			//找到这个值 忽略它
+			status = true;//找到
 		}
 		else{
-			vaule = nullptr;
+			//加入数据到新的链表
+			new_list = curl_slist_append(new_list,next->data);
 		}
-		json->add_string(buf,vaule);//加入字典
 		next = next->next;
 	}
-	free(buf);
-	return json;
+	curl_slist_free_all((struct curl_slist*)(slist));
+	//释放原有链表
+	slist = new_list;
+	return status;
 }
-void Headers::load_json(BoxUtils::Json &json){
-	auto iter = json.iter_table();//遍历表
-	std::stringstream stream;
+Box::Json *Headers::json(){
+	//到Json
+	auto json = Box::Json::CreateTable();
+	//创建一个表
+	struct curl_slist *next = (struct curl_slist*)(slist);
 	std::string key;
-	std::string vaule;
-	do{
-		stream.clear();
-		key = iter.name;
-		(*iter) >> vaule;
-		//导出名字和键值
-		stream << key<<":"<<vaule;
-		slist = curl_slist_append(slist,stream.str().c_str());
+	const char *splist_mark;
+	while(next != nullptr){
+		//遍历链表
+		splist_mark = strchr(next->data,':');//分割符号所在地点
+		if(splist_mark == nullptr){
+			//出错 直接忽略
+			next = next->next;
+			continue;
+		}
+		key.clear();//清空一下
+		key.append(next->data,(splist_mark - (next->data))/sizeof(char));
+		json.add_string(key.c_str(),  splist_mark + 1);
+		next = next->next;
 	}
-	while(++iter);
+	return json.move_toheap();//把数据转移到heap
+}
+//遍历
+void Headers::for_each(std::function <void(const char*,const char*)> fn){
+	struct curl_slist *next = (struct curl_slist*)(slist);
+	std::string key;
+	const char *splist_mark;
+	while(next != nullptr){
+		splist_mark = strchr(next->data,':');
+		key.clear();
+		key.append(next->data,(splist_mark - (next->data))/sizeof(char));
+		
+		fn(key.c_str(),splist_mark+1);
+		//调用函数
+		next = next->next;
+	}
 }

@@ -1,8 +1,9 @@
-#ifndef _BOXUTILS_JSON_HPP_
-#define _BOXUTILS_JSON_HPP_
+#ifndef _BOX_JSON_HPP_
+#define _BOX_JSON_HPP_
+#include <functional>
 #include <string>
-#include "cJSON.h"
-namespace BoxUtils{
+struct cJSON;//替代了#include "cJSON.h"
+namespace Box{
 	class JsonIterator;
 	class JsonArrayIterator;
 	class JsonTableIterator;
@@ -42,14 +43,21 @@ namespace BoxUtils{
 			void add_string(const char *str);
 			void add_string(const char *key,const char *str);
 			void add_number(double number);
+			void add_number(const char *key,double number);
 			
 			void add_item(Json &item);//加入另一个节点到数组
 			void add_item(const char *key,Json &item);//加入对象里面 不就是字典么
 			//得到一些信息
 			int get_array_size();
+			int get_int();//得到int
+			double get_number();
+			
 			JsonArrayIterator iter_array();//迭代数组
 			JsonTableIterator iter_table();//迭代表
-			//
+			//迭代
+			void for_array(std::function <void(Json&)>);//迭代数组
+			void for_table(std::function <void(const char*,Json&)>);//迭代表
+			
 			Json operator [](const char*);//查找数据
 			Json operator [](int val);
 			//比较Json
@@ -66,23 +74,26 @@ namespace BoxUtils{
 			void operator << (std::string &str);
 			void operator << (const char *str);
 			cJSON *get_cjson();
+			//一些操作
+			Json *clone();//克隆一个Json
+			Json *move_toheap();//把数据转移到堆上
 			//构造Json的类型
-			static Json *ParseString(const char *);
-			static Json *CreateNull();
-			static Json *CreateBool(bool boolen);
-			static Json *CreateTrue();
-			static Json *CreateFalse();
-			static Json *CreateTable();//创建一个表
-			static Json *CreateArray();//创建一个数组
-			static Json *CreateIntArray(int *array,int count);//创建一个Int的Array
-			static Json *CreateNumber(double number);
-			static Json *CreateString(const char *str);//创建一个字符串
-			static Json *CreateStringRef(const char *str);//引用字符串
+			static Json ParseString(const char *);
+			static Json CreateNull();
+			static Json CreateBool(bool boolen);
+			static Json CreateTrue();
+			static Json CreateFalse();
+			static Json CreateTable();//创建一个表
+			static Json CreateArray();//创建一个数组
+			static Json CreateIntArray(int *array,int count);//创建一个Int的Array
+			static Json CreateNumber(double number);
+			static Json CreateString(const char *str);//创建一个字符串
+			static Json CreateStringRef(const char *str);//引用字符串
 			//格式化字符串
 			static void MinifyString(char *str);
 			//文件函数
 			static void  SaveFile(Json &json,const char *filename);
-			static Json *LoadFile(const char *filename);
+			static Json LoadFile(const char *filename);
 		private:
 			bool independence;//是否独立
 			cJSON *item;//对象
@@ -94,12 +105,8 @@ namespace BoxUtils{
 			JsonIterator();
 			JsonIterator(const JsonIterator &iter);
 			~JsonIterator();
-			Json &operator *(){
-				return *now_item;
-			}
-			Json *operator ->(){
-				return now_item;
-			}
+			Json *operator ->();
+			Json &operator * ();
 		protected:
 			int *refcount;
 			Json *now_item = nullptr;
@@ -107,28 +114,13 @@ namespace BoxUtils{
 	};
 	class JsonArrayIterator:public JsonIterator{
 		public:
-			bool operator ++(){
-				cJSON *cjson = now_item->item->next;//得到下一个
-				if(cjson == nullptr){
-					return false;
-				}
-				now_item->item = cjson;//赋值一下
-				return true;
-			}
+			bool operator ++();
 		friend class Json;
 	};
 	class JsonTableIterator:public JsonIterator{
 		public:
 			const char *name;
-			bool operator ++(){
-				cJSON *cjson = now_item->item->next;//得到下一个
-				if(cjson == nullptr){
-					return false;
-				}
-				now_item->item = cjson;//赋值一下
-				name = cjson->string;
-				return true;
-			}
+			bool operator ++();
 		friend class Json;
 	};
 };

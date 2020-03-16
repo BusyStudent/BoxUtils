@@ -1,20 +1,26 @@
-#include <sstream>
-#include <string>
 #include <curl/curl.h>
-#include <thread>
 #include "net.hpp"
-using namespace BoxUtils::Net;
-Session *BoxUtils::Net::session = nullptr;
-//会话
-void BoxUtils::Net::Init(long flag){
-	curl_global_init(flag);
-	session = new Session();
+bool Box::Net::Init(bool init_all){
+	//初始化
+	long flags;
+	if(init_all){
+		flags = CURL_GLOBAL_ALL;
+	}
+	else{
+		flags = CURL_GLOBAL_DEFAULT;
+	}
+	auto code = curl_global_init(flags);
+	if(code == CURLE_OK){
+		return true;
+	}
+	else{
+		return false;
+	}
 }
-void BoxUtils::Net::Quit(){
-	delete session;
+void Box::Net::Quit(){
+	//退出
 	curl_global_cleanup();
 }
-Response *BoxUtils::Net::Get(const char *url,Headers *headers,long timeout){
-	//调用默认的内部的session
-	return session->get(url,headers,timeout);
+const char *Box::Net::Version(){
+	return curl_version();
 }

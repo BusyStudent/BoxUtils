@@ -1,10 +1,12 @@
-#include "cJSON.h"
-#include "json.hpp"
-#include "exception.hpp"
+#include <functional>
 #include <cstring>
 #include <string>
 #include <fstream>
-using namespace BoxUtils;
+
+#include "cJSON.h"
+#include "json.hpp"
+#include "exception.hpp"
+using namespace Box;
 Json::Json(cJSON *item,bool independence){
 	//用一个cJSON指针初始化
 	this->item = item;
@@ -53,55 +55,55 @@ void Json::print(){
 	free(str);
 }
 //解析函数
-Json *Json::ParseString(const char *str){
+Json Json::ParseString(const char *str){
 	cJSON *item_ = cJSON_Parse(str);
 	if(item_ == nullptr){
 		//解析失败
 		return nullptr;
 	}
-	return new Json(item_);
+	return Json(item_);
 }
 //构造函数
-Json *Json::CreateNull(){
-	return new Json(cJSON_CreateNull());
+Json Json::CreateNull(){
+	return Json(cJSON_CreateNull());
 }
-Json *Json::CreateTrue(){
-	return new Json(cJSON_CreateTrue());
+Json Json::CreateTrue(){
+	return Json(cJSON_CreateTrue());
 }
-Json *Json::CreateFalse(){
-	return new Json(cJSON_CreateFalse());
+Json Json::CreateFalse(){
+	return Json(cJSON_CreateFalse());
 }
-Json *Json::CreateBool(bool boolen){
+Json Json::CreateBool(bool boolen){
 	//创建Bool
 	//防止C++的bool和cjson的bool不一样
-	return new Json(cJSON_CreateBool((cJSON_bool)boolen));
+	return Json(cJSON_CreateBool((cJSON_bool)boolen));
 }
-Json *Json::CreateTable(){
-	return new Json(cJSON_CreateObject());
+Json Json::CreateTable(){
+	return Json(cJSON_CreateObject());
 }
-Json *Json::CreateArray(){
-	return new Json(cJSON_CreateArray());
+Json Json::CreateArray(){
+	return Json(cJSON_CreateArray());
 }
-Json *Json::CreateIntArray(int *numbers,int count){
-	return new Json(cJSON_CreateIntArray(numbers,count));
+Json Json::CreateIntArray(int *numbers,int count){
+	return Json(cJSON_CreateIntArray(numbers,count));
 }
-Json *Json::CreateNumber(double number){
+Json Json::CreateNumber(double number){
 	//创建一个数字
-	return new Json(cJSON_CreateNumber(number));
+	return Json(cJSON_CreateNumber(number));
 }
-Json *Json::CreateString(const char *str){
-	return new Json(cJSON_CreateString(str));
+Json Json::CreateString(const char *str){
+	return Json(cJSON_CreateString(str));
 }
-Json *Json::CreateStringRef(const char *str){
-	return new Json(cJSON_CreateStringReference(str));
+Json Json::CreateStringRef(const char *str){
+	return Json(cJSON_CreateStringReference(str));
 }
-Json *Json::LoadFile(const char *filename){
+Json Json::LoadFile(const char *filename){
 	std::ifstream stream(filename);
 	//打开文件
 	std::istreambuf_iterator<char> beg(stream),end;
 	std::string str(beg,end);
 	//读入所有字符
-	Json *json = ParseString(str.c_str());//解析字符串
+	Json json = ParseString(str.c_str());//解析字符串
 	stream.close();
 	return json;
 }
@@ -263,6 +265,11 @@ int Json::get_array_size(){
 	check_is_array();
 	return cJSON_GetArraySize(item);
 }
+int Json::get_int(){
+	//得到数字
+	check_is_number();
+	return item->valueint;
+}
 //类型检查
 void Json::check_is_array(){
 	if((item->type & 0xFF) != cJSON_Array){
@@ -296,6 +303,10 @@ void Json::add_string(const char *key,const char *str){
 void Json::add_number(double number){
 	check_is_array();
 	cJSON_AddItemToArray(item,cJSON_CreateNumber(number));
+}
+void Json::add_number(const char *key,double number){
+	check_is_object();
+	cJSON_AddItemToObject(item,key,cJSON_CreateNumber(number));
 }
 void Json::add_item(Json &item){
 	//加入数组
@@ -337,7 +348,41 @@ JsonTableIterator Json::iter_table(){
 	iter.name = this->item->child->string;//表的名字
 	return iter;
 }
-//
+//内部迭代
+void Json::for_array(std::function <void(Json&)> fn){
+	//迭代数组
+	check_is_array();
+	Json json(nullptr,false);//一个不独立的Json
+	cJSON * elem;
+	cJSON_ArrayForEach(elem,item){
+		//遍历数组
+		json.item = elem;
+		fn(json);
+	}
+}
+void Json::for_table(std::function <void(const char*,Json&)> fn){
+	//迭代表
+	check_is_object();
+	Json json(nullptr,false);
+	cJSON *next = item;
+	while(next != nullptr){
+		json.item = next;
+		fn(next->string,json);
+		next = next->next;
+	}
+}
+//特殊操作
+Json *Json::clone(){
+	//克隆自己
+	return new Json(*this);
+}
+Json *Json::move_toheap(){
+	//数据转移到堆上
+	Json *j = new Json(item,independence);
+	item = nullptr;
+	return j;
+}
+//迭代器的实现
 JsonIterator::JsonIterator(){
 	refcount = new int;
 	(*refcount) = 1;
@@ -355,4 +400,27 @@ JsonIterator::~JsonIterator(){
 		delete refcount;
 	}
 	
+}
+Json *JsonIterator::operator ->(){
+	return now_item;
+}
+Json &JsonIterator::operator *(){
+	return *now_item;
+}
+bool JsonArrayIterator::operator ++(){
+	cJSON *cjson = now_item->item->next;//得到下一个
+	if(cjson == nullptr){
+		return false;
+	}
+	now_item->item = cjson;//赋值一下
+	return true;
+}
+bool JsonTableIterator::operator ++(){
+	cJSON *cjson = now_item->item->next;//得到下一个
+	if(cjson == nullptr){
+		return false;
+	}
+	now_item->item = cjson;//赋值一下
+	name = cjson->string;
+	return true;
 }
