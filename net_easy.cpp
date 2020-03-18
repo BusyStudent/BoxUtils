@@ -132,6 +132,12 @@ long Easy::status_code(){
 	curl_easy_getinfo(handle,CURLINFO_RESPONSE_CODE,&code);
 	return code;
 }
+std::string Easy::url(){
+	//得到URL
+	const char *url;
+	curl_easy_getinfo(handle,CURLINFO_EFFECTIVE_URL,&url);
+	return std::string(url);
+}
 bool Easy::ok(){
 	if(status_code() == 200){
 		return true;

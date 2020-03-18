@@ -3,8 +3,8 @@ CFLAGS=-g -fPIC -Wall -Wextra
 CXX=g++
 CXXFLAGS=-g -fPIC -Wall -Wextra
 OBJ=random.o cJSON.o json.o net.o net_easy.o net_factory.o net_headers.o net_exception.o\
-	exception.o iconv.o sem.o base64.o socket.o string.o dns.o xv.o filesystem.o\
-	xml.o xpath.o
+	exception.o iconv.o sem.o base64.o socket.o string.o dns.o xv.o filesystem.o net_multi.o\
+	xml.o xpath.o time.o
 LDFLAGS=-pthread -lcurl `xml2-config --libs`
 XMLFLAGS=`xml2-config --cflags`
 #LIBXML的配置文件
@@ -25,6 +25,7 @@ net_headers.o:net_headers.cpp net_headers.hpp
 net_factory.o:net_factory.cpp net_factory.hpp
 net_exception.o:net_exception.cpp net_exception.hpp
 net_easy.o:net_easy.cpp net_easy.hpp
+net_multi.o:net_multi.cpp net_multi.hpp
 #异常
 excepton.o:exception.cpp exception.hpp
 iconv.o:iconv.cpp iconv.hpp
@@ -38,6 +39,7 @@ xv.o:xv.cpp xv.hpp socket.o
 string.o:string.cpp string.hpp
 dns.o:dns.cpp dns.hpp
 filesystem.o:filesystem.cpp filesystem.hpp
+time.o:time.cpp time.hpp
 xml.o:xml.cpp xml.hpp
 	$(CXX) $(CXXFLAGS) $(XMLFLAGS) xml.cpp -c
 xpath.o:xpath.cpp xpath.hpp xml.hpp

@@ -30,6 +30,7 @@ namespace Box{
 				Headers resp_headers;//响应头
 				Headers _headers;//请求头
 				Easy *easy_handle;
+			friend class Multi;
 		};
 		class EasyFactory{
 			//Easy对象工厂
