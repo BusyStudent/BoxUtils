@@ -22,7 +22,8 @@ static auto get_xpath_object = [](void *docptr,const char *exp) -> xmlXPathObjec
 };
 XPath::Nodes XPath::XPath(XML::Doc &doc,const char *exp){
 	//解析xpath解析
-	auto obj = get_xpath_object(doc.get_docptr(),exp);
+	auto cloned_doc = doc.clone();
+	auto obj = get_xpath_object(cloned_doc->get_docptr(),exp);
 	XPath::NodeVec vec;
 	auto nset = obj->nodesetval;
 	//得到集合
@@ -34,16 +35,18 @@ XPath::Nodes XPath::XPath(XML::Doc &doc,const char *exp){
 		}
 		//压入结果
 	}
+	//删除xpath对象
+	xmlXPathFreeObject(obj);
 	return {
 		//返回内容
-		.objptr = obj,
+		.cloned_doc = cloned_doc,
 		.vec = vec,
 	};
 }
 //Nodes
 XPath::Nodes::~Nodes(){
-	//销毁Object
-	xmlXPathFreeObject((xmlXPathObjectPtr)objptr);
+	//销毁克隆的doc
+	delete ((XML::Doc*)cloned_doc);
 }
 //语法糖
 XPath::NodeVec &XPath::Nodes::operator *(){

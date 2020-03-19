@@ -14,7 +14,7 @@ namespace Box{
 			NodeVec &operator * ();
 			Box::XML::Node & operator [](unsigned int);
 			
-			void *objptr;
+			Box::XML::Doc *cloned_doc;//克隆过的doc
 			NodeVec vec;//向量
 		};
 		Nodes XPath(Box::XML::Doc &doc,const char *exp);//解析

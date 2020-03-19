@@ -75,6 +75,9 @@ void Doc::save_file(const char *filename,int format){
 	//保存文件
 	xmlSaveFormatFile(filename,(xmlDocPtr)docptr,format);
 }
+Doc *Doc::clone(){
+	return new Doc(*this);
+}
 std::string Doc::to_string(int format){
 	//到字符串
 	int size;
@@ -267,6 +270,9 @@ HTML HTML::LoadFile(const char *filename,const char *encoding){
 }
 HTML::HTML(void *ptr):Doc(ptr){
 	//委托给doc的Ptr
+}
+HTML::HTML(const HTML &h):Doc(h){
+	//委托哦给上面
 }
 void HTML::save_file(const char *filename,int format){
 	htmlSaveFileFormat(filename,(htmlDocPtr)docptr,default_encoding,format);

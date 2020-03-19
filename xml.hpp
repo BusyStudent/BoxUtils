@@ -79,6 +79,7 @@ namespace Box{
 				//format表示是否格式化
 				//默认版本
 				void *get_docptr();//得到docptr指针
+				Doc *clone();//克隆一个在堆上
 				static const char *default_version;
 				static const char *default_encoding;//默认编码
 				static Doc Create(const char *version = default_version);//创建一个文档
@@ -95,6 +96,7 @@ namespace Box{
 	};
 	class HTML:public XML::Doc{
 		public:
+			HTML(const HTML &);
 			typedef XML::Node Node;
 			std::string to_string(int format = 1);//到字符串
 			void save_file(const char *filename,int format = 1);//保存
