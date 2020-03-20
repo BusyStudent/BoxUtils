@@ -20,10 +20,22 @@ static auto get_xpath_object = [](void *docptr,const char *exp) -> xmlXPathObjec
 	}
 	return obj;
 };
-XPath::Nodes XPath::XPath(XML::Doc &doc,const char *exp){
+XPath::Nodes XPath::XPath(XML::Doc &doc,const char *exp,bool need_clone){
 	//解析xpath解析
-	auto cloned_doc = doc.clone();
-	auto obj = get_xpath_object(cloned_doc->get_docptr(),exp);
+	XML::Doc *docptr;
+	xmlXPathObjectPtr obj;
+	if(need_clone == true){
+		//需要克隆
+		docptr = doc.clone();
+		obj = get_xpath_object(docptr->get_docptr(),exp);
+	}
+	else{
+		//不用克隆
+		//直接给个nullptr
+		docptr = nullptr;
+		obj = get_xpath_object(doc.get_docptr(),exp);
+	}
+	
 	XPath::NodeVec vec;
 	auto nset = obj->nodesetval;
 	//得到集合
@@ -39,7 +51,8 @@ XPath::Nodes XPath::XPath(XML::Doc &doc,const char *exp){
 	xmlXPathFreeObject(obj);
 	return {
 		//返回内容
-		.cloned_doc = cloned_doc,
+		.cloned_doc = docptr,
+		//应为delete nullptr是安全的那就就没事
 		.vec = vec,
 	};
 }

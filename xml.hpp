@@ -1,6 +1,7 @@
 #ifndef _BOX_XML_HPP_
 #define _BOX_XML_HPP_
 #include <string>
+#include <vector>
 #include <functional>
 namespace Box{
 	namespace XML{
@@ -13,6 +14,8 @@ namespace Box{
 			 * 否则复制nodeptr
 			 */
 		};
+		class Doc;
+		struct Nodes;
 		class Attr{
 			//特征
 			public:
@@ -60,6 +63,18 @@ namespace Box{
 			friend class Doc;
 			friend void *_Utils::CopyNodePtr(Node&);
 		};
+		typedef std::vector <Box::XML::Node> NodeVec;
+		struct Nodes{
+			~Nodes();//销毁器
+			//一些函数
+			//一些语法糖
+			NodeVec *operator ->();
+			NodeVec &operator * ();
+			Node & operator [](unsigned int);
+			
+			Doc *cloned_doc;//克隆过的doc
+			NodeVec vec;//向量
+		};
 		typedef Node Elem;//元素
 		class Doc{
 			//文档
@@ -78,6 +93,8 @@ namespace Box{
 				void save_file(const char *filename,int format = 1);//保存
 				//format表示是否格式化
 				//默认版本
+				Nodes xpath(const char *exp,bool need_clone = false);//xpath函数
+				//默认不克隆 需要保证Doc的生命周期比结构长
 				void *get_docptr();//得到docptr指针
 				Doc *clone();//克隆一个在堆上
 				static const char *default_version;

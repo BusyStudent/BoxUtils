@@ -5,19 +5,12 @@
 #include "xml.hpp"
 namespace Box{
 	namespace XPath{
-		typedef std::vector <Box::XML::Node> NodeVec;
-		struct Nodes{
-			~Nodes();//销毁器
-			//一些函数
-			//一些语法糖
-			NodeVec *operator ->();
-			NodeVec &operator * ();
-			Box::XML::Node & operator [](unsigned int);
-			
-			Box::XML::Doc *cloned_doc;//克隆过的doc
-			NodeVec vec;//向量
-		};
-		Nodes XPath(Box::XML::Doc &doc,const char *exp);//解析
+		typedef Box::XML::NodeVec NodeVec;
+		typedef Box::XML::Nodes Nodes;
+		//兼容老式的代码
+		Nodes XPath(Box::XML::Doc &doc,const char *exp,bool need_clone = true);//解析
+		//默认是需要克隆的(安全考虑)
+		//当doc的生命周期比返回结果长时候 可以不克隆
 	};
 };
 #endif

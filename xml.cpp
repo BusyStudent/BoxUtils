@@ -5,6 +5,7 @@
 #include <libxml/HTMLtree.h>
 #include <cstring>
 #include "xml.hpp"
+#include "xpath.hpp"
 #include "exception.hpp"
 using namespace Box::XML;
 using namespace Box;
@@ -77,6 +78,9 @@ void Doc::save_file(const char *filename,int format){
 }
 Doc *Doc::clone(){
 	return new Doc(*this);
+}
+Nodes Doc::xpath(const char *exp,bool need_clone){
+	return XPath::XPath(*this,exp,need_clone);
 }
 std::string Doc::to_string(int format){
 	//到字符串
