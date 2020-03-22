@@ -7,6 +7,7 @@ namespace Box{
 	namespace XPath{
 		typedef Box::XML::NodeVec NodeVec;
 		typedef Box::XML::Nodes Nodes;
+		typedef Box::XML::NodesType NodesType;
 		//兼容老式的代码
 		Nodes XPath(Box::XML::Doc &doc,const char *exp,bool need_clone = true);//解析
 		//默认是需要克隆的(安全考虑)

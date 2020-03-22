@@ -155,6 +155,20 @@ std::string Node::get_attr_content(const char *name){
 std::string Node::operator [](const char *name){
 	return Node::get_attr_content(name);
 }
+std::string Node::text(){
+	auto ptr = (xmlNodePtr)nodeptr;
+	auto child = ptr->children;
+	//text在孩子里面
+	if(child == nullptr){
+		error:;
+		throw Box::NullPtrException();
+	}
+	auto text = XML_GET_CONTENT(child);
+	if(text == nullptr){
+		goto error;
+	}
+	return std::string((const char*)text);
+}
 void Node::for_attr(std::function <bool(Attr&)> fn){
 	//遍历特征
 	Attr attr(((xmlNodePtr)nodeptr)->properties,false);
@@ -187,6 +201,51 @@ void Node::for_each(std::function <bool(Node&)> fn){
 			return;
 		}
 		n.nodeptr = (((xmlNodePtr)n.nodeptr)->next);
+	}
+}
+//得到位置信息
+Node Node::get_children(){
+	//得到孩子
+	auto ptr = (xmlNodePtr)nodeptr;
+	auto children = ptr->children;
+	if(children == nullptr){
+		throw Box::NullPtrException();
+	}
+	else{
+		return Node(children,false);
+	}
+}
+Node Node::get_prev(){
+	//得到前面那个
+	auto ptr = (xmlNodePtr)nodeptr;
+	auto prev = ptr->prev;
+	if(prev == nullptr){
+		throw Box::NullPtrException();
+	}
+	else{
+		return Node(prev,false);
+	}
+}
+Node Node::get_next(){
+	//得到下一个
+	auto ptr = (xmlNodePtr)nodeptr;
+	auto next = ptr->next;
+	if(next == nullptr){
+		throw Box::NullPtrException();
+	}
+	else{
+		return Node(next,false);
+	}
+}
+Node Node::get_parent(){
+	//得到上一级
+	auto ptr = (xmlNodePtr)nodeptr;
+	auto parent = ptr->next;
+	if(parent == nullptr){
+		throw Box::NullPtrException();
+	}
+	else{
+		return Node(parent,false);
 	}
 }
 //一些静态函数
@@ -254,9 +313,10 @@ const char *Attr::get_content(){
 }
 //HTML
 HTML HTML::ParseString(const char *str,const char *url,const char *encoding){
-	//HTML NO_BLOCKS忽略掉 不然会有text在里面
+	// HTML_PARSE_RECOVER 宽松检查
 	auto ret = htmlReadMemory(str,strlen(str),url,encoding,
-		HTML_PARSE_NOBLANKS | HTML_PARSE_NOERROR
+		HTML_PARSE_RECOVER | HTML_PARSE_COMPACT |
+		HTML_PARSE_NONET | HTML_PARSE_NOERROR
 		 );
 	if(ret == nullptr){
 		//解析失败
@@ -277,6 +337,9 @@ HTML::HTML(void *ptr):Doc(ptr){
 }
 HTML::HTML(const HTML &h):Doc(h){
 	//委托哦给上面
+}
+HTML HTML::Create(const char *url,const char *id){
+	return HTML(htmlNewDoc(BAD_CAST url,BAD_CAST id));
 }
 void HTML::save_file(const char *filename,int format){
 	htmlSaveFileFormat(filename,(htmlDocPtr)docptr,default_encoding,format);
