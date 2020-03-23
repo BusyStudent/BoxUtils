@@ -37,6 +37,7 @@ namespace Box{
 				void set_header_cb(EasyCallBack cb,void *param = nullptr);//设置头的回调
 				
 				void *get_handle();//得到handle
+				std::string url();//得到URL
 				long status_code();
 				bool ok();//请求是否成功
 				
@@ -47,6 +48,7 @@ namespace Box{
 				static size_t WriteToFILE(char*,size_t,size_t,void*);//写出内容到字符流
 				static size_t WriteToHeaders(char*,size_t,size_t,void*);//写到头里面
 				void *handle;
+			friend class Multi;
 		};
 	};
 };

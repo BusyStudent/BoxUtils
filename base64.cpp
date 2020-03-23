@@ -1,35 +1,23 @@
 #include <string>
 #include <cstring>
 #include <climits>
+#include <cinttypes>
+#include <stdexcept>
 #include "base64.hpp"
 using namespace Box;
-const char *Base64::EncodeTable="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-const char Base64::DecodeTable[]=
-{
-		-2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -2, -2, -1, -2, -2,
-		-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
-		-1, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, 62, -2, -2, -2, 63,
-		52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -2, -2, -2, -2, -2, -2,
-		-2,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
-		15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -2, -2, -2, -2, -2,
-		-2, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-		41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -2, -2, -2, -2, -2,
-		-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
-		-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
-		-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
-		-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
-		-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
-		-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
-		-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
-		-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2
-};
-std::string Base64::Encode(const char *str){
-	return Base64::Encode(str,strlen(str));
+const std::string Base64::Table="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+std::string Base64::Encode(const std::string &str){
+	//编码字符串
+	auto s = (const uint8_t*)(str.c_str());
+	return Base64::Encode(s,strlen((char*)s));
 }
-std::string Base64::Encode(const char *data,size_t datalen){
+std::string Base64::Encode(const uint8_t *str){
+	return Base64::Encode(str,strlen((char*)str));
+}
+std::string Base64::Encode(const uint8_t *data,size_t datalen){
 	std::string buf;
 	auto cptr = data;
-	const char *& table = Base64::EncodeTable;
+	auto table = Base64::Table;
 	while(datalen > 2){
 		//编码
 		buf += table [ cptr[0] >> 2];//第一个字符向右移2位
@@ -63,58 +51,77 @@ std::string Base64::Encode(const char *data,size_t datalen){
 	}
 	return buf;
 }
-std::string Base64::Decode(const char *str){
-	return Base64::Decode(str,strlen(str));
+std::string Base64::Decode(const std::string &str){
+	//解码字符串
+	auto s = (const uint8_t*)(str.c_str());
+	return Base64::Decode(s,strlen((char*)s));
 }
-std::string Base64::Decode(const char *data,size_t datalen){
-	//这个函数的出处是https://www.cnblogs.com/lrxing/p/5535601.html
-	const char *DecodeTable = Base64::DecodeTable;
-	size_t bin = 0,i=0;
-	size_t &length = datalen;
-	const char base64_pad = '=';
-	std::string _decode_result;
-	const char *current = data;
-	char ch;
-	while( (ch = *current++) != '\0' && length-- > 0 )
-	{
-		if (ch == base64_pad) { // 当前一个字符是“=”号
-			/*
-			先说明一个概念：在解码时，4个字符为一组进行一轮字符匹配。
-			两个条件：
-				1、如果某一轮匹配的第二个是“=”且第三个字符不是“=”，说明这个带解析字符串不合法，直接返回空
-				2、如果当前“=”不是第二个字符，且后面的字符只包含空白符，则说明这个这个条件合法，可以继续。
-			*/
-			if (*current != '=' && (i % 4) == 1) {
-				return NULL;
-			}
-			continue;
-		}
-		ch = DecodeTable[ch];
-		//这个很重要，用来过滤所有不合法的字符
-		if (ch < 0 ) { /* a space or some other separator character, we simply skip over */
-			continue;
-		}
-		switch(i % 4)
-		{
-			case 0:
-				bin = ch << 2;
-				break;
-			case 1:
-				bin |= ch >> 4;
-				_decode_result += bin;
-				bin = ( ch & 0x0f ) << 4;
-				break;
-			case 2:
-				bin |= ch >> 2;
-				_decode_result += bin;
-				bin = ( ch & 0x03 ) << 6;
-				break;
-			case 3:
-				bin |= ch;
-				_decode_result += bin;
-				break;
-		}
-		i++;
+std::string Base64::Decode(const uint8_t *str){
+	return Base64::Decode(str,strlen((char*)str));
+}
+std::string Base64::Decode(const uint8_t *data,size_t datalen){
+	std::string buf;
+	if((datalen % 4) != 0){
+		//字符串长度必须是4的倍数
+		throw std::invalid_argument("Bad Base64 String len");
 	}
-	return _decode_result;
+	auto cptr = data;//临时指针
+	auto table = Table;
+	//代码表
+	size_t sub = 0;//减去的量
+	
+	if(data[datalen - 1] == '='){
+		sub ++;
+	}
+	if(data[datalen - 2] == '='){
+		sub++;
+	}
+	//这里去掉后面的==号
+	datalen -= sub;
+	
+	uint8_t array[4];//字符数组
+	while(datalen > 3){
+		array[0] = (uint8_t)table.find(cptr[0]);
+		array[1] = (uint8_t)table.find(cptr[1]);
+		array[2] = (uint8_t)table.find(cptr[2]);
+		array[3] = (uint8_t)table.find(cptr[3]);
+		//将着4个字符依次转换
+		buf += ((array[0] << 2) | (array[1] >> 4));
+		//第一个字符左移动两位 第二个字节右移4位 得到第一个 
+		buf += ((array[1] << 4) | (array[2] >> 2));
+		//第二个字符左边移4 第三个右移2位
+		buf += ((array[2] << 6) | array[3]);
+		//第三个字符左边移动位
+		cptr += 4;//移动临时指针
+		datalen -= 4; 
+	}
+	switch(datalen){
+		//还剩几个字符
+		case 0:{
+			//没了
+			break;
+		}
+		case 2:{
+			//还有2个字符
+			array[0] = (uint8_t)table.find(cptr[0]);
+			array[1] = (uint8_t)table.find(cptr[1]);
+			buf += ((array[0] << 2) | (array[1] >> 4));
+			break;
+		}
+		case 3:{
+			
+			array[0] = (uint8_t)table.find(cptr[0]);
+			array[1] = (uint8_t)table.find(cptr[1]);
+			array[2] = (uint8_t)table.find(cptr[2]);
+			buf += ((array[0] << 2) | (array[1] >> 4));
+			//第一个字符左移动两位 第二个字节右移4位 得到第一个 
+			buf += ((array[1] << 4) | (array[2] >> 2));
+			break;
+		}
+		default:{
+			//不可能
+			abort();
+		}
+	}
+	return buf;
 }
