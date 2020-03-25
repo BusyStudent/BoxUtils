@@ -126,19 +126,19 @@ void *Easy::get_handle(){
 	//得到CURL的Handle
 	return handle;
 }
-long Easy::status_code(){
+long Easy::status_code()const{
 	//得到状态代码
 	long code;
 	curl_easy_getinfo(handle,CURLINFO_RESPONSE_CODE,&code);
 	return code;
 }
-std::string Easy::url(){
+std::string Easy::url() const{
 	//得到URL
 	const char *url;
 	curl_easy_getinfo(handle,CURLINFO_EFFECTIVE_URL,&url);
 	return std::string(url);
 }
-bool Easy::ok(){
+bool Easy::ok()const{
 	if(status_code() == 200){
 		return true;
 	}
@@ -146,7 +146,7 @@ bool Easy::ok(){
 		return false;
 	}
 }
-Easy *Easy::clone(){
+Easy *Easy::clone()const{
 	return new Easy(curl_easy_duphandle(handle));
 }
 //回调函数

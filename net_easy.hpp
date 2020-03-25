@@ -37,11 +37,11 @@ namespace Box{
 				void set_header_cb(EasyCallBack cb,void *param = nullptr);//设置头的回调
 				
 				void *get_handle();//得到handle
-				std::string url();//得到URL
-				long status_code();
-				bool ok();//请求是否成功
+				std::string url() const;//得到URL
+				long status_code() const;
+				bool ok()const;//请求是否成功
 				
-				Easy *clone();//复制自己
+				Easy *clone()const;//复制自己
 			private:
 				//回调函数
 				static size_t WriteToString(char*,size_t,size_t,void*);//写出内容到字符串
