@@ -4,10 +4,12 @@ CXX=g++
 CXXFLAGS=-g -fPIC -Wall -Wextra
 OBJ=random.o cJSON.o json.o net.o net_easy.o net_factory.o net_headers.o net_exception.o\
 	exception.o iconv.o sem.o base64.o socket.o string.o dns.o xv.o filesystem.o net_multi.o\
-	xml.o xpath.o time.o
-LDFLAGS=-pthread -lcurl `xml2-config --libs`
+	xml.o xpath.o time.o\
+	sdl_rect.o sdl_pixels.o sdl_surface.o sdl_rwops.o sdl_video.o sdl_msgbox.o
+LDFLAGS=-pthread -lcurl `xml2-config --libs` `sdl2-config --libs`
 XMLFLAGS=`xml2-config --cflags`
 #LIBXML的配置文件
+SDLFLAGS=`sdl2-config --cflags`
 libbox_utils.so:$(OBJ)
 	$(CXX) $(LDFLAGS) $(OBJ) -shared -o libbox_utils.so
 random.o:random.cpp random.hpp
@@ -45,5 +47,24 @@ xml.o:xml.cpp xml.hpp
 xpath.o:xpath.cpp xpath.hpp xml.hpp
 	$(CXX) $(CXXFLAGS) $(XMLFLAGS) xpath.cpp -c
 #XML解析
+#SDL的封装
+#SDL的矩形操作
+sdl_rect.o:sdl_rect.cpp sdl_rect.hpp
+	$(CXX) $(CXXFLAGS) $(SDLFLAGS) sdl_rect.cpp -c
+#像素操作
+sdl_pixels.o:sdl_pixels.cpp sdl_pixels.hpp
+	$(CXX) $(CXXFLAGS) $(SDLFLAGS) sdl_pixels.cpp -c
+#Surface操作
+sdl_surface.o:sdl_surface.cpp sdl_surface.hpp
+	$(CXX) $(CXXFLAGS) $(SDLFLAGS) sdl_surface.cpp -c
+#文件抽象
+sdl_rwops.o:sdl_rwops.cpp sdl_rwops.hpp
+	$(CXX) $(CXXFLAGS) $(SDLFLAGS) sdl_rwops.cpp -c
+#视频(窗口操作)
+sdl_video.o:sdl_video.cpp sdl_video.hpp
+	$(CXX) $(CXXFLAGS) $(SDLFLAGS) sdl_video.cpp -c
+#SDL的信息框(不大好看)
+sdl_msgbox.o:sdl_msgbox.cpp sdl_msgbox.hpp
+	$(CXX) $(CXXFLAGS) $(SDLFLAGS) sdl_msgbox.cpp -c
 clean:
 	rm $(OBJ) libbox_utils.so
