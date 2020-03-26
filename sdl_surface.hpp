@@ -22,8 +22,8 @@ namespace Box{
 				bool set_blendmode(BlendMode mode);//设置渲染模式
 				bool get_blendmode(BlendMode &mode);//得到渲染模式
 				//设置alpha
-				bool set_alphamode(Uint8 alpha);
-				bool get_alphamode(Uint8 &alpha);
+				bool set_alphamod(Uint8 alpha);
+				bool get_alphamod(Uint8 &alpha);
 				
 				bool must_lock();//必须锁定进行访问
 				bool lock();//锁定
@@ -31,8 +31,8 @@ namespace Box{
 				//缝合填充函数
 				bool blit(Surface &src,const Rect *srcrect,Rect *dstrect);
 				//用rect填充
-				bool fill(const Rect &rect,Uint32 color);//用矩形
-				bool fill(const Rect rects[],int size,Uint32 color);//用矩形数组
+				bool fill_rect(const Rect &rect,Uint32 color);//用矩形
+				bool fill_rects(const Rect rects[],int size,Uint32 color);//用矩形数组
 				//克隆一个Surface
 				Surface clone();//克隆Surface
 				//第一个是树组 第二个是数组大小
@@ -42,9 +42,13 @@ namespace Box{
 				
 				static Surface LoadBMP(const char *f);
 				static Surface LoadBMP(RW &rwops);
+				static Surface LoadImage(const char *f);//加载图像
+				static Surface LoadImage(RW &rwops);//加载图像
 				//加载BMP有异常版本
 				static Surface *LoadBMP(RW &rwops,const char **err) noexcept;
 				static Surface *LoadBMP(const char *f,const char **err) noexcept;
+				static Surface *LoadImage(const char *f,const char **err) noexcept;
+				static Surface *LoadImage(RW &rwops,const char **err) noexcept;
 				//加载BMP没异常
 				inline SDL_Surface *operator ->()const{
 					return surface;
@@ -54,6 +58,7 @@ namespace Box{
 				
 				SDL_Surface *surface;
 			friend class Window;
+			friend class Renderer;
 		};
 	};
 };

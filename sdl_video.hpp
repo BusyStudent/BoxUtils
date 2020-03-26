@@ -12,6 +12,8 @@ namespace Box{
 			const char *get_format_name() const;//得到像素格式名称
 			
 		};
+		//这些方法基本不抛出异常 除了那些特别写了的 
+		//当初忘记写noexcept
 		class Window{
 			//窗口
 			public:
@@ -43,6 +45,7 @@ namespace Box{
 				void minimize();//最小化
 				void restore();//恢复
 				void set_icon(const Surface &icon);//设置图像
+				void set_size(int w,int h);//设置尺寸
 				void set_maximum_size(int max_w,int max_h);//设置最大的尺寸
 				void set_minimum_size(int min_w,int min_h);//设置最小的尺寸
 				void set_data(const char *name,void *userdata);//设置用户数据
@@ -75,6 +78,8 @@ namespace Box{
 				SDL_Window *get_SDL_Window() const{
 					return sdl_win;
 				};
+				//转移到堆上
+				Window *move_toheap() noexcept;
 			private:
 				
 				Window(SDL_Window *win);

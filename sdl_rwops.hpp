@@ -16,6 +16,7 @@ namespace Box{
 				RW(SDL_RWops *rwops);
 				SDL_RWops *rwops;
 			friend class Surface;
+			friend class Renderer;
 		};
 	};
 };

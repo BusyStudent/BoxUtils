@@ -43,6 +43,11 @@ Window Window::Create(const char *title,
 								SDL_WINDOWPOS_UNDEFINED,
 								w,h,flags);
 }
+Window *Window::move_toheap() noexcept{
+	Window *win = new Window(sdl_win);
+	sdl_win = nullptr;
+	return win;
+}
 //方法
 void Window::hide(){
 	SDL_HideWindow(sdl_win);
@@ -99,6 +104,9 @@ bool Window::set_fullscreen(Uint32 flags){
 	return false;
 }
 //设置尺寸
+void Window::set_size(int w,int h){
+	SDL_SetWindowSize(sdl_win,w,h);
+}
 void Window::set_minimum_size(int min_w,int min_h){
 	SDL_SetWindowMinimumSize(sdl_win,min_w,min_h);
 }

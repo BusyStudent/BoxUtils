@@ -5,8 +5,9 @@ CXXFLAGS=-g -fPIC -Wall -Wextra
 OBJ=random.o cJSON.o json.o net.o net_easy.o net_factory.o net_headers.o net_exception.o\
 	exception.o iconv.o sem.o base64.o socket.o string.o dns.o xv.o filesystem.o net_multi.o\
 	xml.o xpath.o time.o\
-	sdl_rect.o sdl_pixels.o sdl_surface.o sdl_rwops.o sdl_video.o sdl_msgbox.o
-LDFLAGS=-pthread -lcurl `xml2-config --libs` `sdl2-config --libs`
+	sdl_rect.o sdl_pixels.o sdl_surface.o sdl_rwops.o sdl_video.o sdl_msgbox.o sdl_render.o \
+	sdl.o
+LDFLAGS=-pthread -lcurl `xml2-config --libs` `sdl2-config --libs` -lSDL2_image -lSDL2_gfx
 XMLFLAGS=`xml2-config --cflags`
 #LIBXML的配置文件
 SDLFLAGS=`sdl2-config --cflags`
@@ -66,5 +67,10 @@ sdl_video.o:sdl_video.cpp sdl_video.hpp
 #SDL的信息框(不大好看)
 sdl_msgbox.o:sdl_msgbox.cpp sdl_msgbox.hpp
 	$(CXX) $(CXXFLAGS) $(SDLFLAGS) sdl_msgbox.cpp -c
+sdl_render.o:sdl_render.cpp sdl_render.hpp
+	$(CXX) $(CXXFLAGS) $(SDLFLAGS) sdl_render.cpp -c
+#SDL和其他拓展库的初始化
+sdl.o:sdl.cpp sdl.hpp
+	$(CXX) $(CXXFLAGS) $(SDLFLAGS) sdl.cpp -c
 clean:
 	rm $(OBJ) libbox_utils.so

@@ -35,6 +35,24 @@ Surface Surface::LoadBMP(RW &rw){
 	}
 	return Surface(surf);
 }
+//加载图片
+
+Surface Surface::LoadImage(const char *f){
+	SDL_Surface *surf = IMG_Load(f);
+	if(surf == nullptr){
+		throw std::runtime_error(IMG_GetError());
+	}
+	return Surface(surf);
+}
+//从文件抽象载入
+Surface Surface::LoadImage(RW &rw){
+	SDL_Surface *surf = IMG_Load_RW(rw.rwops,SDL_FALSE);
+	if(surf == nullptr){
+		throw std::runtime_error(IMG_GetError());
+	}
+	return Surface(surf);
+}
+
 //没有异常版本
 Surface *Surface::LoadBMP(RW &rw,const char **err)noexcept{
 	SDL_Surface *surf = SDL_LoadBMP_RW(rw.rwops,SDL_FALSE);
@@ -55,6 +73,25 @@ Surface *Surface::LoadBMP(const char *f,const char **err)noexcept{
 		return new Surface(surf);
 	}
 }
+
+Surface *Surface::LoadImage(const char *f,const char **err) noexcept{
+	SDL_Surface *surf = IMG_Load(f);
+	if(surf == nullptr){
+		*err = IMG_GetError();
+		return nullptr;
+	}
+	return new Surface(surf);
+}
+//从文件抽象载入
+Surface *Surface::LoadImage(RW &rw,const char **err) noexcept{
+	SDL_Surface *surf = IMG_Load_RW(rw.rwops,SDL_FALSE);
+	if(surf == nullptr){
+		*err = IMG_GetError();
+		return nullptr;
+	}
+	return new Surface(surf);
+}
+
 //保存为BMP
 bool Surface::save_bmp(const char *f){
 	return SDL_SaveBMP(surface,f);
@@ -71,7 +108,7 @@ bool Surface::blit(Surface &src,const Rect *srcrect,Rect *dstrect){
 	}
 }
 //填充Surface
-bool Surface::fill(const Rect &rect,Uint32 color){
+bool Surface::fill_rect(const Rect &rect,Uint32 color){
 	//用一个矩形
 	if(SDL_FillRect(surface,&rect,color) == 0){
 		return true;
@@ -80,7 +117,7 @@ bool Surface::fill(const Rect &rect,Uint32 color){
 		return false;
 	}
 }
-bool Surface::fill(const Rect rects[],int size,Uint32 color){
+bool Surface::fill_rects(const Rect rects[],int size,Uint32 color){
 	if(SDL_FillRects(surface,rects,size,color) == 0){
 		return true;
 	}
@@ -115,13 +152,13 @@ bool Surface::get_blendmode(BlendMode &mode){
 	return false;
 }
 //Alpha
-bool Surface::set_alphamode(Uint8 alpha){
+bool Surface::set_alphamod(Uint8 alpha){
 	if(SDL_SetSurfaceAlphaMod(surface,alpha) == 0){
 		return true;
 	}
 	return false;
 }
-bool Surface::get_alphamode(Uint8 &alpha){
+bool Surface::get_alphamod(Uint8 &alpha){
 	if(SDL_GetSurfaceAlphaMod(surface,&alpha) == 0){
 		return true;
 	}
