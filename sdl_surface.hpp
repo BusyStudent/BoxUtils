@@ -8,6 +8,7 @@ namespace Box{
 		class RW;//文件抽象
 		class Surface{
 			public:
+				Surface(SDL_Surface *);
 				~Surface();
 				Surface(const Surface &);//拷贝函数
 				//就是改个引用指针
@@ -54,7 +55,7 @@ namespace Box{
 					return surface;
 				};
 			private:
-				Surface(SDL_Surface *);
+				
 				
 				SDL_Surface *surface;
 			friend class Window;

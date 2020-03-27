@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 #include "sdl.hpp"
 using namespace Box;
 bool SDL::Init(Uint32 flags) noexcept{
@@ -37,4 +38,14 @@ bool IMG::Init() noexcept{
 }
 void IMG::Quit() noexcept{
 	IMG_Quit();
+}
+//TTF库
+bool TTF::Init() noexcept{
+	if(TTF_Init() == 0){
+		return true;
+	}
+	return false;
+}
+void TTF::Quit() noexcept{
+	TTF_Quit();
 }

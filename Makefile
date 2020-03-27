@@ -6,8 +6,9 @@ OBJ=random.o cJSON.o json.o net.o net_easy.o net_factory.o net_headers.o net_exc
 	exception.o iconv.o sem.o base64.o socket.o string.o dns.o xv.o filesystem.o net_multi.o\
 	xml.o xpath.o time.o\
 	sdl_rect.o sdl_pixels.o sdl_surface.o sdl_rwops.o sdl_video.o sdl_msgbox.o sdl_render.o \
-	sdl.o
-LDFLAGS=-pthread -lcurl `xml2-config --libs` `sdl2-config --libs` -lSDL2_image -lSDL2_gfx
+	sdl.o sdl_font.o sdl_timer.o
+LDFLAGS=-pthread -lcurl `xml2-config --libs` \
+	`sdl2-config --libs` -lSDL2_image -lSDL2_gfx -lSDL2_ttf -lm
 XMLFLAGS=`xml2-config --cflags`
 #LIBXML的配置文件
 SDLFLAGS=`sdl2-config --cflags`
@@ -72,5 +73,10 @@ sdl_render.o:sdl_render.cpp sdl_render.hpp
 #SDL和其他拓展库的初始化
 sdl.o:sdl.cpp sdl.hpp
 	$(CXX) $(CXXFLAGS) $(SDLFLAGS) sdl.cpp -c
+#SDL的字体处理
+sdl_font.o:sdl_font.cpp sdl_font.hpp
+	$(CXX) $(CXXFLAGS) $(SDLFLAGS) sdl_font.cpp -c
+sdl_timer.o:sdl_timer.cpp sdl_timer.hpp
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) sdl_timer.cpp -c
 clean:
 	rm $(OBJ) libbox_utils.so

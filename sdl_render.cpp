@@ -348,10 +348,25 @@ bool Renderer::gfx_draw_trigon(const Point &p1,const Point &p2,const Point &p3,
 	}
 	return false;
 }
-//给个颜色
 bool Renderer::gfx_draw_trigon(const Point &p1,const Point &p2,const Point &p3,
 							   const Color &color) noexcept{
 	if(trigonRGBA(render,p1.x,p1.y,p2.x,p2.y,p3.x,p3.y,
+				  color.r,color.g,color.b,color.a) == 0){
+		return true;
+	}
+	return false;
+}
+//抗锯齿的三角形
+bool Renderer::gfx_draw_aatrigon(const Point &p1,const Point &p2,const Point &p3,
+							   Uint8 r,Uint8 g,Uint8 b,Uint8 a) noexcept{
+	if(aatrigonRGBA(render,p1.x,p1.y,p2.x,p2.y,p3.x,p3.y,r,g,b,a) == 0){
+		return true;
+	}
+	return false;
+}
+bool Renderer::gfx_draw_aatrigon(const Point &p1,const Point &p2,const Point &p3,
+							   const Color &color) noexcept{
+	if(aatrigonRGBA(render,p1.x,p1.y,p2.x,p2.y,p3.x,p3.y,
 				  color.r,color.g,color.b,color.a) == 0){
 		return true;
 	}

@@ -100,6 +100,11 @@ namespace Box{
 					 Uint8 r,Uint8 g,Uint8 b,Uint8 a = 255) noexcept;
 				bool gfx_draw_trigon(const Point &p1,const Point &p2,const Point &p3,
 					 const Color &color) noexcept;
+				//画一个抗锯齿三角形
+				bool gfx_draw_aatrigon(const Point &p1,const Point &p2,const Point &p3,
+					 Uint8 r,Uint8 g,Uint8 b,Uint8 a = 255) noexcept;
+				bool gfx_draw_aatrigon(const Point &p1,const Point &p2,const Point &p3,
+					 const Color &color) noexcept;
 				//填充三角形
 				bool gfx_fill_trigon(const Point &p1,const Point &p2,const Point &p3,
 					 Uint8 r,Uint8 g,Uint8 b,Uint8 a = 255) noexcept;

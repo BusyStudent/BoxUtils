@@ -20,6 +20,11 @@ namespace Box{
 		bool Init() noexcept;
 		void Quit() noexcept;//退出
 	};
+	namespace TTF{
+		//字体初始化
+		bool Init() noexcept;
+		void Quit() noexcept;
+	};
 };
 
 #endif
