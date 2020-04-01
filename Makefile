@@ -6,7 +6,8 @@ OBJ=random.o cJSON.o json.o net.o net_easy.o net_factory.o net_headers.o net_exc
 	exception.o iconv.o sem.o base64.o socket.o string.o dns.o xv.o filesystem.o net_multi.o\
 	xml.o xpath.o time.o\
 	sdl_rect.o sdl_pixels.o sdl_surface.o sdl_rwops.o sdl_video.o sdl_msgbox.o sdl_render.o \
-	sdl.o sdl_font.o sdl_timer.o
+	sdl.o sdl_font.o sdl_timer.o \
+	ui_window.o ui_sys.o ui.o ui_widget.o ui_font.o ui_image.o ui_button.o
 LDFLAGS=-pthread -lcurl `xml2-config --libs` \
 	`sdl2-config --libs` -lSDL2_image -lSDL2_gfx -lSDL2_ttf -lm
 XMLFLAGS=`xml2-config --cflags`
@@ -77,6 +78,18 @@ sdl.o:sdl.cpp sdl.hpp
 sdl_font.o:sdl_font.cpp sdl_font.hpp
 	$(CXX) $(CXXFLAGS) $(SDLFLAGS) sdl_font.cpp -c
 sdl_timer.o:sdl_timer.cpp sdl_timer.hpp
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) sdl_timer.cpp -c
+	$(CXX) $(CXXFLAGS) $(SDLFLAGS) sdl_timer.cpp -c
+#UI部分之依赖 SDL2
+ui_window.o:ui_window.cpp ui_window.hpp
+ui_sys.o:ui_sys.cpp ui_sys.hpp
+#小控件
+ui_widget.o:ui_widget.cpp ui_widget.hpp
+#UI核心部分
+ui.o:ui.cpp ui.hpp ui_sys.o
+ui_font.o:ui_font.cpp ui_font.hpp
+#UI的字体
+ui_image.o:ui_image.cpp ui_image.hpp
+#图像
+ui_button.o:ui_button.cpp ui_button.hpp
 clean:
 	rm $(OBJ) libbox_utils.so

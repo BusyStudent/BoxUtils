@@ -129,3 +129,9 @@ const char *Font::get_stylename() noexcept{
 const char *Font::get_familyname() noexcept{
 	return TTF_FontFaceFamilyName(font);
 }
+const char *Font::get_filename() noexcept{
+	return filename;
+}
+int Font::get_ptsize() noexcept{
+	return ptsize;
+}

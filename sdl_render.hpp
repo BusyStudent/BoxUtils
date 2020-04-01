@@ -58,6 +58,7 @@ namespace Box{
 										const char **err)noexcept;//没异常版本
 				static Renderer *CreateFrom(Surface &surf,const char **err)noexcept;//没异常版本
 				//设置操作
+				bool set_draw_color(const Color &) noexcept;//设置绘画颜色
 				bool set_draw_color(Uint8 r,Uint8 g,Uint8 b,Uint8 a = 255) noexcept;
 				bool set_draw_blendmode(BlendMode mode) noexcept;//设置渲染模式
 				bool set_target(Texture *t = nullptr) noexcept;//设置渲染目标 nullptr改回默认目标

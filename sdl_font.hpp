@@ -37,6 +37,8 @@ namespace Box{
 				int  get_style() noexcept;//得到样式
 				const char *get_stylename() noexcept;//得到样式名字
 				const char *get_familyname() noexcept;//得到字体家族名字
+				const char *get_filename() noexcept;//得到字体的文件名字
+				int get_ptsize() noexcept;//得到字体大小
 			private:
 				Font(TTF_Font *font,const char *file,int ptsize);
 				const char *filename;//字体名字

@@ -13,17 +13,20 @@ namespace Box{
 		int PollEvent(Event &) noexcept;
 		int WaitEvent(Event &) noexcept;
 		int PushEvent(Event &) noexcept;
+		const char *GetError() noexcept;//得到错误
 	};
 	namespace IMG{
 		//图像的IMG初始化
 		bool Init(int flags) noexcept;
 		bool Init() noexcept;
 		void Quit() noexcept;//退出
+		const char *GetError() noexcept;
 	};
 	namespace TTF{
 		//字体初始化
 		bool Init() noexcept;
 		void Quit() noexcept;
+		const char *GetError() noexcept;
 	};
 };
 

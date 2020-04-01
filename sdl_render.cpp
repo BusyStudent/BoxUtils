@@ -51,6 +51,12 @@ Renderer *Renderer::CreateFrom(Surface &surf,const char **err) noexcept{
 	return new Renderer(render);
 }
 //颜色设置
+bool Renderer::set_draw_color(const Color &color) noexcept{
+	if(SDL_SetRenderDrawColor(render,color.r,color.g,color.b,color.a) == 0){
+		return true;
+	}
+	return false;
+}
 bool Renderer::set_draw_color(Uint8 r,Uint8 g,Uint8 b,Uint8 a) noexcept{
 	if(SDL_SetRenderDrawColor(render,r,g,b,a) == 0){
 		return true;

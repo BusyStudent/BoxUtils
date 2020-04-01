@@ -16,6 +16,9 @@ bool SDL::Init() noexcept{
 void SDL::Quit() noexcept{
 	return SDL_Quit();
 }
+const char *SDL::GetError() noexcept{
+	return SDL_GetError();
+}
 //事件
 int SDL::PollEvent(Event &ev) noexcept{
 	return SDL_PollEvent(&ev);
@@ -39,6 +42,9 @@ bool IMG::Init() noexcept{
 void IMG::Quit() noexcept{
 	IMG_Quit();
 }
+const char *IMG::GetError() noexcept{
+	return IMG_GetError();
+}
 //TTF库
 bool TTF::Init() noexcept{
 	if(TTF_Init() == 0){
@@ -48,4 +54,7 @@ bool TTF::Init() noexcept{
 }
 void TTF::Quit() noexcept{
 	TTF_Quit();
+}
+const char *TTF::GetError() noexcept{
+	return TTF_GetError();
 }
