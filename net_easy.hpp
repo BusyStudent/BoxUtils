@@ -18,6 +18,7 @@ namespace Box{
 				Easy(const Easy&);
 				~Easy();
 				void perform();//执行
+				void enable_cookie();//启动Cookie引擎
 				void set_headers();//重置会原有的请求头
 				void set_headers(const Headers &);//替换原有的请求头
 				void set_method(Method method);//设置方法
@@ -36,12 +37,15 @@ namespace Box{
 				void set_write_cb(EasyCallBack cb,void *param = nullptr);//设置写出的回调
 				void set_header_cb(EasyCallBack cb,void *param = nullptr);//设置头的回调
 				
-				void *get_handle();//得到handle
+				void *get_handle() const;//得到handle
 				std::string url() const;//得到URL
 				long status_code() const;
 				bool ok()const;//请求是否成功
 				
 				Easy *clone()const;//复制自己
+				//编码URL和解码
+				std::string escape_url(const char *url) const;
+				std::string unescape_url(const char *irl) const;
 			private:
 				//回调函数
 				static size_t WriteToString(char*,size_t,size_t,void*);//写出内容到字符串
@@ -49,6 +53,7 @@ namespace Box{
 				static size_t WriteToHeaders(char*,size_t,size_t,void*);//写到头里面
 				void *handle;
 			friend class Multi;
+			friend class Share;
 		};
 	};
 };

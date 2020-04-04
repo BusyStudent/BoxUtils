@@ -8,6 +8,8 @@
 	#include <sys/stat.h>
 	#include <sys/types.h>
 #endif
+#include <cstring>
+#include <cerrno>
 #include "filesystem.hpp"
 using namespace Box;
 bool FS::Exists(const char *pathname){
@@ -46,4 +48,7 @@ bool FS::Chdir(const char *path){
 	else{
 		return false;
 	}
+}
+const char *FS::GetError(){
+	return strerror(errno);
 }

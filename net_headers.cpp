@@ -40,7 +40,7 @@ void Headers::update(const Headers &h){
 		next = next->next;
 	}
 }
-const char *Headers::get_value(const char *key){
+const char *Headers::get_value(const char *key) const{
 	//查找值
 	//size_t keylen = strlen(key);//key的长度
 	struct curl_slist *next = (struct curl_slist*)(slist);
@@ -53,14 +53,14 @@ const char *Headers::get_value(const char *key){
 	}
 	return nullptr;
 }
-const char *Headers::operator [](const char *key){
+const char *Headers::operator [](const char *key) const{
 	auto value = get_value(key);
 	if(value == nullptr){
 		throw Box::KeyError(key);
 	}
 	return value;
 }
-bool Headers::has_key(const char *key){
+bool Headers::has_key(const char *key) const{
 	//有这个值
 	auto val = get_value(key);
 	if(val == nullptr){
@@ -115,7 +115,7 @@ Box::Json *Headers::json(){
 	return json.move_toheap();//把数据转移到heap
 }
 //遍历
-void Headers::for_each(std::function <void(const char*,const char*)> fn){
+void Headers::for_each(std::function <void(const char*,const char*)> fn) const{
 	struct curl_slist *next = (struct curl_slist*)(slist);
 	std::string key;
 	const char *splist_mark;

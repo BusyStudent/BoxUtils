@@ -6,6 +6,7 @@ namespace Box{
 		bool Exists(const char *pathname);//文件是否存在
 		bool MkDir(const char *name);//创建文件
 		bool Chdir(const char *path);//改变目录
+		const char *GetError();//得到错误
 	};
 }
 #endif

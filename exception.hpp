@@ -29,5 +29,6 @@ namespace Box{
 		public:
 			const char *what() const throw();
 	};
+	void Panic(const char *fmt,...);//退出
 };
 #endif
