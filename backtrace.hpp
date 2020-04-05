@@ -1,4 +1,4 @@
-#ifndef _B0X_BACKTRACE_HPP_
+#ifndef _BOX_BACKTRACE_HPP_
 #define _BOX_BACKTRACE_HPP_
 #include <vector>
 #include <string>

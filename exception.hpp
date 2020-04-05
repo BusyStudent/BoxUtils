@@ -2,6 +2,7 @@
 #define _BOX_EXCEPTION_HPP_
 //一下异常
 #include <stdexcept>
+#include <string>
 namespace Box{
 	class IndexError:public std::exception{
 		public:
