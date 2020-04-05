@@ -12,6 +12,7 @@ struct ReqInfo{
 	RequestCB fn;//回调函数
 	EasyPackage *pak;//包
 	std::string content;//内容
+	void *userdata;//用户数据
 };
 Session::Session(){
 	//共享所有
@@ -40,7 +41,7 @@ void Session::collect_multi_msg(){
 		//得到请求信息
 		if(info->fn != nullptr){
 			//有回调函数 调用
-			info->fn(*this,*(info->pak),info->content);
+			info->fn(*this,*(info->pak),info->content,info->userdata);
 		}
 		delete info;
 	});
@@ -70,6 +71,7 @@ RequestID::RequestID(Session *s,RequestCB f,EasyPackage *p,bool osetd,bool doned
 	pak = p;
 	is_ostream_seted = osetd;
 	is_done = doned;
+	userdata = nullptr;
 }
 //拷贝函数
 RequestID::RequestID(const RequestID &req){
@@ -85,6 +87,7 @@ RequestID::RequestID(const RequestID &req){
 	else{
 		pak = new EasyPackage(*(req.pak));
 	}
+	userdata = req.userdata;
 }
 RequestID::~RequestID(){
 	if(is_done == false){
@@ -108,6 +111,7 @@ bool RequestID::done(){
 	//请求包
 	info->fn = fn;
 	//回调函数
+	info->userdata = userdata;
 	session->multi->add_handle(pak,info);
 	session->share->add_handle(pak);
 	//加入曲柄
@@ -116,7 +120,25 @@ bool RequestID::done(){
 	is_done = true;
 	return true;
 }
+//设置用户数据
+void RequestID::set_userdata(void *data){
+	userdata = data;
+}
+void RequestID::set_finish_fn(RequestCB fn){
+	this->fn = fn;
+}
 //设置输出流
+void RequestID::set_ostream(std::fstream &stream){
+	//设置回调
+	(*pak)->set_write_cb(
+		[](char *buf,size_t num,size_t block,void *stream) -> size_t{
+			auto s = ((std::fstream*)stream);
+			s->write(buf,num * block);
+			return num*block;
+		},
+		&stream
+	);
+}
 void RequestID::set_ostream(std::string &str){
 	is_ostream_seted = true;
 	(*pak)->set_ostream(str);

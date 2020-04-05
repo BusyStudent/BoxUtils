@@ -4,7 +4,8 @@ CXX=g++
 CXXFLAGS=-g -fPIC -Wall -Wextra
 OBJ=random.o cJSON.o json.o net.o net_easy.o net_factory.o net_headers.o net_exception.o\
 	exception.o iconv.o sem.o base64.o socket.o string.o dns.o xv.o filesystem.o net_multi.o\
-	xml.o xpath.o time.o os.o backtrace.o net_share.o net_session.o
+	xml.o xpath.o time.o os.o backtrace.o net_share.o net_session.o\
+	coroutine.o scheduler.o
 LDFLAGS=-pthread -lcurl `xml2-config --libs`
 XMLFLAGS=`xml2-config --cflags`
 #LIBXML的配置文件
@@ -49,5 +50,9 @@ xpath.o:xpath.cpp xpath.hpp xml.hpp
 	$(CXX) $(CXXFLAGS) $(XMLFLAGS) xpath.cpp -c
 #XML解析
 backtrace.o:backtrace.cpp backtrace.hpp
+coroutine.o:coroutine.cpp coroutine.hpp
+#协程的实现 基于ucontext
+scheduler.o:scheduler.cpp scheduler.hpp
+#调度器
 clean:
 	rm $(OBJ) libbox_utils.so

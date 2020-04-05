@@ -4,11 +4,17 @@
 #include "string.hpp"
 #include "backtrace.hpp"
 //GLIBC特有的
+#ifdef __gnu_linux__
 #include <execinfo.h>
+#endif
+#ifdef __GNUC__
 #include <cxxabi.h>
+#endif
 using namespace Box;
 
 std::string Box::DemangleName(const std::string &s){
+	//GCC的函数
+	#ifdef __GNUC__
 	//得到C++函数或者其他符号的名字
 	int ok;
 	char *real = abi::__cxa_demangle(s.c_str(),nullptr,nullptr,&ok);
@@ -18,9 +24,13 @@ std::string Box::DemangleName(const std::string &s){
 		free(real);
 		return real_name;
 	}
+	#else
+		#warning DemangleName Unsupported
+	#endif
 	return s;
 }
 String::Vector Box::BackTrace(int max){
+	#ifdef __gnu_linux__
 	//得到堆栈追踪
 	void *array[max];
 	//定义数组
@@ -54,4 +64,10 @@ String::Vector Box::BackTrace(int max){
 	}
 	free(str_array);
 	return vec;
+	#else
+	#warning function Box::BackTrace Unsupported 
+	String::Vector vec;
+	vec.push_back("Unsupport Platfrom");
+	return vec;
+	#endif
 }

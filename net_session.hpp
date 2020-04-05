@@ -1,6 +1,7 @@
 #ifndef _BOX_NET_SESSION_HPP_
 #define _BOX_NET_SESSION_HPP_
 #include <cstdio>
+#include <fstream>
 #include <string>
 #include <functional>
 namespace Box{
@@ -11,14 +12,16 @@ namespace Box{
 		class Share;
 		class Multi;
 		class Session;
-		typedef std::function <void(Session &,EasyPackage & pak,const std::string &content)> RequestCB;
+		typedef std::function <void(Session &,EasyPackage & pak,std::string &content,void *userdata)> RequestCB;
 		class RequestID{
 			//请求ID
 			public:
 				RequestID(const RequestID &);//拷贝
 				~RequestID();
 				bool done();//设置完成 发送请求
+				void set_userdata(void *data);//设置用户数据
 				void set_finish_fn(RequestCB fn);
+				void set_ostream(std::fstream &stream);
 				void set_ostream(std::string &str);//设置输出流
 				void set_ostream(FILE *f);//设置输出流
 				void add_header(const char *key,const char *value);//加入头
@@ -30,6 +33,7 @@ namespace Box{
 				EasyPackage *pak;//请求包
 				bool is_ostream_seted;//输出流设置过了
 				bool is_done;//是否添加进去了
+				void *userdata;//用户数据
 			friend class Session;
 		};
 		class Session{
