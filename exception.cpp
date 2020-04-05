@@ -48,10 +48,8 @@ void Box::Panic(const char *fmt,...){
 	va_end(varg);
 	fputc('\n',stderr);
 	//输出错误信息
-	fputs("BackTrace:\n",stderr);
+	
 	//打印堆栈信息
-	for(auto &s:Box::BackTrace()){
-		std::cerr << "  by " << s << std::endl;
-	}
+	Box::PrintBackTrace();
 	abort();
 }

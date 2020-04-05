@@ -5,7 +5,7 @@
 #else
 	//Linux的信号量
 	#include <semaphore.h>
-	#include <sys/sem.h>
+	//#include <sys/sem.h>
 #endif
 namespace Box{
 	class Sem{

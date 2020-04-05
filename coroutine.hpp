@@ -28,7 +28,7 @@ namespace Box{
 				Scheduler *get_scheduler() const;
 				//一些操控函数
 				void yield();//放弃执行 请求调度其他的协程
-				void sleep(int t);//睡眠
+				void sleep(unsigned int t);//睡眠
 				void usleep(int ms);//精度更高的睡眠
 				
 				static size_t default_stack_size;//默认栈大小
@@ -41,7 +41,9 @@ namespace Box{
 				Func fn;//回调
 				Scheduler *scheduler;//所属的调度器
 				CoroutineStatus status;//默认状态
+				int max_hit;//最大可以命中的 
 			friend class Scheduler;
+			friend class TScheduler;
 		};
 	};
 };

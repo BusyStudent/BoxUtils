@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
+#include <iostream>
 #include "string.hpp"
 #include "backtrace.hpp"
 //GLIBC特有的
@@ -70,4 +71,10 @@ String::Vector Box::BackTrace(int max){
 	vec.push_back("Unsupport Platfrom");
 	return vec;
 	#endif
+}
+void Box::PrintBackTrace(int max){
+	std::cerr << "BackTrace():" << std::endl;
+	for(auto &s:Box::BackTrace(max)){
+		std::cerr << "  by " << s << std::endl;
+	}
 }
