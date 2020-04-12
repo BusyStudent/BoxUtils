@@ -1,6 +1,7 @@
 #include <curl/curl.h>
 #include <string>
 #include <cstring>
+#include "exception.hpp"
 #include "net_exception.hpp"
 #include "net_headers.hpp"
 #include "net_easy.hpp"
@@ -48,6 +49,12 @@ void Easy::perform(){
 		throw EasyException(type,curl_easy_strerror(code));
 	}
 }
+
+//启动cookie引擎
+void Easy::enable_cookie(){
+	curl_easy_setopt(handle,CURLOPT_COOKIEFILE,"");
+}
+
 void Easy::set_url(const char *url){
 	//设置URL
 	curl_easy_setopt(handle,CURLOPT_URL,url);
@@ -122,23 +129,24 @@ void Easy::set_header_cb(EasyCallBack cb,void *param){
 	curl_easy_setopt(handle,CURLOPT_HEADERFUNCTION,cb);
 	curl_easy_setopt(handle,CURLOPT_HEADERDATA,param);
 }
-void *Easy::get_handle(){
+
+void *Easy::get_handle() const{
 	//得到CURL的Handle
 	return handle;
 }
-long Easy::status_code(){
+long Easy::status_code()const{
 	//得到状态代码
 	long code;
 	curl_easy_getinfo(handle,CURLINFO_RESPONSE_CODE,&code);
 	return code;
 }
-std::string Easy::url(){
+std::string Easy::url() const{
 	//得到URL
 	const char *url;
 	curl_easy_getinfo(handle,CURLINFO_EFFECTIVE_URL,&url);
 	return std::string(url);
 }
-bool Easy::ok(){
+bool Easy::ok()const{
 	if(status_code() == 200){
 		return true;
 	}
@@ -146,9 +154,34 @@ bool Easy::ok(){
 		return false;
 	}
 }
-Easy *Easy::clone(){
+//克隆
+Easy *Easy::clone()const{
 	return new Easy(curl_easy_duphandle(handle));
 }
+//URL编码和解码
+
+std::string Easy::escape_url(const char *url) const{
+	char *s = curl_easy_escape(handle,url,0);
+	//编码一下
+	if(s == nullptr){
+		throw Box::NullPtrException();
+	}
+	//失败
+	std::string str(s);
+	curl_free(s);
+	return str;
+}
+std::string Easy::unescape_url(const char *url) const{
+	//解码URL
+	char *s = curl_easy_escape(handle,url,0);
+	if(s == nullptr){
+		throw Box::NullPtrException();
+	}
+	std::string str(s);
+	curl_free(s);
+	return str;
+}
+
 //回调函数
 size_t Easy::WriteToFILE(char *buf,size_t size,size_t block,void *param){
 	//写到文件

@@ -1,4 +1,7 @@
 #include <cstring>
+#include <cstdio>
+#include <cstdlib>
+#include <cstdarg>
 #include <string>
 #include <vector>
 #include "string.hpp"
@@ -58,4 +61,32 @@ String::Vector String::Split(
 		}
 	}
 	return vec;
+}
+//格式化字符串
+std::string String::VFormat(const char *fmt,va_list &varg){
+	FILE *tf = tmpfile();//申请临时文件
+	if(tf == nullptr){
+		//失败
+		abort();
+	}
+	//写入数据
+	vfprintf(tf,fmt,varg);
+	
+	auto len = ftell(tf);//得到字符串长度
+	fseek(tf,0,SEEK_SET);//移动到文件开始处
+	char buf[len + 1];
+	memset(buf,'\0',sizeof(buf));
+	fread(buf,len,1,tf);
+	//读入数据
+	std::string str(buf);
+	fclose(tf);
+	return str;
+}
+//格式化字符串
+std::string String::Format(const char *fmt,...){
+	va_list varg;
+	va_start(varg,fmt);
+	std::string str = String::VFormat(fmt,varg);
+	va_end(varg);
+	return str;
 }

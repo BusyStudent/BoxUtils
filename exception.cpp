@@ -1,6 +1,12 @@
 #include <sstream>
+#include <iostream>
 #include <stdexcept>
+#include <cstdlib>
+#include <cstdio>
+#include <cstdarg>
 #include "exception.hpp"
+#include "string.hpp"
+#include "backtrace.hpp"
 Box::IndexError::IndexError(int index){
 	this->index = index;
 	std::stringstream stream;
@@ -32,4 +38,18 @@ const char *Box::TypeError::what() const throw(){
 //空指针错误
 const char *Box::NullPtrException::what() const throw(){
 	return "Got nullptr";
+}
+//Panic异常退出
+void Box::Panic(const char *fmt,...){
+	fputs("Panic():",stderr);
+	va_list varg;
+	va_start(varg,fmt);
+	vfprintf(stderr,fmt,varg);
+	va_end(varg);
+	fputc('\n',stderr);
+	//输出错误信息
+	
+	//打印堆栈信息
+	Box::PrintBackTrace();
+	abort();
 }

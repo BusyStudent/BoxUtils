@@ -16,10 +16,10 @@ namespace Box{
 				void add(const char *key,const char *value);
 				void update(const Headers &headers);//更新头
 				bool remove(const char *key);//移除一个值
-				bool has_key(const char *key);//是否有这键
-				const char *get_value(const char *key);//得到值(没有异常)
-				const char *operator[](const char *key);//有异常的
-				void for_each(std::function <void(const char*,const char*)>);//遍历头
+				bool has_key(const char *key) const;//是否有这键
+				const char *get_value(const char *key) const;//得到值(没有异常)
+				const char *operator[](const char *key) const;//有异常的
+				void for_each(std::function <void(const char*,const char*)>) const;//遍历头
 			private:
 				void *slist;
 			friend class Easy;

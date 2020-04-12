@@ -12,13 +12,13 @@ namespace Box{
 				EasyPackage(Easy *e,const Headers &h);
 				EasyPackage(const EasyPackage&);
 				~EasyPackage();
-				inline Easy *operator ->(){
+				inline Easy *operator ->() const{
 					return easy_handle;
 				}
-				inline Easy &operator *(){
+				inline Easy &operator *() const{
 					return *easy_handle;
 				}
-				inline const char *operator [](const char *key){
+				inline const char *operator [](const char *key) const{
 					return resp_headers[key];
 				}
 				inline Headers &headers(){
@@ -31,6 +31,8 @@ namespace Box{
 				Headers _headers;//请求头
 				Easy *easy_handle;
 			friend class Multi;
+			friend class Share;
+			friend class RequestID;
 		};
 		class EasyFactory{
 			//Easy对象工厂

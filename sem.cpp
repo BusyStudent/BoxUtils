@@ -3,18 +3,19 @@
 #else
 	//Linux的信号量
 	#include <semaphore.h>
-	#include <sys/sem.h>
+	//#include <sys/sem.h>
 #endif
-#include <stdexcept>
+#include <cstring>
 #include <cstdio>
 #include <cerrno>
+#include "exception.hpp"
 #include "sem.hpp"
-using namespace Box;
+using namespace Box::Sync;
 Sem::Sem(unsigned int value){
+	
 	if(sem_init(&sem,0,value) !=0 ){
 		//失败了
-		perror("Create Sem");
-		throw std::bad_alloc();
+		Box::Panic("sem_init() => %s",strerror(errno));
 	}
 }
 Sem::~Sem(){
@@ -53,10 +54,10 @@ void Mutex::unlock(){
 	this->post();
 }
 //事件
-ThreadEvent::ThreadEvent():Sem(0){
+Event::Event():Sem(0){
 	//默认是0
 }
-void ThreadEvent::set(){
+void Event::set(){
 	mutex.lock();
 	_is_set = true;//已经被设置了
 	for (int i = 0; i < sleepers; i++){
@@ -65,7 +66,7 @@ void ThreadEvent::set(){
 	sleepers = 0;
 	mutex.unlock();
 }
-void ThreadEvent::wait(){
+void Event::wait(){
 	mutex.lock();
 	bool status = _is_set;
 	//获得状态
@@ -80,6 +81,12 @@ void ThreadEvent::wait(){
 		Sem::wait();
 	}
 }
-bool ThreadEvent::is_set(){
+void Event::clear(){
+	//清除状态
+	mutex.lock();
+	_is_set = false;//没有被设置
+	mutex.unlock();
+}
+bool Event::is_set(){
 	return _is_set;
 }
