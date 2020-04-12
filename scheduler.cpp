@@ -59,7 +59,7 @@ bool Scheduler::is_empty(){
 }
 //线程安全的东西
 #define MUTEX(PTR) ((std::mutex*)PTR)
-#define EVENT(PTR) ((Box::ThreadEvent*)PTR)
+#define EVENT(PTR) ((Box::Sync::Event*)PTR)
 #define THREAD(PTR) ((std::thread*)PTR)
 enum{
 	CODE_QUIT,//退出

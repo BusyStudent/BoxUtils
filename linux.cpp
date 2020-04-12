@@ -1,5 +1,5 @@
 #ifndef _BOX_LINUX_CPP_
-#define _BPX_LINUX_CPP_
+#define _BOX_LINUX_CPP_
 #include <unistd.h>
 #include <sys/select.h>
 #include <cerrno>

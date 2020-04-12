@@ -92,6 +92,14 @@ static void inline sleep_fn(unsigned int s){
 		sleep(s);
 	#endif
 }
+static void inline sleep_ms_fn(double ms){
+	//睡毫秒
+	#ifdef _WIN32
+		Sleep(ms * 1000);
+	#else
+		usleep(ms * 1000);
+	#endif
+}
 void Coroutine::sleep(unsigned int t){
 	int hit = 0;//被命中了
 	time_t begin = time(nullptr);//得到开始时间 以秒为单位
