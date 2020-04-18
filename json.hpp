@@ -57,10 +57,14 @@ namespace Box{
 			void add_null();//添加null数值到树组
 			void add_null(const char *key);//到字典
 			
-			void add_item(Json &item);//加入另一个节点到数组
-			void add_item(const char *key,Json &item);//加入对象里面 不就是字典么
+			void add_item(Json &&item);//加入另一个节点到数组
+			void add_item(Json &item);
+			void add_item(const char *key,Json &&item);//加入对象里面 不就是字典么
+			void add_item(const char *key,Json &item);
 			//得到一些信息
-			int get_array_size() const;
+			bool has(const char *key,bool case_sensitive = true) const;//是否有某个键
+			//默认区分大小写
+			int size() const;//直接得到大小(数组或者字典)
 			int get_int() const;//得到int
 			double get_number() const;//得到数字
 			const char *get_string() const;//得到字符串
@@ -96,6 +100,18 @@ namespace Box{
 				//对于不等于的模板
 				return not(operator==(t));
 			}
+			template <class T>
+			inline operator T(){
+				//类型转换模板
+				T var;
+				operator >>(var);
+				return var;
+			}
+			template <class T>
+			inline void operator =(const T &t){
+				//赋值转换的模板
+				operator <<(t);
+			}
 			bool operator == (const Json &json) const;
 			//一些比较对于里面的数据
 			//比较字符串
@@ -117,6 +133,7 @@ namespace Box{
 			void operator << (const double &number);
 			void operator << (const std::string &str);
 			void operator << (const char *str);
+			//重载输出流
 			cJSON *get_cjson();
 			//一些操作
 			Json copy() const;//复制一个在堆上
@@ -143,6 +160,9 @@ namespace Box{
 			//得到内部解析器的错误
 			static const char *GetError();//这个线程不安全的
 			static const char *Version();//得到版本
+			//cJSON的malloc和free
+			static void *Malloc(size_t size);
+			static void  Free(void *ptr);
 		private:
 			bool independence;//是否独立
 			cJSON *item;//对象

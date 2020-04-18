@@ -2,6 +2,7 @@
 #include <cstring>
 #include <string>
 #include <fstream>
+#include <utility>
 
 #include "cJSON.h"
 #include "cJSON_Utils.h"
@@ -61,14 +62,14 @@ std::string Json::to_string() const{
 	//到C++的字符串
 	char *c_str = cJSON_Print(item);
 	std::string str(c_str);
-	free(c_str);
+	cJSON_free(c_str);
 	return str;
 }
 void Json::print() const{
 	//打印一下
 	char *str = cJSON_Print(item);
 	puts(str);
-	free(str);
+	cJSON_free(str);
 }
 //解析函数
 Json Json::ParseString(const char *str){
@@ -141,6 +142,13 @@ const char *Json::GetError(){
 //得到版本
 const char *Json::Version(){
 	return cJSON_Version();
+}
+//cJSON内存管理函数
+void *Json::Malloc(size_t size){
+	return cJSON_malloc(size);
+}
+void Json::Free(void *ptr){
+	cJSON_free(ptr);
 }
 //类型判断
 bool Json::is_bool() const{
@@ -347,10 +355,31 @@ const char *Json::get_type_string() const{
 	}
 }
 //得到一些信息
-int Json::get_array_size() const{
+//是否有这个键
+bool Json::has(const char *key,bool case_sensitive) const{
+	check_is_object();
+	if(case_sensitive == false){
+		//不区分大小写
+		return cJSON_HasObjectItem(item,key);
+	}
+	else{
+		cJSON *elem;
+		cJSON_ArrayForEach(elem,item){
+			if(strcmp(elem->string,key) == 0){
+				//找到这个键了
+				return true;
+			}
+		}
+		return false;
+	}
+}
+int Json::size() const{
 	//得到数组大小
-	check_is_array();
-	return cJSON_GetArraySize(item);
+	if(is_object() or is_array()){
+		//检查是数组或者是字典
+		return cJSON_GetArraySize(item);
+	}
+	throw TypeError("Array or Object",get_type_string());
 }
 int Json::get_int() const{
 	//得到数字
@@ -457,7 +486,7 @@ void Json::add_bool(const char *key,bool val){
 	check_is_object();
 	cJSON_AddBoolToObject(item,key,val);
 }
-void Json::add_item(Json &item){
+void Json::add_item(Json &&item){
 	//加入数组
 	check_is_array();
 	if(item.independence == true){
@@ -470,7 +499,10 @@ void Json::add_item(Json &item){
 		cJSON_AddItemToArray(this->item,cJSON_Duplicate(item.item,true));
 	}
 }
-void Json::add_item(const char *key,Json &item){
+void Json::add_item(Json &json){
+	Json::add_item(std::move(json));
+}
+void Json::add_item(const char *key,Json &&item){
 	check_is_object();
 	if(item.independence == true){
 		//独立的 直接合并进去
@@ -481,6 +513,9 @@ void Json::add_item(const char *key,Json &item){
 		//复制一下
 		cJSON_AddItemToObject(this->item,key,cJSON_Duplicate(item.item,true));
 	}
+}
+void Json::add_item(const char *key,Json &json){
+	Json::add_item(key,std::move(json));
 }
 //迭代器
 Json::TableIteration Json::iter_table(){
