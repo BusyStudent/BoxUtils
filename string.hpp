@@ -19,6 +19,8 @@ namespace Box{
 		std::string Format(const char *fmt,...);//格式化数据
 		std::string VFormat(const char *fmt,va_list &varg);
 		std::string Trim();//剔除开头末尾空格
+		//想Python字符串格式的切片
+		std::string Slice(const std::string &str,int begin = 0,int end = 0);
 	}
 };
 #endif

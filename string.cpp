@@ -4,6 +4,7 @@
 #include <cstdarg>
 #include <string>
 #include <vector>
+#include <stdexcept>
 #include "string.hpp"
 using namespace Box;
 String::Vector String::Split(
@@ -89,4 +90,29 @@ std::string String::Format(const char *fmt,...){
 	std::string str = String::VFormat(fmt,varg);
 	va_end(varg);
 	return str;
+}
+//切片
+std::string String::Slice(const std::string &str,int begin,int end){
+	size_t len = str.length();//得到长度
+	std::string::size_type begin_pos;//开始位置
+	std::string::size_type end_pos;//结束位置
+	if(begin < 0){
+		//是负数
+		begin_pos = len + begin;
+	}
+	else{
+		//正常的
+		begin_pos = begin;
+	}
+	if(end < 0){
+		end_pos = len + end;
+	}
+	else if(end == 0){
+		//截取后面全部
+		end_pos = len;
+	}
+	else{
+		end_pos = end;
+	}
+	return str.substr(begin_pos,end_pos - begin_pos);
 }

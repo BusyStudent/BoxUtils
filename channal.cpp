@@ -7,23 +7,27 @@
 using namespace Box::Sync;
 using namespace Box::Socket;
 using namespace Box;
-void IMP::BuildPair(void **t1,void **t2){
+void Impl::BuildPair(void **t1,void **t2){
 	//构建对
 	Socket::CreatePair((BaseSocket**)t1,(BaseSocket**)t2);
 	//设置不堵塞
 	(*((BaseSocket**)t1))->set_nonblock(true);
 	(*((BaseSocket**)t2))->set_nonblock(true);
 }
-void IMP::Close(void *sock){
+void Impl::Close(void *sock){
 	delete (BaseSocket*)sock;
 }
-void IMP::Read(void *sock,void *dat,size_t size){
+void Impl::Read(void *sock,void *dat,size_t size){
 	while(true){
 		try{
 			((BaseSocket*)sock)->read(dat,size);
 			return;
 		}
 		catch(ReadError &err){
+			if(err.read_size == size){
+				//读入大小一样
+				return;
+			}
 			if(err.code == ErrorCode::AGAIN){
 				//再试一下
 				WaitForRead(sock);
@@ -33,14 +37,14 @@ void IMP::Read(void *sock,void *dat,size_t size){
 		}
 	}
 }
-void IMP::Write(void *sock,const void *dat,size_t size){
+void Impl::Write(void *sock,const void *dat,size_t size){
 	((BaseSocket*)sock)->write(dat,size);
 }
-void IMP::Flush(void *sock){
+void Impl::Flush(void *sock){
 	((BaseSocket*)sock)->flush();
 }
 //读入一行
-void IMP::ReadString(void *sock,std::string &s){
+void Impl::ReadString(void *sock,std::string &s){
 	BaseSocket &socket = (*((BaseSocket*)sock));//Socket
 	WaitForRead(sock);//等待可以读入
 	size_t len;
@@ -62,14 +66,14 @@ void IMP::ReadString(void *sock,std::string &s){
 	}
 }
 //写出
-void IMP::WriteString(void *sock,const std::string &s){
+void Impl::WriteString(void *sock,const std::string &s){
 	BaseSocket &socket = (*((BaseSocket*)sock));//Socket
 	size_t len = s.length();//字符串长度
 	socket.write(&len,sizeof(size_t));
 	socket.write(s.c_str(),len);
 }
 //在时间内可读
-bool IMP::ReadAble(void *sock,int ms){
+bool Impl::ReadAble(void *sock,int ms){
 	BaseSocket &s = *((BaseSocket*)sock);
 	int ch;//字符
 	ch = s.getc();
@@ -96,7 +100,7 @@ bool IMP::ReadAble(void *sock,int ms){
 	}
 	return false;
 }
-void IMP::WaitForRead(void *sock){
+void Impl::WaitForRead(void *sock){
 	//等待可读
 	BaseSocket &s = *((BaseSocket*)sock);
 	int ch;//字符

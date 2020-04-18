@@ -6,7 +6,7 @@
 namespace Box{
 	namespace Sync{
 		//通道
-		namespace IMP{
+		namespace Impl{
 			//实现
 			//构建Socket对
 			void BuildPair(void **t,void **t2);
@@ -87,7 +87,7 @@ namespace Box{
 					this->sock = sock;
 				};
 				inline ~Port <T>(){
-					IMP::Close(sock);
+					Impl::Close(sock);
 				};
 				inline void read(T &t){
 					operator >> (t);
@@ -105,11 +105,11 @@ namespace Box{
 				};
 				inline void wait(){
 					//等待读入 有数据可读
-					IMP::WaitForRead(sock);
+					Impl::WaitForRead(sock);
 				};
 				inline bool wait(int timeout_ms){
 					//等待读入 有超时版本
-					return IMP::ReadAble(sock,timeout_ms);
+					return Impl::ReadAble(sock,timeout_ms);
 				};
 				inline bool try_read(T &t,int timeout_ms = 0);
 				inline void operator >>(T &t);
@@ -125,7 +125,7 @@ namespace Box{
 				Channal<T>(){
 					//构建两个端口
 					void *socks[2];
-					IMP::BuildPair(&socks[0],&socks[1]);
+					Impl::BuildPair(&socks[0],&socks[1]);
 					_p1 = new Port<T>(socks[0]);
 					_p2 = new Port<T>(socks[1]);
 				};
@@ -149,23 +149,23 @@ namespace Box{
 		template <class T>
 		inline void Port<T>::flush(){
 			//刷新流
-			IMP::Flush(sock);
+			Impl::Flush(sock);
 		};
 		template <class T>
 		inline void Port<T>::operator >>(T & t){
 			//读入数据
-			IMP::Read(sock,&t,sizeof(t));
+			Impl::Read(sock,&t,sizeof(t));
 		};
 		template <class T>
 		inline void Port<T>::operator <<(const T & t){
 			//写出
-			IMP::Write(sock,&t,sizeof(t));
+			Impl::Write(sock,&t,sizeof(t));
 		};
 		//两个函数
 		//尝试读入
 		template <class T>
 		inline bool Port<T>::try_read(T &t,int timeout_ms){
-			if(IMP::ReadAble(sock,timeout_ms)){
+			if(Impl::ReadAble(sock,timeout_ms)){
 				Port<T>::operator >>(t);
 				return true;
 			}
@@ -175,12 +175,12 @@ namespace Box{
 		template <>
 		inline void Port<std::string>::operator >>(std::string &s){
 			s.clear();//先清空
-			IMP::ReadString(sock,s);
+			Impl::ReadString(sock,s);
 		};
 		//字符串特殊的写入
 		template <>
 		inline void Port<std::string>::operator <<(const std::string &s){
-			IMP::WriteString(sock,s);
+			Impl::WriteString(sock,s);
 		};
 	};
 };

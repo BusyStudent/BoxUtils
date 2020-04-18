@@ -23,6 +23,7 @@ target("box_utils")
 	--add_links("curl")
 	-- add files
 	add_files("cJSON.c")
+	add_files("cJSON_Utils.c")
 	add_files("socket.cpp")
 	add_files("string.cpp")
 	
@@ -48,6 +49,7 @@ target("box_utils")
 	add_files("xml.cpp")
 	add_files("channal.cpp")
 	add_files("backtrace.cpp")
+	add_files("logger.cpp")
 	if is_plat("linux") then
 		--Linux携程
 		add_files("coroutine.cpp")

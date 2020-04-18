@@ -7,6 +7,13 @@
 #include "exception.hpp"
 #include "string.hpp"
 #include "backtrace.hpp"
+#ifndef BOX_NBACKTRACE
+//打印BackTrace
+#define SHOW_BACKTRACE() \
+	Box::PrintBackTrace()
+#else
+#define SHOW_BACKTRACE()
+#endif
 Box::IndexError::IndexError(int index){
 	this->index = index;
 	std::stringstream stream;
@@ -14,6 +21,7 @@ Box::IndexError::IndexError(int index){
 	this->reason = stream.str();
 }
 const char*Box::IndexError::what()const throw(){
+	SHOW_BACKTRACE();
 	return reason.c_str();
 }
 
@@ -21,6 +29,7 @@ Box::KeyError::KeyError(const char *key){
 	this->key = key;
 }
 const char *Box::KeyError::what()const throw(){
+	SHOW_BACKTRACE();
 	return key.c_str();
 }
 
@@ -33,10 +42,12 @@ Box::TypeError::TypeError(const char *excepted,const char *gived){
 	this->reason = stream.str();
 }
 const char *Box::TypeError::what() const throw(){
+	SHOW_BACKTRACE();
 	return reason.c_str();
 }
 //空指针错误
 const char *Box::NullPtrException::what() const throw(){
+	SHOW_BACKTRACE();
 	return "Got nullptr";
 }
 //Panic异常退出
@@ -50,6 +61,6 @@ void Box::Panic(const char *fmt,...){
 	//输出错误信息
 	
 	//打印堆栈信息
-	Box::PrintBackTrace();
+	SHOW_BACKTRACE();
 	abort();
 }

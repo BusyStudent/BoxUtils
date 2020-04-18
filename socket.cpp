@@ -266,6 +266,10 @@ int BaseSocket::scanf(const char *fmt,...) noexcept{
 char* BaseSocket::gets(char *buf,int bufsize) noexcept{
 	return fgets(buf,bufsize,fin);
 }
+//打印一行
+int BaseSocket::puts(const char *text) noexcept{
+	return fputs(text,fout);
+}
 int BaseSocket::getc() noexcept{
 	return fgetc(fin);
 }

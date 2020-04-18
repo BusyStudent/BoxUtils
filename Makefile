@@ -2,10 +2,10 @@ CC=gcc
 CFLAGS=-g -fPIC -Wall -Wextra
 CXX=g++
 CXXFLAGS=-g -fPIC -Wall -Wextra
-OBJ=random.o cJSON.o json.o net.o net_easy.o net_factory.o net_headers.o net_exception.o\
+OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net_easy.o net_factory.o net_headers.o net_exception.o\
 	exception.o iconv.o sem.o base64.o socket.o string.o dns.o xv.o filesystem.o net_multi.o\
 	xml.o xpath.o time.o os.o backtrace.o net_share.o net_session.o\
-	coroutine.o scheduler.o dylib.o channal.o
+	coroutine.o scheduler.o dylib.o channal.o logger.o
 LDFLAGS=-pthread -lcurl `xml2-config --libs`
 XMLFLAGS=`xml2-config --cflags`
 #LIBXML的配置文件
@@ -19,6 +19,8 @@ json.o:json.cpp json.hpp cJSON.o exception.o
 #Json解析器和构建器
 cJSON.o:cJSON.c cJSON.h
 	$(CC) $(CFLAGS) cJSON.c -c
+cJSON_Utils.o:cJSON_Utils.c cJSON_Utils.h
+	$(CC) $(CFLAGS) cJSON_Utils.c -c
 #依赖的cJSON
 net.o:net.cpp net.hpp
 net_headers.o:net_headers.cpp net_headers.hpp
@@ -58,5 +60,7 @@ dylib.o:dylib.cpp dylib.hpp
 #动态库
 #同步用的通道
 channal.o:channal.cpp channal.hpp
+#日志记录器
+logger.o:logger.cpp logger.hpp
 clean:
 	rm $(OBJ) libbox_utils.so
