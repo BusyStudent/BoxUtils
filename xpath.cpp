@@ -1,137 +1,175 @@
 #include <libxml/tree.h>
 #include <libxml/xpath.h>
+#include <utility>
+#include <string>
+#include <stdexcept>
+#include <cstdlib>
+#include <cmath>
 #include "exception.hpp"
 #include "xpath.hpp"
-using namespace Box;
-static xmlXPathObjectPtr get_xpath_object(void *docptr,const char *exp){
-	//得到XPath的表达式
-	auto context = xmlXPathNewContext((xmlDocPtr)docptr);//兴建一个XPath的内容
-	if(context == nullptr){
-		//失败
-		//
-		throw std::invalid_argument("非法表达式");
-	}
-	auto obj = xmlXPathEvalExpression(BAD_CAST exp,context);
-	//释放上面的内容
-	xmlXPathFreeContext(context);
-	if(obj == nullptr){
-		//失败
-		throw std::invalid_argument("非法表达式");
-	}
-	return obj;
-};
-XPath::Nodes XPath::XPath(XML::Doc &doc,const char *exp,bool need_clone){
-	//解析xpath解析
-	XML::Doc *docptr;
-	xmlXPathObjectPtr obj;
-	if(need_clone == true){
-		//需要克隆
-		docptr = doc.clone();
-		obj = get_xpath_object(docptr->get_docptr(),exp);
-	}
-	else{
-		//不用克隆
-		//直接给个nullptr
-		docptr = nullptr;
-		obj = get_xpath_object(doc.get_docptr(),exp);
-	}
-	
-	XPath::NodeVec vec;
-	auto nset = obj->nodesetval;
-	//得到集合
-	if(!xmlXPathNodeSetIsEmpty(nset)){
-		//如果集合不为空
-		for(int i = 0;i < nset->nodeNr;i++){
-			vec.push_back(XML::Node(nset->nodeTab[i],false));
-		}
-		//压入结果
-	}
-	return {
-		//返回内容
-		.objptr = obj,
-		.cloned_doc = docptr,
-		//应为delete nullptr是安全的那就就没事
-		.vec = vec
-	};
-}
-//Nodes
-XPath::Nodes::~Nodes(){
-	//销毁克隆的doc
-	delete ((XML::Doc*)cloned_doc);
-	xmlXPathFreeObject((xmlXPathObjectPtr)objptr);//这里释放xpath对象
-}
-//语法糖
-XPath::NodeVec &XPath::Nodes::operator *(){
+using namespace Box::XPath;
+using namespace Box::XML;
+//XPathObject具体实现
+NodeSet &XPathObject::operator *(){
 	return vec;
 }
-XPath::NodeVec *XPath::Nodes::operator ->(){
+NodeSet *XPathObject::operator ->(){
 	return &vec;
 }
-XPath::NodesType XPath::Nodes::type(){
-	//得到类型
-	auto type = ((xmlXPathObjectPtr)objptr)->type;
-	switch(type){
-		//转换libxml的类型
-		case XPATH_UNDEFINED:
-			return XPath::NodesType::UNDEFINED;
-		case XPATH_NODESET:
-			return XPath::NodesType::SET;
-		case XPATH_STRING:
-			return XPath::NodesType::STRING;
-		case XPATH_NUMBER:
-			return XPath::NodesType::NUMBER;
-		default:
-			return XPath::NodesType::UNDEFINED;
+//一些构造函数
+XPathObject::XPathObject(xmlXPathObjectPtr ptr,xmlDocPtr docptr){
+	typedef XPathObjectType Type;
+	obj = ptr;
+	this->docptr = docptr;
+	xmlNodeSetPtr nodeset = ptr->nodesetval;//节点集合
+	if(nodeset != nullptr){
+		//如果集合数据不为nullptr
+		for(int i = 0;i < nodeset->nodeNr;i++){
+			//加入节点
+			vec.push_back(Node(nodeset->nodeTab[i],false));
+		}
+	}
+	switch(obj->type){
+		case XPATH_BOOLEAN:{
+			//是Bool
+			_type = Type::BOOL;
+			break;
+		}
+		case XPATH_NUMBER:{
+			//是数字
+			_type = Type::FLOAT;
+			break;
+		}
+		case XPATH_STRING:{
+			//字符串
+			_type = Type::STRING;
+			break;
+		}
+		case XPATH_NODESET:{
+			//集合
+			_type = Type::SET;
+			break;
+		}
+		default:{
+			//未知
+			_type = Type::UNKNWON;
+		}
 	}
 }
-std::string XPath::Nodes::to_string(){
-	//转化字符串
-	auto obj = (xmlXPathObjectPtr)objptr;
+XPathObject::XPathObject(XPathObject &&xobj){
+	//移动构造函数
+	obj = xobj.obj;//转移指针
+	xobj.obj = nullptr;
+	vec = std::move(xobj.vec);//移动Vector
+	_type = xobj._type;//复制类型
+	docptr = xobj.docptr;//转移docptr
+	xobj.docptr = nullptr;
+}
+XPathObject::XPathObject(const XPathObject &xobj){
+	//复制函数
+	obj = xmlXPathObjectCopy(xobj.obj);
+	for(auto &node:xobj.vec){
+		vec.push_back(node);
+	}
+	_type = xobj._type;
+	if(xobj.docptr != nullptr){
+		//里面有一份被复制的doc
+		docptr = xmlCopyDoc(xobj.docptr,1);
+	}
+	else{
+		docptr = nullptr;
+	}
+}
+XPathObject::~XPathObject(){
+	xmlXPathFreeObject(obj);
+	if(docptr != nullptr){
+		//里面有一封被克隆的文档
+		xmlFreeDoc(docptr);
+	}
+}
+//转换函数
+XPathObject::operator std::string(){
 	xmlChar *str = xmlXPathCastToString(obj);
 	//转换一下
 	if(str == nullptr){
-		throw Box::NullPtrException();
+		//失败
+		throw NullPtrException();
 	}
-	else{
-		std::string s((char*)str);
-		xmlFree(str);
-		return s;
-	}
+	std::string s((const char*)str);
+	xmlFree(str);
+	return s;
 }
-double XPath::Nodes::to_number(){
-	auto obj = (xmlXPathObjectPtr)objptr;
-	return xmlXPathCastToNumber(obj);
-}
-bool XPath::Nodes::to_bool(){
-	auto obj = (xmlXPathObjectPtr)objptr;
+XPathObject::operator bool(){
 	return xmlXPathCastToBoolean(obj);
 }
-XML::Node &XPath::Nodes::operator [](unsigned int i){
-	//越界检查
-	if(i >= vec.size()){
-		throw IndexError(i);
-	}
-	else{
-		return vec[i];
-	}
+XPathObject::operator double(){
+	return xmlXPathCastToNumber(obj);
 }
-XPath::Nodes XML::Node::xpath(const char *exp){
-	//节点查找xpath
-	auto node = (xmlNodePtr)nodeptr;
-	auto obj = get_xpath_object(node->doc,exp);
-	//得到xpath节点
-	XPath::NodeVec vec;
-	xmlNodeSetPtr nset = obj->nodesetval;
-	if(!xmlXPathNodeSetIsEmpty(nset)){
-		//加入数据
-		for(int i = 0;i < nset->nodeNr;i++){
-			vec.push_back(XML::Node(nset->nodeTab[i],false));
+//得到里面的vec
+NodeSet &XPathObject::get_vec(){
+	return vec;
+}
+//查找节点
+Node &XPathObject::operator [](int val){
+	auto size = vec.size();//得到大小
+	if(abs(val) >= size){
+		//超出范围
+		if(val > 0){
+			throw IndexError(val);
 		}
 	}
-	//返回结果
-	return {
-		.objptr = obj,
-		.cloned_doc = nullptr,
-		.vec = vec
-	};
+	if(val >= 0){
+		//正的index
+		return vec[val];
+	}
+	else{
+		//负数
+		return vec[size - (-val)];
+	}
+}
+//得到节点数目
+unsigned XPathObject::size(){
+	return vec.size();
+}
+std::string XPathObject::to_string(){
+	return XPathObject::operator std::string();
+}
+double XPathObject::to_double(){
+	return XPathObject::operator double();
+}
+bool XPathObject::to_bool(){
+	return XPathObject::operator bool();
+}
+//Doc的XPath实现
+XPathObject Doc::xpath(const char *exp,bool clone_doc){
+	xmlDocPtr ptr = docptr;
+	if(clone_doc){
+		//如果要克隆自己
+		ptr = xmlCopyDoc(docptr,1);
+	}
+	auto context = xmlXPathNewContext(ptr);
+	//构建上下文
+	if(context == nullptr){
+		throw NullPtrException();
+	}
+	auto val = xmlXPathEvalExpression(BAD_CAST exp,context);
+	xmlXPathFreeContext(context);
+	if(val == nullptr){
+		//失败
+		if(clone_doc){
+			xmlFreeDoc(ptr);
+		}
+		XML::ThrowLastError();
+	}
+	if(clone_doc == true){
+		//是克隆过的
+		return XPathObject(val,ptr);
+	}
+	return XPathObject(val);
+}
+//Node XPath实现
+XPathObject Node::xpath(const char *exp){
+	auto doc = XML::Doc::ParseString(this->to_string().c_str());
+	//先把自己转换为doc
+	return doc.xpath(exp,true);
 }

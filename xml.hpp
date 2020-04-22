@@ -1,154 +1,149 @@
 #ifndef _BOX_XML_HPP_
 #define _BOX_XML_HPP_
+#include <cstdio>
 #include <string>
 #include <vector>
-#include <functional>
+struct _xmlDoc;
+struct _xmlNode;
+struct _xmlXPathObject;
 namespace Box{
 	namespace XML{
+		//XML
 		class Node;
-		namespace _Utils{
-			//一些工具
-			void *CopyNodePtr(Node &);//复制节点
-			/*
-			 * 如果节点是独立的 那修改为不独立 返回nodeptr
-			 * 否则复制nodeptr
-			 */
+		typedef std::vector <Node> NodeSet;//Node的向量
+		enum class XPathObjectType{
+			SET,//集合
+			STRING,//字符串
+			FLOAT,//小数
+			BOOL,
+			UNKNWON//未知
 		};
-		class Doc;
-		struct Nodes;
-		class Attr{
-			//特征
+		class XPathObject{
+			//XPath的结果 再xpath.cpp实现
 			public:
-				Attr(void *attrptr,bool independence = true);
-				Attr(const Attr&);
-				~Attr();
-				const char *get_name();//得到名字
-				const char *get_content();//得到内容
+				XPathObject(_xmlXPathObject *obj,_xmlDoc *docptr = nullptr);
+				//构造函数 后面参数是如doc是否被克隆了
+				XPathObject(XPathObject &&);//转移函数
+				XPathObject(const XPathObject &);//拷贝函数
+				~XPathObject();
+				NodeSet &operator *();
+				NodeSet *operator ->();
+				XPathObjectType type();//得到类型
+				//转换函数
+				std::string to_string();
+				bool to_bool();
+				double to_double();
+				operator std::string();
+				operator double();
+				operator bool();
+				Node &operator [](int val);//查找节点
+				//得到节点数目
+				unsigned int size();
+				NodeSet &get_vec();//得到里面的vector
 			private:
-				void *attrptr;
-				bool independence;
-			friend class Node;
+				XPathObjectType _type;//类型
+				NodeSet vec;
+				_xmlXPathObject *obj;
+				_xmlDoc *docptr;//如果doc被克隆了 这个指针不为nullptr
 		};
 		class Node{
-			//XML节点
+			//节点
 			public:
-				Node(void *nodeptr,bool independence = true);
-				//从指针生成一个 默认是独立的
+				Node(_xmlNode *nodeptr,bool independence = true);
+				//通过xmlNode新建节点
+				Node(const char *name);
+				Node(const char *name,const char *text);//文本节点
+				Node(Node &&node);
+				Node(const Node &);//拷贝
 				~Node();
-				//结构操作
-				void add_text_child(const char *name,const char *content);
-				void add_child(Node &child);//添加子节点
-				//信息获取
-				const char *get_content();//得到内容
-				const char *get_name();//得到名字
-				unsigned int get_line();//得到行数
-				
-				//获取节点的孩子和其他东西
-				Node get_children();//得到孩子
-				Node get_parent();//得到家长
-				Node get_next();//得到下一个
-				Node get_prev();//得到前一个
-				Node get_last();//得到同层的最后一个
-				//Attr
-				void add_attr(const char *name,const char *content);//加入特征
-				bool has_attr(const char *name);//是否有属性
-				Attr get_attr(const char *name);//得到特征通过名字
-				void for_attr(std::function <bool(Attr &)>);//遍历attr
-				std::string get_attr_content(const char *name);//得到attr的内容
+				long line();//得到行号
+				bool is_blank();//是不是空白
+				bool is_text();//是不是文本节点
+				void unlink();//断开连接
 				std::string operator [](const char *name);//查找attr
-				std::string text();//直接找到标签的字符串
-				//<a>你好</a> 会得到你好
-				//设置信息
-				void set_content(const char *str);
-				//遍历
-				void for_each(std::function <bool(Node&)>);//遍历
-				//创建函数
-				Nodes xpath(const char *exp);
-				
-				static Node Create(const char *name);//创建节点
-				static Node CreateText(const char *content);//创建文本
+				std::string name();//得到名字
+				std::string content();//这个节点的内容
+				std::string text();//child->content
+				std::string path();//得到节点的路径
+				std::string to_string(int fmt = 1);//转化字符串
+				//设置属性
+				void set_name(const char *name);//设置名字
+				void set_content(const char *content);//设置内容文本
+				void add_content(const char *content);//添加文本
+				void add_content(const char *content,int len);//添加文本 有长度的
+				void add_attr(const char *name,const char *value);//添加一个特征
+				bool has_attr(const char *name);//是否有这个特征
+				bool remove_attr(const char *name);//移除一个特征
+				//节点的关系得到
+				Node prev() const;
+				Node next() const;
+				Node child() const;
+				Node parent() const;
+				//添加子节点
+				void add_child(Node &&node);
+				void add_child(Node &node);
+				//添加前一个和后一个
+				void add_next(Node &&node);
+				void add_next(Node &node);
+				//后一个
+				void add_prev(Node &&node);
+				void add_prev(Node &node);
+				//复制
+				Node copy();
+				Node *clone();
+				//计数
+				//统计有几个孩子
+				unsigned int count_child() const;
+				unsigned int count_attr() const;//有几个特征
+				_xmlNode *get_node() const;//得到节点
+				//赋值
+				Node &operator =(Node &&node);
+				Node &operator =(Node &node);
+				//XPath
+				//在这个节点下面查找
+				XPathObject xpath(const char *exp);
 			private:
-				bool independence;//是否独立
-				void *nodeptr;
+				_xmlNode *nodeptr;
+				bool independence;
 			friend class Doc;
-			friend void *_Utils::CopyNodePtr(Node&);
 		};
-		typedef std::vector <Box::XML::Node> NodeVec;
-		enum class NodesType{
-			//XPath返回节点集合类型
-			UNDEFINED = 0,//不知道
-			SET = 1,//集合
-			STRING = 2,
-			NUMBER = 3
-		};
-		struct Nodes{
-			~Nodes();//销毁器
-			//一些函数
-			//一些语法糖
-			NodeVec *operator ->();
-			NodeVec &operator * ();
-			Node & operator [](unsigned int);
-			NodesType type();//得到类型
-			
-			std::string to_string();//转化到字符串
-			double to_number();//得到字符串
-			bool to_bool();
-			
-			void *objptr;//XPathObject的指针
-			Doc *cloned_doc;//克隆过的doc
-			NodeVec vec;//向量
-		};
-		typedef Node Elem;//元素
 		class Doc{
-			//文档
 			public:
-				Doc(void *docptr);//通过DocPtr初始化
-				Doc(const Doc&);//拷贝
+				Doc(const char *version = default_version);
+				Doc(const Doc &);//复制
+				Doc(Doc &&doc);//转移构造
+				Doc(_xmlDoc *docptr);
 				~Doc();
-				//一些函数
-				void set_root(Node &root);//设置根节点
-				//得到内容
-				Node get_root();//得到根节点
-				const char *get_version();//得到版本
-				const char *get_encoding();//得到编码信息
-				
-				std::string to_string(int format = 1);//到字符串
-				void save_file(const char *filename,int format = 1);//保存
-				//format表示是否格式化
-				//默认版本
-				Nodes xpath(const char *exp,bool need_clone = false);//xpath函数
-				//默认不克隆 需要保证Doc的生命周期比结构长
-				void *get_docptr();//得到docptr指针
-				Doc *clone();//克隆一个在堆上
+				Node root();//得到根节点
+				std::string to_string(int fmt = 1);//转换到字符串 默认格式化
+				bool savefile(const char *file,int fmt = 1);//存到文件里面
+				bool dump(FILE *fptr);//存储到文件里面
+				void set_root(Node &&node);//设置根节点
+				void set_root(Node &node);//设置根节点
+				//XPath解析
+				XPathObject xpath(const char *exp,bool clone = false);
+				//第二个参数是否克隆自己 那样更安全 在Doc被销毁后
 				static const char *default_version;
-				static const char *default_encoding;//默认编码
-				static Doc Create(const char *version = default_version);//创建一个文档
+				static const char *default_encoding;
 				static Doc LoadFile(const char *filename);//加载文件
-				static Doc ParseString(const char *str);//解析字符串
+				static Doc ParseString(const char *text,int len = 0);//解析字符串
 			protected:
-				//libxml doc的指针
-				void *docptr;
+				_xmlDoc *docptr;
 		};
-		void InitParser();//初始化Parser
-		void CleanupParser();//释放解析器
-		void MemoryDump();//释放内存
-		void Cleanup();//总体回收内存
+		void ThrowLastError();//抛出最后一个错误
+		void Init();//初始化
+		void Quit();//退出
 	};
 	class HTML:public XML::Doc{
 		public:
-			HTML(const HTML &);
-			typedef XML::Node Node;
-			std::string to_string(int format = 1);//到字符串
-			void save_file(const char *filename,int format = 1);//保存
-			static HTML LoadFile(const char *filename,
-				const char *encoding = default_encoding);//加载文件
-			static HTML ParseString(const char *str,
-				const char *url = nullptr,
-				const char *encoding = default_encoding);//解析字符串
-			static HTML Create(const char *url = nullptr,
-				const char *id = nullptr);
-		private:
-			HTML(void *);
+			//构建HTML
+			HTML(const char *url,const char *ext_id);
+			HTML(struct _xmlDoc *docptr);
+			bool dump(FILE *fptr);
+			bool savefile(const char *file,int fmt = 1);
+			std::string to_string(int fmt = 1);//到字符串
+			static HTML LoadFile(const char *filename);//加载文件
+			static HTML ParseString(const char *text,int len = 0);
 	};
 };
 #endif

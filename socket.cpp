@@ -43,7 +43,7 @@ namespace{
 		//抛出netdb里面函数错误
 		OSError err = {
 			.code = h_errno,
-			.msg = strerror(h_errno)
+			.msg = hstrerror(h_errno)
 		};
 		#ifndef NDEBUG
 		fprintf(stderr,"OSError(netdb): %d => %s\n",h_errno,err.msg);
