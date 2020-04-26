@@ -1,25 +1,38 @@
 #ifndef _BOX_FILESYSTEM_HPP_
 #define _BOX_FILESYSTEM_HPP_
 #include <cstdio>
+#include <string>
+#ifdef _WIN32
+	#include <direct.h>
+	#include <dirent.h>
+	#include <sys/stat.h>
+#else
+	#include <dirent.h>
+	#include <sys/stat.h>
+#endif
+#include "refptr.hpp"
 //简单的文件系统操作
 namespace Box{
-	struct File{
-		public:
-			bool open(const char *filename,const char *modes = default_modes);
-			//打开文件
-			bool open_tmpfile();//打开临时文件
-			bool close();//关闭
-			const char *get_error();//得到错误
-			static const char *default_modes;
-		private:
-			FILE *fptr;//文件指针
-			int _errno;//错误代码
-	};
 	namespace FS{
-		typedef Box::File File;
+		#ifdef _WIN32
+		typedef struct _stat64 NativeStat64;
+		#else
+		typedef struct  stat64 NativeStat64;
+		#endif
+		//本地的stat
+		struct Stat:public NativeStat64{
+			bool is_reg() const;//是正常文件
+			bool is_dir() const;//是目录
+			bool is_fifo() const;//是管道
+		};
+		std::string Getcwd();
+		size_t GetSize(const char *pathname);//得到文件大小
+		
+		void GetStat(const char *pathname,Stat &);//得到文件状态
+		Stat GetStat(const char *pathname);//得到状态
 		bool Exists(const char *pathname);//文件是否存在
-		bool MkDir(const char *name);//创建文件
-		bool Chdir(const char *path);//改变目录
+		void MkDir(const char *name);//创建文件
+		void Chdir(const char *path);//改变目录
 		const char *GetError();//得到错误
 	};
 }

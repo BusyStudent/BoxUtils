@@ -30,6 +30,18 @@ namespace Box{
 		public:
 			const char *what() const throw();
 	};
+	class OSError:public std::exception{
+		//操作系统的错误
+		public:
+			OSError(int code,const char *msg = nullptr,const char *extra = nullptr);
+			const char *what() const throw();
+			int code;//代码
+			std::string msg;//信息
+			std::string extra;//附加信息
+			static std::string Format(int code,const char *msg,const char *extra);//格式化信息
+		private:
+			std::string what_msg;//what输出信息
+	};
 	void Panic(const char *fmt,...);//退出
 };
 #endif

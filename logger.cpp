@@ -5,6 +5,7 @@
 #include <cassert>
 #include <string>
 #include <stdexcept>
+#include "exception.hpp"
 #include "logger.hpp"
 #include "socket.hpp"
 struct LoggerImpl{

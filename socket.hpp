@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <string>
 namespace Box{
+	class OSError;//定义在exception.hpp 
 	//基本的Socket
 	namespace Socket{
 		#ifdef _WIN32
@@ -62,11 +63,7 @@ namespace Box{
 			std::string get_ip() const;//得到IP
 			uint16_t get_port() const;//得到端口
 		};
-		struct OSError{
-			//操作系统的错误
-			int code;
-			const char *msg;
-		};
+		typedef Box::OSError OSError;
 		enum class Type{
 			//类型
 			IPV4,

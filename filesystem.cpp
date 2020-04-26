@@ -1,84 +1,94 @@
 #ifdef _WIN32
 	#include <io.h>
 	#include <direct.h>
+	#include <dirent.h>
 	#define access _access
+	#define getcwd _getcwd
+	#define mkdir(NAME,MODE) _mkdir(NAME)
+	#define stat64 _stat64
+	#define lstat64 _stat64
+	#define opendir _opendir
 #else
 	//Linux
 	#include <unistd.h>
 	#include <sys/stat.h>
 	#include <sys/types.h>
 #endif
+#include <string>
+#include <cstdlib>
 #include <cstring>
 #include <cerrno>
+#include "exception.hpp"
 #include "filesystem.hpp"
-using namespace Box;
-bool FS::Exists(const char *pathname){
-	//判断文件是否存在
-	if(access(pathname,F_OK) == 0){
-		return true;
-	}
-	else{
-		return false;
-	}
-}
-bool FS::MkDir(const char *name){
-	//创建文件夹
-	#ifdef _WIN32
-		//WIN32的创建
-		if(_mkdir(name) == 0){
+namespace Box{
+	bool FS::Exists(const char *pathname){
+		//判断文件是否存在
+		if(access(pathname,F_OK) == 0){
 			return true;
 		}
 		else{
 			return false;
 		}
-	#else
-		if(mkdir(name,S_IRWXU) == 0){
-			return true;
+	}
+	void FS::MkDir(const char *name){
+		//创建文件夹
+		if(mkdir(name,S_IRWXU) != 0){
+			throw OSError(errno,strerror(errno),name);
 		}
-		else{
-			return false;
+	}
+	void FS::Chdir(const char *path){
+		//改变工作目录
+		if(chdir(path) != 0){
+			//失败
+			throw OSError(errno,strerror(errno),path);
 		}
-	#endif
-}
-bool FS::Chdir(const char *path){
-	//改变工作目录
-	if(chdir(path) == 0){
-		return true;
 	}
-	else{
-		return false;
+	//得到文件大小
+	size_t FS::GetSize(const char *pathname){
+		struct stat64 f_stat;//文件状态
+		if(lstat64(pathname,&f_stat) != 0){
+			//失败
+			throw OSError(errno,strerror(errno),pathname);
+		}
+		return f_stat.st_size;
 	}
-}
-const char *FS::GetError(){
-	return strerror(errno);
-}
-//File的操作
-const char *File::default_modes = "r";
-//默认的操作
-//打开文件
-bool File::open(const char *filename,const char *modes){
-	if(fptr != nullptr){
-		//如果一开始有文件指针
-		fclose(fptr);
+	std::string FS::Getcwd(){
+		char *cwd = getcwd(nullptr,0);
+		//得到工作目录
+		if(cwd == nullptr){
+			//失败
+			throw OSError(errno);
+		}
+		std::string s(cwd);
+		free(cwd);
+		return s;
 	}
-	fptr = fopen(filename,modes);
-	if(fptr == nullptr){
-		//打开失败
-		_errno = errno;
-		return false;
+	//得到状态
+	void FS::GetStat(const char *pathname,FS::Stat &st){
+		if(lstat64(pathname,&st) != 0){
+			//得到stat
+			throw OSError(errno,strerror(errno),pathname);
+		}
 	}
-	return true;
-}
-//打开临时文件
-bool File::open_tmpfile(){
-	if(fptr != nullptr){
-		//如果一开始有文件指针
-		fclose(fptr);
+	FS::Stat FS::GetStat(const char *pathname){
+		Stat s;
+		FS::GetStat(pathname,s);
+		return s;
 	}
-	fptr = tmpfile();
-	if(fptr == nullptr){
-		_errno = errno;
-		return false;
+	//得到错误
+	const char *FS::GetError(){
+		return strerror(errno);
 	}
-	return true;
-}
+	//Stat的操作
+	bool FS::Stat::is_reg() const{
+		//是普通文件
+		return S_ISREG(st_mode);
+	}
+	bool FS::Stat::is_dir() const{
+		return S_ISDIR(st_mode);
+	}
+	bool FS::Stat::is_fifo() const{
+		//是管道
+		return S_ISFIFO(st_mode);
+	}
+};

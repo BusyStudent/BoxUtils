@@ -47,6 +47,7 @@ target("box_utils")
 	--LIBXML2
 	add_files("xpath.cpp")
 	add_files("xml.cpp")
+	
 	add_files("channal.cpp")
 	add_files("backtrace.cpp")
 	add_files("logger.cpp")
@@ -54,6 +55,8 @@ target("box_utils")
 		--Linux携程
 		add_files("coroutine.cpp")
 		add_files("scheduler.cpp")
+		--子进程
+		add_files("subprocess.cpp")
 	end
 	if not is_mode("debug") then
 		add_defines("NDEBUG")

@@ -5,7 +5,7 @@ CXXFLAGS=-g -fPIC -Wall -Wextra
 OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net_easy.o net_factory.o net_headers.o net_exception.o\
 	exception.o iconv.o sem.o base64.o socket.o string.o dns.o xv.o filesystem.o net_multi.o\
 	xml.o xpath.o sax.o time.o os.o backtrace.o net_share.o net_session.o\
-	coroutine.o scheduler.o dylib.o channal.o logger.o
+	coroutine.o scheduler.o dylib.o channal.o logger.o subprocess.o
 LDFLAGS=-pthread -lcurl `xml2-config --libs`
 XMLFLAGS=`xml2-config --cflags`
 #LIBXML的配置文件
@@ -64,5 +64,6 @@ dylib.o:dylib.cpp dylib.hpp
 channal.o:channal.cpp channal.hpp
 #日志记录器
 logger.o:logger.cpp logger.hpp
+subprocess.o:subprocess.cpp subprocess.hpp
 clean:
 	rm $(OBJ) libbox_utils.so

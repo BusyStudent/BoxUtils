@@ -28,28 +28,11 @@ using namespace Box;
 namespace{
 	void throw_os_error(){
 		//抛出OS错误
-		OSError err = {
-			.code = errno,
-			.msg = strerror(errno)
-		};
-		#ifndef NDEBUG
-		//调试输出
-		fprintf(stderr,"OSError: %d => %s\n",errno,err.msg);
-		PrintBackTrace();
-		#endif
-		throw err;
+		throw Box::OSError(errno);
 	};
 	void throw_os_netdb_error(){
 		//抛出netdb里面函数错误
-		OSError err = {
-			.code = h_errno,
-			.msg = hstrerror(h_errno)
-		};
-		#ifndef NDEBUG
-		fprintf(stderr,"OSError(netdb): %d => %s\n",h_errno,err.msg);
-		PrintBackTrace();
-		#endif
-		throw err;
+		throw Box::OSError(h_errno,hstrerror(h_errno));
 	};
 	inline void sock_bind(NativeSocket fd,const AddrV4 &addr){
 		if(bind(fd,(const sockaddr*)&addr,sizeof(sockaddr_in)) != 0){

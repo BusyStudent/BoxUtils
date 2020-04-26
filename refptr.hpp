@@ -100,6 +100,10 @@ namespace Box{
 				//是否为空指针
 				return ptr == nullptr;
 			}
+			//转换为原始指针
+			inline operator T*(){
+				return ptr;
+			}
 		private:
 			int *refcount;
 			T *ptr;//数据指针
