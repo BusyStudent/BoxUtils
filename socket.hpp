@@ -48,6 +48,9 @@ namespace Box{
 			std::string get_host() const;//得到主机名字
 			std::string get_ip() const;//得到IP
 			uint16_t get_port() const;//得到port
+			//比较地址
+			bool operator ==(const AddrV4 &) const;
+			bool operator !=(const AddrV4 &) const;
 		};
 		struct AddrV6:public sockaddr_in6{
 			//IPV6的地址
@@ -62,6 +65,9 @@ namespace Box{
 			std::string get_host() const;//得到主机
 			std::string get_ip() const;//得到IP
 			uint16_t get_port() const;//得到端口
+			//比较地址
+			bool operator ==(const AddrV6 &) const;
+			bool operator !=(const AddrV6 &) const;
 		};
 		typedef Box::OSError OSError;
 		enum class Type{
