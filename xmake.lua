@@ -10,8 +10,10 @@ if is_plat("windows") then
 else
 	add_includedirs("/usr/include/libxml2")
 end
--- define target
+-- 库
 target("box_utils")
+	add_includedirs("./include")
+	add_includedirs("./include/Box")
 	--设置种类
 	--在加载的时候加入依赖
 	on_load(function (target)
@@ -51,6 +53,7 @@ target("box_utils")
 	add_files("./src/channal.cpp")
 	add_files("./src/backtrace.cpp")
 	add_files("./src/logger.cpp")
+	add_files("./src/buffer.cpp")
 	if is_plat("linux") then
 		--Linux携程
 		add_files("./src/coroutine.cpp")
@@ -61,5 +64,11 @@ target("box_utils")
 	if not is_mode("debug") then
 		add_defines("NDEBUG")
 	end
-
+--测试
+target("test_buffer")
+	set_kind("binary")
+	add_files("./tests/test_buffer.cpp")
+	--add_deps("box_utils")
+	add_includedirs("./src")
+	
 
