@@ -35,3 +35,6 @@
 # XMake
 /.xmake/
 /build/
+# Test
+/tests/
+!/tests/*.cpp

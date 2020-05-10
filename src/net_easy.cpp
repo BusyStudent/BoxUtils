@@ -11,6 +11,8 @@ Easy::Easy(void *hd){
 }
 Easy::Easy(){
 	handle = curl_easy_init();
+	//设置为自己本身
+	curl_easy_setopt(handle,CURLOPT_PRIVATE,this);
 	#ifndef NDEBUG
 	curl_easy_setopt(handle,CURLOPT_VERBOSE,1L);
 	#endif
@@ -18,10 +20,14 @@ Easy::Easy(){
 	#ifndef _WIN32
 	curl_easy_setopt(handle,CURLOPT_NOSIGNAL,1L);//不要有信号
 	#endif
+	//清空本身数据
+	multi_userdata = nullptr;
 }
 Easy::Easy(const Easy &easy){
 	//复制一个
 	handle = curl_easy_duphandle(easy.handle);
+	curl_easy_setopt(handle,CURLOPT_PRIVATE,this);
+	multi_userdata = nullptr;
 }
 Easy::~Easy(){
 	curl_easy_cleanup(handle);
@@ -213,4 +219,13 @@ size_t Easy::WriteToHeaders(char *buf,size_t size,size_t block,void *param){
 	//strbuf.replace(strbuf.begin(),strbuf.end(),"\r\n","");
 	((Headers*)param)->add_string(strbuf.c_str());
 	return size*block;
+}
+//得到引用
+Easy &Easy::GetRefFrom(void *handle){
+	Easy *ref = nullptr;
+	curl_easy_getinfo(handle,CURLINFO_PRIVATE,&ref);
+	if(ref == nullptr){
+		throw Box::NullPtrException();
+	}
+	return *ref;
 }

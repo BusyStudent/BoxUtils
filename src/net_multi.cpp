@@ -64,20 +64,11 @@ void Multi::perform(int &running_handles){
 			return;
 	}
 }
-struct HandlePrivate{
-	//曲柄的私人数据
-	Easy *easy;
-	void *userdata;
-};
 
 void Multi::add_handle(Easy &easy,void *userdata){
 	//添加曲柄
 	//设置Easy的对象地址
-	HandlePrivate *data = new HandlePrivate;
-	data->easy = &easy;
-	data->userdata = userdata; 
-	
-	curl_easy_setopt(easy.handle,CURLOPT_PRIVATE,data);
+	easy.multi_userdata = userdata;
 	curl_multi_add_handle(handle,easy.handle);
 }
 void Multi::add_handle(Easy *easy,void *userdata){
@@ -95,10 +86,6 @@ void Multi::add_handle(EasyPackage *pak,void *userdata){
 
 void Multi::remove_handle(Easy &easy){
 	//移除曲柄
-	HandlePrivate *data;
-	curl_easy_getinfo(easy.handle,CURLINFO_PRIVATE,&data);
-	//提取数据
-	delete data;
 	curl_multi_remove_handle(handle,easy.handle);
 }
 void Multi::remove_handle(Easy *easy){
@@ -129,7 +116,6 @@ int Multi::wait(int timeout_ms){
 bool Multi::get_msg(MultiMsg &msg,int &msg_in_queue){
 	//得到信息 填充结构
 	CURLMsg *cmsg;//CURL的信息
-	HandlePrivate *data;
 	do{
 		cmsg = curl_multi_info_read(handle,&msg_in_queue);
 		//得到信息
@@ -141,16 +127,13 @@ bool Multi::get_msg(MultiMsg &msg,int &msg_in_queue){
 			//如果不是完成事件 忽略
 			continue;
 		}
-		curl_easy_getinfo(cmsg->easy_handle,CURLINFO_PRIVATE,&data);
+		Easy &easy = Easy::GetRefFrom(cmsg->easy_handle);
 		//找到曲柄的地址
 		//和用户数据
-		if(data == nullptr){
-			throw NullPtrException();
-		}
 		msg.multi = this;
 		
-		msg.easy = data->easy;
-		msg.userdata = data->userdata;
+		msg.easy = &easy;
+		msg.userdata = easy.multi_userdata;
 		
 		msg.code = cmsg->data.result;
 		return true;

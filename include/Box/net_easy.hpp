@@ -46,12 +46,16 @@ namespace Box{
 				//编码URL和解码
 				std::string escape_url(const char *url) const;
 				std::string unescape_url(const char *irl) const;
+
+				//得到自己引用从CURL Handle
+				static Easy &GetRefFrom(void *handle);
 			private:
 				//回调函数
 				static size_t WriteToString(char*,size_t,size_t,void*);//写出内容到字符串
 				static size_t WriteToFILE(char*,size_t,size_t,void*);//写出内容到字符流
 				static size_t WriteToHeaders(char*,size_t,size_t,void*);//写到头里面
 				void *handle;
+				void *multi_userdata;//给multi使用的数据指针
 			friend class Multi;
 			friend class Share;
 		};

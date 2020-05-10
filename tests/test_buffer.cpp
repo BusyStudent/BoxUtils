@@ -1,5 +1,5 @@
-#include "buffer.hpp"
-#include "buffer.cpp"
+//这个Buffer没写好
+#include <Box/buffer.hpp>
 int main(){
     Box::RingBuffer buf(5);
     char t[] = "Hello World";
