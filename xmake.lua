@@ -10,8 +10,10 @@ if is_plat("windows") then
 else
 	add_includedirs("/usr/include/libxml2")
 end
--- define target
+-- 库
 target("box_utils")
+	add_includedirs("./include")
+	add_includedirs("./include/Box")
 	--设置种类
 	--在加载的时候加入依赖
 	on_load(function (target)
@@ -22,39 +24,51 @@ target("box_utils")
 	--add_links("xml2")
 	--add_links("curl")
 	-- add files
-	add_files("cJSON.c")
-	add_files("socket.cpp")
-	add_files("string.cpp")
+	add_files("./src/cJSON.c")
+	add_files("./src/cJSON_Utils.c")
+	add_files("./src/socket.cpp")
+	add_files("./src/string.cpp")
 	
-	add_files("xv.cpp")
-	add_files("exception.cpp")
-	add_files("dns.cpp")
+	add_files("./src/xv.cpp")
+	add_files("./src/exception.cpp")
+	add_files("./src/dns.cpp")
 	
-	add_files("os.cpp")
-	add_files("random.cpp")
-	add_files("filesystem.cpp")
-	add_files("sem.cpp")
+	add_files("./src/os.cpp")
+	add_files("./src/random.cpp")
+	add_files("./src/filesystem.cpp")
+	add_files("./src/sem.cpp")
 	
-	add_files("time.cpp")
+	add_files("./src/time.cpp")
 	
-	add_files("base64.cpp")
-	add_files("json.cpp")
-	add_files("iconv.cpp")
-	add_files("dylib.cpp")
+	add_files("./src/base64.cpp")
+	add_files("./src/json.cpp")
+	add_files("./src/iconv.cpp")
+	add_files("./src/dylib.cpp")
 	--CURL网络部分
-	add_files("net*.cpp")
+	add_files("./src/net*.cpp")
 	--LIBXML2
-	add_files("xpath.cpp")
-	add_files("xml.cpp")
-	add_files("channal.cpp")
-	add_files("backtrace.cpp")
+	add_files("./src/xpath.cpp")
+	add_files("./src/xml.cpp")
+	
+	add_files("./src/channal.cpp")
+	add_files("./src/backtrace.cpp")
+	add_files("./src/logger.cpp")
+	add_files("./src/buffer.cpp")
 	if is_plat("linux") then
 		--Linux携程
-		add_files("coroutine.cpp")
-		add_files("scheduler.cpp")
+		add_files("./src/coroutine.cpp")
+		add_files("./src/scheduler.cpp")
+		--子进程
+		add_files("./src/subprocess.cpp")
 	end
 	if not is_mode("debug") then
 		add_defines("NDEBUG")
 	end
-
+--测试
+target("test_buffer")
+	set_kind("binary")
+	add_files("./tests/test_buffer.cpp")
+	--add_deps("box_utils")
+	add_includedirs("./src")
+	
 
