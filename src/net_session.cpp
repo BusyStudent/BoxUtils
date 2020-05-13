@@ -39,9 +39,11 @@ void Session::collect_multi_msg(){
 		//从mutli移除曲柄
 		ReqInfo *info = (ReqInfo *)msg.userdata;
 		//得到请求信息
-		if(info->fn != nullptr){
-			//有回调函数 调用
-			info->fn(*this,*(info->pak),info->content,info->userdata);
+		if(info != nullptr){
+			if(info->fn != nullptr){
+				//有回调函数 调用
+				info->fn(*this,*(info->pak),info->content,info->userdata);
+			}
 		}
 		delete info;
 	});
@@ -113,7 +115,7 @@ bool RequestID::done(){
 	//回调函数
 	info->userdata = userdata;
 	session->multi->add_handle(pak,info);
-	session->share->add_handle(pak);
+	//session->share->add_handle(pak);
 	//加入曲柄
 	int r;
 	session->multi->perform(r);//执行

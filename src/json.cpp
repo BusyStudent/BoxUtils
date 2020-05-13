@@ -76,7 +76,7 @@ Json Json::ParseString(const char *str){
 	cJSON *item_ = cJSON_Parse(str);
 	if(item_ == nullptr){
 		//解析失败
-		throw std::runtime_error(GetError());
+		throw JsonParseError(GetError());
 	}
 	return Json(item_);
 }

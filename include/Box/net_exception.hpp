@@ -10,12 +10,25 @@ namespace Box{
 		};
 		class EasyException:public std::exception{
 			public:
-				EasyException(ErrType type,const char*);
+				EasyException(int curlcode);
 				const char *what() const throw();
-				ErrType type();//得到类型
+				inline ErrType type(){
+					return _type;
+				};//得到类型
+				inline int code(){
+					return _code;
+				};//得到代码
+				//从curlcode抛出异常
+				static void ThrowFrom(int curlcode);
 			private:
+				int _code;
 				ErrType _type;
-				const char *_str;
+		};
+		class MultiException:public std::exception{
+			//Multi发生了错误
+			public:
+				MultiException(int curlmcode);
+				const char *what() const throw();
 		};
 	};
 };

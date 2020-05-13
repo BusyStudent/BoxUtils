@@ -8,6 +8,9 @@
 using namespace Box::Net;
 Easy::Easy(void *hd){
 	handle = hd;
+	//设置下自己本身
+	curl_easy_setopt(handle,CURLOPT_PRIVATE,this);
+	multi_userdata = nullptr;
 }
 Easy::Easy(){
 	handle = curl_easy_init();
@@ -42,23 +45,21 @@ void Easy::perform(){
 	//进行传输
 	auto code = curl_easy_perform(handle);
 	if(code != CURLE_OK){
-		ErrType type;//类型
-		switch(code){
-			//能分辨出来的错误代码
-			case CURLE_OPERATION_TIMEDOUT:
-				type = ErrType::TIMEOUT;
-				//超时
-				break;
-			default:
-				type = ErrType::UNKNOWN;
-		}
-		throw EasyException(type,curl_easy_strerror(code));
+		throw EasyException(code);
 	}
 }
 
 //启动cookie引擎
 void Easy::enable_cookie(){
 	curl_easy_setopt(handle,CURLOPT_COOKIEFILE,"");
+}
+//添加cookie
+void Easy::add_cookie(const char *cookie){
+	curl_easy_setopt(handle,CURLOPT_COOKIELIST,cookie);
+}
+//设置cookie
+void Easy::set_cookie(const char *cookie){
+	curl_easy_setopt(handle,CURLOPT_COOKIE,cookie);
 }
 
 void Easy::set_url(const char *url){
@@ -134,6 +135,40 @@ void Easy::set_header_cb(EasyCallBack cb,void *param){
 	//头的callback
 	curl_easy_setopt(handle,CURLOPT_HEADERFUNCTION,cb);
 	curl_easy_setopt(handle,CURLOPT_HEADERDATA,param);
+}
+//Post数据设置
+void Easy::set_post(const void *data,long datasize,bool copy){
+	set_method(Method::POST);//设置Post模式
+	CURLcode code;
+	//设置大小
+	curl_easy_setopt(handle,CURLOPT_POSTFIELDSIZE,datasize);
+	if(copy){
+		//如果要复制数据
+		code = curl_easy_setopt(handle,CURLOPT_COPYPOSTFIELDS,data);
+	}
+	else{
+		code = curl_easy_setopt(handle,CURLOPT_POSTFIELDS,data);
+	}
+	if(code != CURLE_OK){
+		//失败
+		throw EasyException(code);
+	}
+}
+//Post字符串数据
+void Easy::set_post(const std::string &str){
+	return set_post(str.c_str(),str.length() * sizeof(char),true);
+}
+//POST表单
+void Easy::set_post(const Mime &mime){
+	curl_easy_setopt(handle,CURLOPT_MIMEPOST,mime.mime);
+}
+//清空所有cookie
+void Easy::clear_cookie(){
+	curl_easy_setopt(handle,CURLOPT_COOKIELIST,"ALL");
+}
+//清空会话cookie
+void Easy::reset_cookie(){
+	curl_easy_setopt(handle,CURLOPT_COOKIELIST,"SESS");
 }
 
 void *Easy::get_handle() const{
@@ -228,4 +263,27 @@ Easy &Easy::GetRefFrom(void *handle){
 		throw Box::NullPtrException();
 	}
 	return *ref;
+}
+//表单实现
+Mime::Mime(const Easy &easy){
+	//创建一下
+	mime = curl_mime_init(easy.handle);
+}
+Mime::~Mime(){
+	curl_mime_free(mime);
+}
+MimePart Mime::addpart(){
+	//添加一个部分
+	return {
+		.part = curl_mime_addpart(mime)
+	};
+}
+//表单的部分
+void MimePart::set_data(const void *data,size_t datasize){
+	//设置数据从内存中
+	curl_mime_data(part,(const char*)data,datasize);
+}
+void MimePart::set_filedata(const char *filename){
+	//设置数据从文件中
+	curl_mime_filedata(part,filename);
 }

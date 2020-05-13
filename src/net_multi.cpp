@@ -155,8 +155,7 @@ bool MultiMsg::ok(){
 void MultiMsg::throw_for_error(){
 	if(code != CURLE_OK){
 		//抛出异常
-		ErrType type = ErrType::UNKNOWN;
-		throw EasyException(type,strerr());
+		throw EasyException(code);
 	}
 }
 const char* MultiMsg::strerr(){

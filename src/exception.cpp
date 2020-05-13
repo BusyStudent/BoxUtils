@@ -99,4 +99,16 @@ namespace Box{
 		SHOW_BACKTRACE();
 		std::terminate();
 	}
+	//FileNotFoundErrpr
+	FileNotFoundError::FileNotFoundError(int code,const char *filename)
+		:OSError(code,nullptr,filename){
+		this->filename = filename;
+	}
+	//JsonParseError
+	JsonParseError::JsonParseError(const char *msg){
+		this->msg = msg;
+	}
+	const char *JsonParseError::what() const throw(){
+		return msg.c_str();
+	}
 };

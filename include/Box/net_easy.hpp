@@ -1,6 +1,9 @@
 #ifndef _BOXNET_EASY_HPP_
 #define _BOXNET_EASY_HPP_
 #include <string>
+#include <cstddef>
+struct curl_mime_s;
+struct curl_mimepart_s;
 namespace Box{
 	namespace Net{
 		//简单网络接口
@@ -9,6 +12,7 @@ namespace Box{
 			GET,
 			PUT
 		};
+		class Mime;//表单
 		class Headers;
 		typedef size_t (*EasyCallBack)(char*,size_t,size_t,void*);
 		class Easy{
@@ -19,6 +23,8 @@ namespace Box{
 				~Easy();
 				void perform();//执行
 				void enable_cookie();//启动Cookie引擎
+				void add_cookie(const char *cookie);//添加cookie 在引擎内
+				void set_cookie(const char *cookie);//设置cookie 在cookie引擎外部
 				void set_headers();//重置会原有的请求头
 				void set_headers(const Headers &);//替换原有的请求头
 				void set_method(Method method);//设置方法
@@ -30,8 +36,15 @@ namespace Box{
 				void set_ostream(std::string &str);//设置输出内容的字符流
 				void set_ostream(FILE *f);//设置输出内容的字符流
 				void set_oheaders(Headers &headers);//设置输出的头
+				void set_post(const void *data,long size,bool copy = true);
+				//设置为Post 第一个是数据 第二个是数据大小 第三个是是否拷贝一份
+				void set_post(const std::string &str);//设置Post的字符串数据
+				void set_post(const Mime &mime);//设置post的表单
 				void set_followlocation();//自动更寻重定向
 				void reset();//重置
+
+				void clear_cookie();//清空cookie
+				void reset_cookie();//清空回话cookie
 				
 				//CURL的回调
 				void set_write_cb(EasyCallBack cb,void *param = nullptr);//设置写出的回调
@@ -58,6 +71,23 @@ namespace Box{
 				void *multi_userdata;//给multi使用的数据指针
 			friend class Multi;
 			friend class Share;
+			friend class Mime;
+		};
+		struct MimePart{
+			//表单的一部分
+			void set_data(const void *data,size_t datasize);//设置数据从内存中
+			void set_filedata(const char *filename);//设置数据从文件中
+			curl_mimepart_s *part;
+		};
+		class Mime{
+			public:
+				Mime(const Easy &easy);
+				Mime(const Mime&) = delete;
+				~Mime();
+				MimePart addpart();//添加一个部分
+			private:
+				curl_mime_s *mime;//表单数据
+			friend class Easy;
 		};
 	};
 };

@@ -1,9 +1,13 @@
 #ifndef _BOX_EXCEPTION_HPP_
 #define _BOX_EXCEPTION_HPP_
 //一下异常
+#include <exception>
 #include <stdexcept>
 #include <string>
 namespace Box{
+	class Json;
+	typedef std::invalid_argument InvalidArgument;
+	typedef std::exception Exception;
 	class IndexError:public std::exception{
 		public:
 			IndexError(int index);
@@ -41,6 +45,19 @@ namespace Box{
 			static std::string Format(int code,const char *msg,const char *extra);//格式化信息
 		private:
 			std::string what_msg;//what输出信息
+	};
+	class FileNotFoundError:public OSError{
+		//文件没有找到的错误
+		public:
+			FileNotFoundError(int code,const char *filename);
+			std::string filename;
+	};
+	class JsonParseError:public Exception{
+		public:
+			JsonParseError(const char *msg);
+			const char *what() const throw();
+		private:
+			std::string msg;
 	};
 	void Panic(const char *fmt,...);//退出
 };

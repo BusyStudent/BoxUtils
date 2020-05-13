@@ -15,6 +15,7 @@
 	#include <sys/types.h>
 #endif
 #include <string>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <cerrno>
@@ -90,5 +91,107 @@ namespace Box{
 	bool FS::Stat::is_fifo() const{
 		//是管道
 		return S_ISFIFO(st_mode);
+	}
+	//FILE
+	//从文件指针构建
+	RefPtr<File> File::From(FILE *fptr){
+		if(fptr == nullptr){
+			//如果是空指针
+			throw NullPtrException();
+		}
+		return new File(fptr);
+	}
+	//打开文件
+	RefPtr<File> File::Open(const std::string &name,const std::string &mode){
+		FILE *fptr = fopen(name.c_str(),mode.c_str());
+		if(fptr == nullptr){
+			//失败
+			throw OSError(errno,strerror(errno),name.c_str());
+		}
+		return new File(fptr);
+	}
+	//临时文件
+	RefPtr<File> File::Tmpfile(){
+		return File::From(tmpfile());
+	}
+	File::File(FILE *fptr){
+		this->fptr = fptr;
+	}
+	File::~File(){
+		if(fptr != nullptr){
+			fclose(fptr);
+		}
+	}
+	//方法
+	void File::close(){
+		//关闭
+		if(fptr != nullptr){
+			fclose(fptr);
+		}
+	}
+	//文件末尾
+	bool File::eof(){
+		return feof(fptr) != 0;
+	}
+	//是否正常
+	bool File::ok(){
+		return !ferror(fptr);
+	}
+	void File::clear(){
+		clearerr(fptr);
+	}
+	//得到错误
+	const char *File::get_error(){
+		return strerror(errno);
+	}
+	//格式化输入输出
+	int File::print(const char *fmt,...){
+		va_list varg;
+		va_start(varg,fmt);
+		int val = this->print(fmt,varg);
+		va_end(varg);
+		return val;
+	}
+	int File::print(const char *fmt,va_list varg){
+		return fprintf(fptr,fmt,varg);
+	}
+	int File::scan(const char *fmt,...){
+		va_list varg;
+		va_start(varg,fmt);
+		int val = this->scan(fmt,varg);
+		va_end(varg);
+		return val;
+	}
+	int File::scan(const char *fmt,va_list varg){
+		return fscanf(fptr,fmt,varg);
+	}
+	//读入和写入
+	size_t File::read(void *buf,size_t bufsize){
+		return fread(buf,1,bufsize,fptr);
+	}
+	size_t File::write(const void *buf,size_t bufsize){
+		return fwrite(buf,1,bufsize,fptr);
+	}
+	//分离
+	FILE *File::detach(){
+		if(fptr == nullptr){
+			throw NullPtrException();
+		}
+		FILE *f = fptr;
+		fptr = nullptr;
+		return f;
+	}
+	bool File::readline(std::string &str){
+		int ch;
+		ch = fgetc(fptr);
+		while(ch != EOF or ch != '\n'){
+			str += ch;
+			ch = fgetc(fptr);
+		}
+		if(ferror(fptr)){
+			//发生错误
+			return false;
+		}
+		return true;
 	}
 };
