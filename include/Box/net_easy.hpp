@@ -19,6 +19,7 @@ namespace Box{
 			public:
 				Easy(void *);//通过Handle直接生成
 				Easy();
+				Easy(Easy &&easy);
 				Easy(const Easy&);
 				~Easy();
 				void perform();//执行
@@ -29,6 +30,7 @@ namespace Box{
 				void set_headers(const Headers &);//替换原有的请求头
 				void set_method(Method method);//设置方法
 				void set_url(const char *url);//设置URL
+				void set_url(const std::string &url);//设置URL
 				void set_proxy(const char *proxy);//设置代理
 				void set_timeout(long timeout);//设置超时
 				void set_useragent(const char *str);//设置User-Agent
@@ -75,7 +77,12 @@ namespace Box{
 		};
 		struct MimePart{
 			//表单的一部分
+			void set_headers();//清空
+			void set_headers(const Headers &,bool copy = true);//设置头部的数值 默认复制一下
+			void set_encoder(const char *encoder);//设置
+			void set_name(const char *name);//设置名字
 			void set_data(const void *data,size_t datasize);//设置数据从内存中
+			void set_type(const char *type);//设置类型
 			void set_filedata(const char *filename);//设置数据从文件中
 			curl_mimepart_s *part;
 		};

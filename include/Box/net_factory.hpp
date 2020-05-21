@@ -10,6 +10,7 @@ namespace Box{
 			//工厂产出的对象
 			public:
 				EasyPackage(Easy *e,const Headers &h);
+				EasyPackage(EasyPackage &&);
 				EasyPackage(const EasyPackage&);
 				~EasyPackage();
 				inline Easy *operator ->() const{
@@ -41,7 +42,10 @@ namespace Box{
 				Headers &headers();//得到headers
 				void add_header(const char *key,const char *value);
 				EasyPackage create(const char *url);//直接从模板里克隆一个 在栈上
+				EasyPackage create(const std::string &url);
+
 				EasyPackage *allocate(const char *url);//在堆上
+				EasyPackage *allocate(const std::string &url);
 				
 				inline Easy *operator ->(){
 					return &_easy;

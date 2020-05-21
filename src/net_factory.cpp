@@ -1,12 +1,19 @@
+#include <utility>
 #include "net_headers.hpp"
 #include "net_factory.hpp"
 using namespace Box::Net;
-EasyPackage::EasyPackage(Easy *e,const Headers &h){
+EasyPackage::EasyPackage(Easy *e,const Headers &h)
+	:_headers(h){
 	//产出的对象
 	easy_handle = e;
-	_headers.update(h);
 	easy_handle -> set_oheaders(resp_headers);//设置输出的头
 	easy_handle -> set_headers(_headers);//设置自己的头部为请求头
+}
+EasyPackage::EasyPackage(EasyPackage &&pak)\
+	:_headers(std::move(pak._headers)){
+	//移动
+	easy_handle = pak.easy_handle;
+	pak.easy_handle = nullptr;
 }
 EasyPackage::EasyPackage(const EasyPackage &pak){
 	//拷贝函数
@@ -44,12 +51,20 @@ EasyPackage EasyFactory::create(const char *url){
 	e->set_url(url);//设置URL
 	return EasyPackage(e,_headers);
 }
+EasyPackage EasyFactory::create(const std::string &url){
+	return this->create(url.c_str());
+}
+
 EasyPackage *EasyFactory::allocate(const char *url){
 	//在栈上
 	auto e = _easy.clone();
 	e->set_url(url);//设置URL
 	return new EasyPackage(e,_headers);
 }
+EasyPackage *EasyFactory::allocate(const std::string &url){
+	return this->allocate(url.c_str());
+}
+
 Headers &EasyFactory::headers(){
 	return _headers;
 }

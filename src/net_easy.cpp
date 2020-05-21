@@ -5,7 +5,13 @@
 #include "net_exception.hpp"
 #include "net_headers.hpp"
 #include "net_easy.hpp"
+#include "net.hpp"
 using namespace Box::Net;
+//检查EASY的返回代码
+#define CURL_ASSERT(CODE) {CURLcode _code_ = CODE;\
+	if(_code_ != CURLE_OK){\
+	throw Box::Net::EasyException(_code_);\
+}}
 Easy::Easy(void *hd){
 	handle = hd;
 	//设置下自己本身
@@ -26,6 +32,15 @@ Easy::Easy(){
 	//清空本身数据
 	multi_userdata = nullptr;
 }
+//移动一下
+Easy::Easy(Easy &&easy){
+	handle = easy.handle;
+	multi_userdata = easy.multi_userdata;
+	curl_easy_setopt(handle,CURLOPT_PRIVATE,this);//重新设置一下自身
+	//清空一下
+	easy.handle = nullptr;
+	easy.multi_userdata = nullptr;
+}
 Easy::Easy(const Easy &easy){
 	//复制一个
 	handle = curl_easy_duphandle(easy.handle);
@@ -43,10 +58,7 @@ void Easy::reset(){
 }
 void Easy::perform(){
 	//进行传输
-	auto code = curl_easy_perform(handle);
-	if(code != CURLE_OK){
-		throw EasyException(code);
-	}
+	CURL_ASSERT(curl_easy_perform(handle));
 }
 
 //启动cookie引擎
@@ -65,6 +77,10 @@ void Easy::set_cookie(const char *cookie){
 void Easy::set_url(const char *url){
 	//设置URL
 	curl_easy_setopt(handle,CURLOPT_URL,url);
+}
+void Easy::set_url(const std::string &url){
+	//设置URL
+	curl_easy_setopt(handle,CURLOPT_URL,url.c_str());
 }
 void Easy::set_method(Method method){
 	//设置方法
@@ -279,11 +295,39 @@ MimePart Mime::addpart(){
 	};
 }
 //表单的部分
+void MimePart::set_headers(){
+	//清空
+	CURL_ASSERT(curl_mime_headers(part,nullptr,0));
+}
+void MimePart::set_headers(const Headers &headers,bool copy){
+	//设置请求头
+	CURLcode code;
+	if(copy){
+		//要复制一下
+		code = curl_mime_headers(part,SListDup(headers.slist),1);
+	}
+	else{
+		code = curl_mime_headers(part,headers.slist,0);
+	}
+	CURL_ASSERT(code);
+}
+void MimePart::set_encoder(const char *encoder){
+	//更改编码器
+	CURL_ASSERT(curl_mime_name(part,encoder));
+}
+void MimePart::set_name(const char *name){
+	//设置名字
+	CURL_ASSERT(curl_mime_name(part,name));
+}
 void MimePart::set_data(const void *data,size_t datasize){
 	//设置数据从内存中
-	curl_mime_data(part,(const char*)data,datasize);
+	CURL_ASSERT(curl_mime_data(part,(const char*)data,datasize));
 }
 void MimePart::set_filedata(const char *filename){
 	//设置数据从文件中
-	curl_mime_filedata(part,filename);
+	CURL_ASSERT(curl_mime_filedata(part,filename));
+}
+void MimePart::set_type(const char *type){
+	//设置类型
+	CURL_ASSERT(curl_mime_type(part,type));
 }

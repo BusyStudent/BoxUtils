@@ -1,6 +1,8 @@
 #ifndef _BOXNET_HEADERS_HPP_
 #define _BOXNET_HEADERS_HPP_
 #include <functional>
+#include <initializer_list>
+struct curl_slist;
 namespace Box{
 	class Json;
 	namespace Net{
@@ -8,6 +10,7 @@ namespace Box{
 			//头的实现(里面的值可能重复)
 			public:
 				Headers();
+				Headers(Headers &&);//移动构造器
 				Headers(const Headers &);
 				~Headers();
 				//构造器和析构器
@@ -21,10 +24,10 @@ namespace Box{
 				const char *operator[](const char *key) const;//有异常的
 				void for_each(std::function <void(const char*,const char*)>) const;//遍历头
 			private:
-				void *slist;
+				curl_slist *slist;
 			friend class Easy;
+			friend struct MimePart;
 		};
-		
 	};
 };
 #endif

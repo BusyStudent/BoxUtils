@@ -29,5 +29,9 @@ namespace Box{
 			bool scoped = true;//是否保护的
 			void (*delete_fn)(T);//删除函数
 	};
+	template <class T,void(*destructor)(T)>
+	class RefData{
+		
+	};
 };
 #endif

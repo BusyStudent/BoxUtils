@@ -14,6 +14,11 @@ using namespace Box::Net;
 Headers::Headers(){
 	slist = nullptr;
 }
+Headers::Headers(Headers &&headers){
+	//移动构造器
+	slist = headers.slist;
+	headers.slist = nullptr;
+}
 Headers::Headers(const Headers &h){
 	slist = nullptr;
 	this->update(h);
