@@ -30,6 +30,18 @@ namespace Box{
 				MultiException(int curlmcode);
 				const char *what() const throw();
 		};
+		class HttpError:public std::exception{
+			//Http的错误
+			public:
+				HttpError(int code);
+				inline int status_code(){
+					//得到状态代码
+					return _code;
+				};
+				const char *what() const throw();
+			private:
+				int _code;
+		};
 	};
 };
 #endif

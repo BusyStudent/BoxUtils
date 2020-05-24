@@ -3,8 +3,10 @@
 #include <cstddef>
 #include <functional>
 #include <string>
+#include "dataguard.hpp"
 struct cJSON;//替代了#include "cJSON.h"
 namespace Box{
+	struct JsonHolder;//Josn内部的实现
 	class Json{
 		public:
 			//一些数据定义
@@ -164,6 +166,7 @@ namespace Box{
 			static void *Malloc(size_t size);
 			static void  Free(void *ptr);
 		private:
+			//RefData<JsonHolder*> holder;//包裹Json的实现
 			bool independence;//是否独立
 			cJSON *item;//对象
 			friend class Iterator;

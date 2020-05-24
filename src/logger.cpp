@@ -8,6 +8,7 @@
 #include "exception.hpp"
 #include "logger.hpp"
 #include "socket.hpp"
+#include "string.hpp"
 struct LoggerImpl{
 	//记录器内部实现
 	virtual ~LoggerImpl(){};
@@ -93,7 +94,7 @@ struct StderrImpl:public LoggerImpl{
 };
 struct NetImpl:public LoggerImpl{
 	//网络实现
-	inline NetImpl(Box::Socket::BaseSocket *socket,Box::Logger *logger){
+	inline NetImpl(Box::Net::Socket *socket,Box::Logger *logger){
 		this->socket = socket;
 		fakestream.logger = logger;//设置记录器指针
 	}
@@ -102,19 +103,21 @@ struct NetImpl:public LoggerImpl{
 	}
 	//一些操作实现
 	void flush(){
-		socket->flush();
+		
 	}
 	void puts(const char *text){
-		socket->puts(text);
+		socket->send(text,strlen(text) * sizeof(char));
 	}
 	void putc(int ch){
-		socket->putc(ch);
+		char c = ch;
+		socket->send(&c,sizeof(c));
 	}
 	void vprintf(const char *fmt,va_list &varg){
 		//格式化输出
-		vfprintf(socket->out(),fmt,varg);
+		auto s = Box::String::Format(fmt,varg);
+		socket->send(s.c_str(),s.length() * sizeof(char));
 	}
-	Box::Socket::BaseSocket *socket;
+	Box::Net::Socket *socket;
 };
 namespace Box{
 	Logger::Logger(){
@@ -147,19 +150,19 @@ namespace Box{
 		impl = new FileImpl(fptr,this);
 	}
 	void Logger::set_output(const std::string &ip,uint16_t port){
-		using namespace Box::Socket;
+		using namespace Box::Net;
 		TCP *tcp = nullptr;
 		//创建一个
 		try{
 			if(ip.length() <= 16){
 				//创建一个IPV4的Socket
-				tcp = new TCP(Type::IPV4);
+				tcp = new TCP(SockFamily::IPV4);
 				//连接一下
 				tcp->connect(AddrV4::From(ip,port));
 			}
 			else{
 				//创建一个IPV6的Socket
-				tcp = new TCP(Type::IPV6);
+				tcp = new TCP(SockFamily::IPV6);
 				//连接一下
 				tcp->connect(AddrV6::From(ip,port));
 			}

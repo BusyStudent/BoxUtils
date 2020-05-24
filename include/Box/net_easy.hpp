@@ -52,6 +52,8 @@ namespace Box{
 				void set_write_cb(EasyCallBack cb,void *param = nullptr);//设置写出的回调
 				void set_header_cb(EasyCallBack cb,void *param = nullptr);//设置头的回调
 				
+				void throw_for_status();//当状态代码不为200时候抛出异常
+
 				void *get_handle() const;//得到handle
 				std::string url() const;//得到URL
 				long status_code() const;

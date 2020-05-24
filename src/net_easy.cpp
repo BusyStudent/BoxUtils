@@ -238,6 +238,12 @@ std::string Easy::unescape_url(const char *url) const{
 	curl_free(s);
 	return str;
 }
+void Easy::throw_for_status(){
+	auto code = status_code();
+	if(code != 200){
+		throw HttpError(code);
+	}
+}
 
 //回调函数
 size_t Easy::WriteToFILE(char *buf,size_t size,size_t block,void *param){

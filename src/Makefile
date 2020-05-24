@@ -6,7 +6,7 @@ INCLUDE=../include/Box/
 OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net_easy.o net_factory.o net_headers.o net_exception.o\
 	exception.o iconv.o sem.o base64.o socket.o string.o dns.o xv.o filesystem.o net_multi.o\
 	xml.o xpath.o sax.o time.o os.o backtrace.o net_share.o net_session.o\
-	coroutine.o scheduler.o dylib.o channal.o logger.o subprocess.o buffer.o ucontext.o\
+	coroutine.o scheduler.o dylib.o logger.o subprocess.o buffer.o ucontext.o stream.o\
 	assert.o pixiv.o
 LDFLAGS=-pthread -lcurl `xml2-config --libs`
 XMLFLAGS=`xml2-config --cflags`
@@ -64,7 +64,7 @@ scheduler.o:scheduler.cpp $(INCLUDE)scheduler.hpp
 dylib.o:dylib.cpp $(INCLUDE)dylib.hpp
 #动态库
 #同步用的通道
-channal.o:channal.cpp $(INCLUDE)channal.hpp
+#channal.o:channal.cpp $(INCLUDE)channal.hpp
 #日志记录器
 logger.o:logger.cpp $(INCLUDE)logger.hpp
 subprocess.o:subprocess.cpp $(INCLUDE)subprocess.hpp
@@ -76,5 +76,7 @@ ucontext.o:ucontext.cpp $(INCLUDE)ucontext.hpp
 assert.o:assert.cpp $(INCLUDE)assert.hpp
 #对Pixiv访问的接口
 pixiv.o:pixiv.cpp $(INCLUDE)pixiv.hpp net_easy.o net_factory.o json.o
+#流抽象
+stream.o:stream.cpp $(INCLUDE)stream.hpp
 clean:
 	rm $(OBJ) libbox_utils.so

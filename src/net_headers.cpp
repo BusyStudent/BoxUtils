@@ -3,6 +3,7 @@
 #include <sstream>
 #include <curl/curl.h>
 #include <functional>
+#include <initializer_list>
 #include "json.hpp"
 #include "exception.hpp"
 #include "net_headers.hpp"
@@ -13,6 +14,24 @@
 using namespace Box::Net;
 Headers::Headers(){
 	slist = nullptr;
+}
+Headers::Headers(const std::initializer_list<const char *> &vlist){
+	for(auto &s:vlist){
+		//添加字符串
+		add_string(s);
+	}
+}
+Headers::Headers(const std::initializer_list<const std::initializer_list<const char*>>& vlist){
+	for(auto &l:vlist){
+		//add(l.begin(),--l.end());
+		if(l.size() != 2){
+			//如果没有两个元素
+			throw InvalidArgument(nullptr);
+		}
+		auto begin = l.begin();
+		++ begin;
+		add(*(l.begin()),*begin);
+	}
 }
 Headers::Headers(Headers &&headers){
 	//移动构造器

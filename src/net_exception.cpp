@@ -1,5 +1,6 @@
 #include <curl/curl.h>
 #include <cstring>
+#include <string>
 #include "net_exception.hpp"
 using namespace Box::Net;
 //异常
@@ -22,4 +23,11 @@ const char *EasyException::what() const throw(){
 }
 void EasyException::ThrowFrom(int code){
 	throw EasyException(code);
+}
+HttpError::HttpError(int _code){
+	this->_code = _code;
+}
+const char *HttpError::what() const throw(){
+	//输出错误
+	return strdup(std::to_string(_code).c_str());
 }

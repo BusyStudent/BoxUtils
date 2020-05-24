@@ -4,25 +4,48 @@
 #include <cstddef>
 #include <cstdint>
 namespace Box{
-    class RingBuffer{
+    class Buffer{
         public:
-            RingBuffer(size_t size);
-            ~RingBuffer();
-            void clear();//清空
+            Buffer(size_t size);
+            Buffer(const Buffer &);
+            Buffer(Buffer &&);
+            ~Buffer();
+            size_t write(const void *data,size_t size);//写入缓冲区
+            inline size_t size() const noexcept{
+                return used_size;//大小
+            }
+            inline size_t available_size() const noexcept{
+                //可用大小
+                return mem_size - used_size;
+            }
+            inline size_t capacity() const noexcept{
+                return mem_size;//容量
+            }
+            inline bool empty() const noexcept{
+                //空的
+                return used_size == 0;
+            }
+            inline bool full() const noexcept{
+                return mem_size == used_size;
+            }
+            inline uint8_t *data() const noexcept{
+                //得到数据
+                return mem;
+            }
+            inline void move_forward(size_t byte) noexcept{
+                //移动缓冲区一读入字节的大小
+                used_size += byte;
+            }
+            inline void clear(){
+                //清空数据
+                used_size = 0;
+            }
+            uint8_t *detach();//分离数据
             void extend(size_t new_size);//扩展大小
-            void write(const void *data,size_t datasize);//写入字节
-            size_t read(void *data,size_t datasize);//拷贝出来
-            //拉去取出 没有可读入的返回false readsize是数据大小 ptr是所给的指针
-            bool poll(const void *&ptr,size_t &readsize);
-            void *_private;//保留的用户数据 缓冲区内部不会使用这个
-        private:
-            //在数据被要被覆盖的时候调用 mem是覆盖数据块的开始byte 是大小
-            void (*on_overwrite)(RingBuffer &buffer,const void *mem,size_t byte);
-            size_t mem_size;//数据块大小
-            uint8_t *mem;//整个缓冲区的内存
-            uint8_t *mem_tail;//整个缓冲区结束的指针
-            uint8_t *head_ptr;//缓冲区数据段开始的头指针
-            uint8_t *tail_ptr;//缓冲区数据段结束的指针
+        protected:
+            uint8_t *mem;
+            size_t mem_size;//数据大小
+            size_t used_size;
     };
 };
 #endif

@@ -54,6 +54,7 @@ namespace Pixiv{
         //创建请求
         std::string content = req.content();
         //得到内容
+        req->throw_for_status();//检查一下状态代码
         return Page{
             .info = Json::ParseString(content.c_str())
         };

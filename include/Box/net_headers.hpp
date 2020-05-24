@@ -10,6 +10,19 @@ namespace Box{
 			//头的实现(里面的值可能重复)
 			public:
 				Headers();
+				Headers(const std::initializer_list<const char*> &);
+				Headers(const std::initializer_list<const std::initializer_list<const char*>>&);
+				/*从字符串列表构造 如第一个是
+					{
+						"UserAgent:Hello"
+					}
+					第二个是
+					{
+						{
+							userAgent,"Hello"
+						}
+					}
+				*/
 				Headers(Headers &&);//移动构造器
 				Headers(const Headers &);
 				~Headers();

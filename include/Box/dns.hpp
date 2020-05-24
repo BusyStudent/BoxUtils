@@ -6,7 +6,7 @@
 namespace Box{
 	namespace DNS{
 		struct HostInfo{
-			Box::Socket::Type type;//类型
+			Box::Net::SockFamily type;//类型
 			String::Vector addrs;//地址
 			unsigned int size();
 			std::string &operator [](unsigned int);

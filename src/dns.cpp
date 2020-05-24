@@ -11,6 +11,7 @@
 	#include <netdb.h>
 #endif
 #include <cerrno>
+#include "socket.hpp"
 #include "exception.hpp"
 #include "dns.hpp"
 using namespace Box;
@@ -24,14 +25,14 @@ DNS::HostInfo DNS::ParseName(const char *name){
 		return info;
 	}
 	if(ent->h_addrtype == AF_INET){
-		info.type = Socket::Type::IPV6;
+		info.type = Net::SockFamily::IPV6;
 		for (int i = 0;ent->h_addr_list[i]; i++){
 		//加入IPV4地址
 			info.addrs.push_back(inet_ntoa(*(struct in_addr*)(ent->h_addr_list[i])));
 		}
 	}
 	else{
-		info.type = Socket::Type::IPV6;
+		info.type = Net::SockFamily::IPV6;
 	}
 	return info;
 }
