@@ -56,7 +56,7 @@ namespace Pixiv{
         //得到内容
         req->throw_for_status();//检查一下状态代码
         return Page{
-            .info = Json::ParseString(content.c_str())
+            .info = Json::ParseString(content)
         };
     }
     Page Page::FromID(int id){

@@ -49,6 +49,12 @@ namespace Box{
 				//得到引用
 				return *ptr;
 			}
+			inline const T *operator ->() const{
+				return ptr;
+			}
+			inline const T &operator *() const{
+				return *ptr;
+			}
 			//重载等号
 			RefPtr <T> &operator =(const RefPtr <T> &refptr){
 				if(this != &refptr){

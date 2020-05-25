@@ -136,7 +136,7 @@ Box::Json *Headers::json(){
 		json.add_string(key.c_str(),  splist_mark + 1);
 		next = next->next;
 	}
-	return json.move_toheap();//把数据转移到heap
+	return new Json(std::move(json));//把数据转移到heap
 }
 //遍历
 void Headers::for_each(std::function <void(const char*,const char*)> fn) const{

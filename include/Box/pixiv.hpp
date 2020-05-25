@@ -19,6 +19,8 @@ namespace Box{
             static Page FromID(int id);//从ID
             static Page FromID(const std::string &id);
             static Page FromURL(const std::string &url);//从URL
+            Json &operator [](const char *val) const;
+            Json &operator [](int val) const;
             Json info;//格式化的信息
         };
         std::vector<Page> Search(const std::string &what);
