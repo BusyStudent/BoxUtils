@@ -5,171 +5,200 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <cmath>
+#include "refptr.hpp"
 #include "exception.hpp"
 #include "xpath.hpp"
-using namespace Box::XPath;
-using namespace Box::XML;
-//XPathObject具体实现
-NodeSet &XPathObject::operator *(){
-	return vec;
-}
-NodeSet *XPathObject::operator ->(){
-	return &vec;
-}
-//一些构造函数
-XPathObject::XPathObject(xmlXPathObjectPtr ptr,xmlDocPtr docptr){
-	typedef XPathObjectType Type;
-	obj = ptr;
-	this->docptr = docptr;
-	xmlNodeSetPtr nodeset = ptr->nodesetval;//节点集合
-	if(nodeset != nullptr){
-		//如果集合数据不为nullptr
-		for(int i = 0;i < nodeset->nodeNr;i++){
-			//加入节点
-			vec.push_back(Node(nodeset->nodeTab[i],false));
+#include "xml.hpp"
+namespace Box{
+namespace LXml{
+namespace XPath{
+	//释放XPath Object 考虑到有个XMLCALL
+	static void free_xpath(xmlXPathObjectPtr objptr){
+		if(objptr != nullptr){
+			xmlXPathFreeObject(objptr);
 		}
 	}
-	switch(obj->type){
-		case XPATH_BOOLEAN:{
-			//是Bool
-			_type = Type::BOOL;
-			break;
-		}
-		case XPATH_NUMBER:{
-			//是数字
-			_type = Type::FLOAT;
-			break;
-		}
-		case XPATH_STRING:{
-			//字符串
-			_type = Type::STRING;
-			break;
-		}
-		case XPATH_NODESET:{
-			//集合
-			_type = Type::SET;
-			break;
-		}
-		default:{
-			//未知
-			_type = Type::UNKNWON;
+	Context::Context(Xml &xml)
+		:holder(xml.holder){
+		ctxt = xmlXPathNewContext(xml.holder->xml);
+		if(ctxt == nullptr){
+			//失败
+			throw Error(xmlGetLastError());
 		}
 	}
-}
-XPathObject::XPathObject(XPathObject &&xobj){
-	//移动构造函数
-	obj = xobj.obj;//转移指针
-	xobj.obj = nullptr;
-	vec = std::move(xobj.vec);//移动Vector
-	_type = xobj._type;//复制类型
-	docptr = xobj.docptr;//转移docptr
-	xobj.docptr = nullptr;
-}
-XPathObject::XPathObject(const XPathObject &xobj){
-	//复制函数
-	obj = xmlXPathObjectCopy(xobj.obj);
-	for(auto &node:xobj.vec){
-		vec.push_back(node);
+	Context::~Context(){
+		xmlXPathFreeContext(ctxt);
 	}
-	_type = xobj._type;
-	if(xobj.docptr != nullptr){
-		//里面有一份被复制的doc
-		docptr = xmlCopyDoc(xobj.docptr,1);
+	//移动一下
+	Context::Context(Context &&ctxt)
+		:holder(ctxt.holder){
+		this->ctxt = ctxt.ctxt;
+		ctxt.ctxt = nullptr;
 	}
-	else{
-		docptr = nullptr;
+	//解析
+	Object Context::eval(const char *exp){
+		xmlXPathObjectPtr obj = xmlXPathEvalExpression(BAD_CAST(exp),ctxt);
+		if(obj == nullptr){
+			//解析失败
+			throw Error(xmlGetLastError());
+		}
+		return Object(obj,holder);
 	}
-}
-XPathObject::~XPathObject(){
-	xmlXPathFreeObject(obj);
-	if(docptr != nullptr){
-		//里面有一封被克隆的文档
-		xmlFreeDoc(docptr);
+	Object Context::eval(const std::string &exp){
+		return eval(exp.c_str());
 	}
-}
-//转换函数
-XPathObject::operator std::string(){
-	xmlChar *str = xmlXPathCastToString(obj);
-	//转换一下
-	if(str == nullptr){
-		//失败
-		throw NullPtrException();
+	Object Context::eval(const Expression &exp){
+		//解析编译过的表达式
+		xmlXPathObjectPtr obj = xmlXPathCompiledEval(exp.expr,ctxt);
+		if(obj == nullptr){
+			throw Error(xmlGetLastError());
+		}
+		return Object(obj,holder);
 	}
-	std::string s((const char*)str);
-	xmlFree(str);
-	return s;
-}
-XPathObject::operator bool(){
-	return xmlXPathCastToBoolean(obj);
-}
-XPathObject::operator double(){
-	return xmlXPathCastToNumber(obj);
-}
-//得到里面的vec
-NodeSet &XPathObject::get_vec(){
-	return vec;
-}
-//查找节点
-Node &XPathObject::operator [](int val){
-	auto size = vec.size();//得到大小
-	if(abs(val) >= size){
-		//超出范围
-		if(val > 0){
-			throw IndexError(val);
+	//编译
+	Expression Context::complie(const char *exp){
+		xmlXPathCompExprPtr expr =  xmlXPathCtxtCompile(ctxt,BAD_CAST(exp));
+		if(expr == nullptr){
+			//失败
+			throw Error(xmlGetLastError());
+		}
+		return Expression(expr);
+	}
+	Expression Context::complie(const std::string &exp){
+		return complie(exp.c_str());
+	}
+	//XPath对象
+	Object::Object(xmlXPathObjectPtr objptr,RefPtr <LXml::XmlHolder> &_holder)
+		:obj(objptr,free_xpath),holder(_holder){
+	}
+	//复制
+	Object::Object(const Object &o)
+		:obj(o.obj),holder(o.holder){
+
+	}
+	//移动
+	Object::Object(Object &&o)
+		:obj(o.obj),holder(o.holder){
+
+	}
+	Object::~Object(){
+
+	}
+	ObjectIter Object::begin() const{
+		//得到开始迭代器
+		xmlNodePtr nodeptr = nullptr;
+		int where = -1;
+		if(not empty()){
+			//如果不是空的 得到第一个
+			where = 0;
+			nodeptr = obj.get()->nodesetval->nodeTab[0];
+		}
+		return ObjectIter(obj,nodeptr,where);
+	}
+	ObjectIter Object::end() const{
+		//得到末尾
+		return ObjectIter(obj,nullptr,-1);
+	}
+	//得到一些信息
+	bool Object::empty() const{
+		//是否是空的
+		return xmlXPathNodeSetIsEmpty(obj.get()->nodesetval);
+	}
+	int Object::size() const{
+		return obj.get()->nodesetval->nodeNr;	
+	}
+	template<>
+	double Object::get<double>() const{
+		return xmlXPathCastToNumber(obj.get());
+	}
+	template<>
+	bool   Object::get<bool>() const{
+		return xmlXPathCastToBoolean(obj.get());
+	}
+	template <>
+	std::string Object::get<std::string>() const{
+		//得到字符串
+		xmlChar *mem = xmlXPathCastToString(obj.get());
+		if(mem == nullptr){
+			throw NullPtrException();
+		}
+		std::string str((const char *)mem);
+		xmlFree(mem);
+		return std::move(str);
+	}
+	//迭代器操作
+	ObjectIter::ObjectIter(const RefData <_xmlXPathObject*> &_obj,_xmlNode *nodeptr,int where)
+		:obj(_obj),node(nodeptr,true){
+		//初始化
+		this->where = where;
+	}
+	ObjectIter::~ObjectIter(){
+		//销毁
+	}
+	//操作符号
+	bool ObjectIter::operator ==(const ObjectIter &iter) const{
+		//判断指针是否相等
+		return node.holder->node == iter.node.holder->node;
+	}
+	bool ObjectIter::operator !=(const ObjectIter &iter) const{
+		//判断指针是否不相等
+		return node.holder->node != iter.node.holder->node;
+	}
+	void ObjectIter::operator++(){
+		//递增
+		int max = obj.get()->nodesetval->nodeNr;//得到最大的
+		if(where + 1 >= max){
+			//移动到最后一个
+			where = -1;
+			node.holder->node = nullptr;
+			return;
+		}
+		else{
+			where ++;
+			node.holder->node = obj.get()->nodesetval->nodeTab[where];
 		}
 	}
-	if(val >= 0){
-		//正的index
-		return vec[val];
-	}
-	else{
-		//负数
-		return vec[size - (-val)];
-	}
-}
-//得到节点数目
-unsigned XPathObject::size(){
-	return vec.size();
-}
-std::string XPathObject::to_string(){
-	return XPathObject::operator std::string();
-}
-double XPathObject::to_double(){
-	return XPathObject::operator double();
-}
-bool XPathObject::to_bool(){
-	return XPathObject::operator bool();
-}
-//Doc的XPath实现
-XPathObject Doc::xpath(const char *exp,bool clone_doc){
-	xmlDocPtr ptr = docptr;
-	if(clone_doc){
-		//如果要克隆自己
-		ptr = xmlCopyDoc(docptr,1);
-	}
-	auto context = xmlXPathNewContext(ptr);
-	//构建上下文
-	if(context == nullptr){
-		throw NullPtrException();
-	}
-	auto val = xmlXPathEvalExpression(BAD_CAST exp,context);
-	xmlXPathFreeContext(context);
-	if(val == nullptr){
-		//失败
-		if(clone_doc){
-			xmlFreeDoc(ptr);
+	void ObjectIter::operator--(){
+		int max = obj.get()->nodesetval->nodeNr;//得到最大的
+		if(where == -1){
+			//如果是最后一个
+			where = max - 1;
 		}
-		XML::ThrowLastError();
+		else if(where -1 >= 0){
+			where --;
+		}
+		node.holder->node = obj.get()->nodesetval->nodeTab[where];
 	}
-	if(clone_doc == true){
-		//是克隆过的
-		return XPathObject(val,ptr);
+	//表达式
+	Expression::Expression(const char *exp){
+		//编译表达式
+		expr = xmlXPathCompile(BAD_CAST(exp));
+		if(expr == nullptr){
+			//失败
+			throw Error(xmlGetLastError());
+		}
 	}
-	return XPathObject(val);
-}
-//Node XPath实现
-XPathObject Node::xpath(const char *exp){
-	auto doc = XML::Doc::ParseString(this->to_string().c_str());
-	//先把自己转换为doc
-	return doc.xpath(exp,true);
-}
+	Expression::Expression(const std::string &exp){
+		expr = xmlXPathCompile(BAD_CAST(exp.c_str()));
+		if(expr == nullptr){
+			//失败
+			throw Error(xmlGetLastError());
+		}
+	}
+	Expression::Expression(_xmlXPathCompExpr *ex)
+		:expr(ex){
+
+	}
+	//转移
+	Expression::Expression(Expression &&expr){
+		this->expr = expr.expr;
+		expr.expr = nullptr;
+	}
+	Expression::~Expression(){
+		if(expr != nullptr){
+			xmlXPathFreeCompExpr(expr);
+		}
+	}
+} // namespace LXml::XPath
+};
+};
