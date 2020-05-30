@@ -2,8 +2,8 @@
 #define _BOXNET_FACTORY_HPP_
 //工厂
 #include <functional>
-#include "net_easy.hpp"
-#include "net_headers.hpp"
+#include "easy.hpp"
+#include "headers.hpp"
 namespace Box{
 	namespace Net{
 		class EasyPackage{

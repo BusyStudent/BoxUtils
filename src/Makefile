@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-g -fPIC -Wall -Wextra
-CXX=g++
+CXX=g++ -std=c++17
 CXXFLAGS=-g -fPIC -Wall -Wextra
 INCLUDE=../include/Box/
 OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net_easy.o net_factory.o net_headers.o net_exception.o\
@@ -26,15 +26,15 @@ cJSON_Utils.o:cJSON_Utils.c cJSON_Utils.h
 	$(CC) $(CFLAGS) cJSON_Utils.c -c
 #依赖的cJSON
 net.o:net.cpp $(INCLUDE)net.hpp
-net_headers.o:net_headers.cpp $(INCLUDE)net_headers.hpp
+net_headers.o:net_headers.cpp $(INCLUDE)net/headers.hpp
 #net_callback.o:net_callback.cpp net.hpp
 #net_response.o:net_response.cpp net.hpp
-net_factory.o:net_factory.cpp $(INCLUDE)net_factory.hpp
-net_exception.o:net_exception.cpp $(INCLUDE)net_exception.hpp
-net_easy.o:net_easy.cpp $(INCLUDE)net_easy.hpp
-net_multi.o:net_multi.cpp $(INCLUDE)net_multi.hpp
-net_share.o:net_share.cpp $(INCLUDE)net_share.hpp
-net_session.o:net_session.cpp $(INCLUDE)net_session.hpp
+net_factory.o:net_factory.cpp $(INCLUDE)net/factory.hpp
+net_exception.o:net_exception.cpp $(INCLUDE)net/exception.hpp
+net_easy.o:net_easy.cpp $(INCLUDE)net/easy.hpp
+net_multi.o:net_multi.cpp $(INCLUDE)net/multi.hpp
+net_share.o:net_share.cpp $(INCLUDE)net/share.hpp
+net_session.o:net_session.cpp $(INCLUDE)net/session.hpp
 #异常
 excepton.o:exception.cpp $(INCLUDE)exception.hpp
 iconv.o:iconv.cpp $(INCLUDE)iconv.hpp

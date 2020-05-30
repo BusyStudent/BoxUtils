@@ -11,7 +11,7 @@
 #ifndef BOX_NBACKTRACE
 //打印BackTrace
 #define SHOW_BACKTRACE() \
-	Box::PrintBackTrace()
+	Box::Backtrace::Show()
 #else
 #define SHOW_BACKTRACE()
 #endif

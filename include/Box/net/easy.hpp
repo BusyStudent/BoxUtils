@@ -1,6 +1,7 @@
 #ifndef _BOXNET_EASY_HPP_
 #define _BOXNET_EASY_HPP_
 #include <string>
+#include <iosfwd>
 #include <cstddef>
 struct curl_mime_s;
 struct curl_mimepart_s;
@@ -36,6 +37,7 @@ namespace Box{
 				void set_useragent(const char *str);//设置User-Agent
 				void set_referer(const char *str);//设置Referer
 				void set_ostream(std::string &str);//设置输出内容的字符流
+				void set_ostream(std::ostream &stream);//设置标准库的输出流
 				void set_ostream(FILE *f);//设置输出内容的字符流
 				void set_oheaders(Headers &headers);//设置输出的头
 				void set_post(const void *data,long size,bool copy = true);

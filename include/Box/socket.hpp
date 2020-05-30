@@ -87,8 +87,10 @@ namespace Box{
 				void listen(int backlog);//监听
 				void bind(const AddrV6 &addr);//绑定IPV6地址
 				void bind(const AddrV4 &addr);//绑定IPV4地址
+				void bind(const void *addr,size_t addrsize);//操作系统绑定API
 				void connect(const AddrV4 &addr);//连接
 				void connect(const AddrV6 &addr);//连接IPV6
+				void connect(const void *addr,size_t addrsize);//连接API
 				//操作系统直接的API 不经过标准缓冲区
 				//OS API
 				ssize_t send(const void *buf,size_t buflen,int flags = 0) noexcept;//发送
@@ -105,10 +107,29 @@ namespace Box{
 				
 				AddrV4 get_addrv4_name() const;//返回Socket IPV4的地址 
 				AddrV6 get_addrv6_name() const;//返回Socket IPV6的地址 
+				
+				void get_name(void *addr,size_t addrsize) const;//得到地址通过大小
+				template<typename T>
+				inline T get_name() const{
+					T addr;
+					get_name(&addr,sizoef(addr));
+					return addr;	
+				}
+
 				void get_name(AddrV4 &addr) const;//得到Socket IPV4的名字 相应的地址
 				void get_name(AddrV6 &addr) const;//得到Socket IPV6的名字 相应的地址
+
+				//得到与他连接的地址
+				template<typename T>
+				inline T get_peer_name() const{
+					T addr;
+					get_peer_name(&addr,sizof(addr));
+					return addr;
+				}
+
 				void get_peer_name(AddrV4 &addr) const;//得到与他相连的名字 IPV4
 				void get_peer_name(AddrV6 &addr) const;//得到与他相连的名字 IPV6
+				void get_peer_name(void *addr,size_t addrsize) const;//得到连接的地址名字
 				NativeSocket get_fd() const;//得到文件描述符号
 				NativeSocket detach_fd();//分离fd
 				//得到错误和select
@@ -116,7 +137,7 @@ namespace Box{
 				static int GetErrorCode();//得到错误代码
 				static const char *GetError();//得到错误
 				//创建一对互相连接的Socket
-				static void Pair(Socket **s1,Socket **s2);
+				static void Pair(Socket *[2]);
 				//创建操作系统的Socket 
 				static NativeSocket Create(int domain,int type,int protocol = 0);
 			protected:

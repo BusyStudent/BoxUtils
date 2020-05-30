@@ -6,99 +6,69 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <vector>
+#include <functional>
+#include <string_view>
 #include "xml.hpp"
 #include "sax.hpp"
-using namespace Box;
-//SAX解析器的实现
-SAX::Handler::Handler(){
-	//初始化一个handler
-	handler = (xmlSAXHandlerPtr)malloc(sizeof(xmlSAXHandler));//初始化一个Handler
-	memset(handler,0,sizeof(xmlSAXHandler));//清空
-	handler->initialized = XML_SAX2_MAGIC;
-	
-	handler->startElement = [](void *ctxt,const xmlChar *name,const xmlChar **attrs) -> void{
-		//开始的元素时候调用
-		Handler *handler = (Handler*)ctxt;
-		return handler->start_elem((const char*)name,(const char**)attrs);
+namespace Box{
+namespace LXml{
+	//SAXHandler
+	struct Functions{
+		//所有回调的集合
+		SAXHandler::StartElemFunc start_elem;
+		inline static Functions &From(SAXHandler &sax){
+			return *static_cast<Functions*>(sax.get_handler()->_private);
+		};
 	};
-	handler->endElement = [](void *ctxt,const xmlChar *name){
-		//在元素结束时候调用
-		Handler *handler = (Handler*)ctxt;
-		handler->end_elem((const char*)name);
-	};
-}
-SAX::Handler::~Handler(){
-	//释放掉
-	free(handler);
-}
-//默认的callback
-void SAX::Handler::start_elem(const char *,const char **){
-	
-}
-void SAX::Handler::end_elem(const char *){
-	
-}
-void SAX::Handler::error(){
-	
-}
-//字符串函数
-int SAX::Handler::strcmp(const char *s1,const char *s2) noexcept{
-	return xmlStrcmp(BAD_CAST s1,BAD_CAST s2);
-}
-//XMLParser
-SAX::XMLParser::XMLParser(Handler &handler){
-	ctxt = xmlCreatePushParserCtxt(handler.handler,&handler,nullptr,0,nullptr);
-}
-SAX::XMLParser::~XMLParser(){
-	xmlFreeParserCtxt(ctxt);
-}
-//解析字符串
-void SAX::XMLParser::parse_string(const char *str){
-	this->parse_chunk(str,strlen(str) * sizeof(char));
-}
-//解析块
-void SAX::XMLParser::parse_chunk(const void *chunk,int size){
-	if(xmlParseChunk(ctxt,(const char*)chunk,size,0) != 0){
-		//失败
-		throw std::runtime_error(xmlCtxtGetLastError(ctxt)->message);
+	SAXHandler::SAXHandler(){
+		//初始化一个Handler
+		handler = new xmlSAXHandler;
+		//清空
+		memset(handler,0,sizeof(xmlSAXHandler));
+		handler->initialized = XML_SAX2_MAGIC;//初始化
+		handler->_private = new Functions();
 	}
-}
-void SAX::XMLParser::done(){
-	//结束解析
-	if(xmlParseChunk(ctxt,nullptr,0,1) != 0){
-		//失败
-		throw std::runtime_error(xmlCtxtGetLastError(ctxt)->message);
+	//删除
+	SAXHandler::~SAXHandler(){
+		delete static_cast<Functions*>(handler->_private);
+		delete handler;
 	}
-}
-void SAX::XMLParser::reset() noexcept{
-	xmlCtxtReset(ctxt);
-}
-//HTMLParser
-SAX::HTMLParser::HTMLParser(Handler &handler){
-	//创建handler 默认编码UTF8
-	ctxt = htmlCreatePushParserCtxt(handler.handler,&handler,nullptr,0,nullptr,XML_CHAR_ENCODING_UTF8);
-}
-SAX::HTMLParser::~HTMLParser(){
-	htmlFreeParserCtxt(ctxt);
-}
-//解析字符串
-void SAX::HTMLParser::parse_string(const char *str){
-	this->parse_chunk(str,strlen(str) * sizeof(char));
-}
-//解析块
-void SAX::HTMLParser::parse_chunk(const void *chunk,int size){
-	if(htmlParseChunk(ctxt,(const char*)chunk,size,0) != 0){
-		//失败
-		throw std::runtime_error(xmlCtxtGetLastError(ctxt)->message);
+	//移动
+	SAXHandler::SAXHandler(SAXHandler &&sax){
+		handler = sax.handler;
+		sax.handler = nullptr;
 	}
-}
-void SAX::HTMLParser::done(){
-	//结束解析
-	if(htmlParseChunk(ctxt,nullptr,0,1) != 0){
-		//失败
-		throw std::runtime_error(xmlCtxtGetLastError(ctxt)->message);
+	void SAXHandler::start_elem(StartElemFunc fn){
+		//在开始的节点
+		handler->startElement = [](void *ctxt,const xmlChar *name,const xmlChar **attrs) -> void{
+			//中间函数
+			SAXHandler *handler = static_cast<SAXHandler *>(ctxt);
+			//得到handler
+			handler->attrs.clear();//清空属性
+			if(attrs != nullptr){
+				for(int i = 0;attrs[i] != nullptr; i ++){
+					//加入属性
+					handler->attrs.push_back((const char*)attrs[i]);
+				}
+			}
+			Functions::From(*handler).start_elem((const char*)name,handler->attrs);
+		};
+		Functions::From(*this).start_elem = std::move(fn);
 	}
-}
-void SAX::HTMLParser::reset() noexcept{
-	htmlCtxtReset(ctxt);
-}
+};
+};
+namespace Box{
+namespace LXml{
+	//XmlParser
+	XmlParser::Parser(SAXHandler &handler){
+		ctxt = xmlCreatePushParserCtxt(handler.handler,&handler,nullptr,0,nullptr);
+		//创建一个推的解析器
+	}
+	XmlParser::~Parser(){
+		if(ctxt != nullptr){
+			xmlFreeParserCtxt(ctxt);
+		}
+	}
+};
+};

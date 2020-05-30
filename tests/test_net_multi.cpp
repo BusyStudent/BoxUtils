@@ -1,7 +1,7 @@
 //NET Multi测试
-#include <Box/net_multi.hpp>
-#include <Box/net_share.hpp>
-#include <Box/net_easy.hpp>
+#include <Box/net/multi.hpp>
+#include <Box/net/share.hpp>
+#include <Box/net/easy.hpp>
 #include <Box/net.hpp>
 #include <cstdio>
 using namespace Box::Net;

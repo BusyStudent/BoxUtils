@@ -40,6 +40,18 @@ namespace{
 			throw_os_error();
 		}
 	};
+	//原始的绑定API
+	inline void os_bind(NativeSocket fd,const void *addr,size_t addrsize){
+		if(bind(fd,static_cast<const sockaddr*>(addr),addrsize)!= 0){
+			throw_os_error();
+		}
+	};
+	//原始的连接API
+	inline void os_connect(NativeSocket fd,const void *addr,size_t addrsize){
+		if(connect(fd,static_cast<const sockaddr*>(addr),addrsize) != 0){
+			throw_os_error();
+		}
+	};
 	inline void sock_bind(NativeSocket fd,const AddrV6 &addr){
 		//IPV6版本绑定
 		if(bind(fd,(const sockaddr*)&addr,sizeof(sockaddr_in6)) != 0){
@@ -248,6 +260,10 @@ void Socket::bind(const AddrV4 &addr){
 void Socket::bind(const AddrV6 &addr){
 	::sock_bind(fd,addr);
 }
+//OS
+void Socket::bind(const void *addr,size_t addrsize){
+	::os_bind(fd,addr,addrsize);
+}
 //听
 void Socket::listen(int backlog){
 	::sock_listen(fd,backlog);
@@ -259,6 +275,10 @@ void Socket::connect(const AddrV4 &addr){
 //IPV6的连接
 void Socket::connect(const AddrV6 &addr){
 	::sock_connect(fd,addr);
+}
+//原始连接
+void Socket::connect(const void *addr,size_t addrsize){
+	::os_connect(fd,addr,addrsize);
 }
 //得到Socketd的地址
 AddrV4 Socket::get_addrv4_name()const{
@@ -299,6 +319,20 @@ void Socket::get_name(AddrV6 &addr)const{
 		::throw_os_error();
 	}
 }
+//通过地址大小的到
+void Socket::get_name(void *addr,size_t addrsize) const{
+	#ifdef _WIN32
+	int len = static_cast<int>(addrsize);
+	auto code = getsockname(fd,(sockaddr*)&addr,&len);
+	#else
+	socklen_t len = static_cast<socklen_t>(addrsize);
+	auto code = getsockname(fd,static_cast<sockaddr*>(addr),&len);
+	#endif
+	if(code != 0){
+		//失败
+		::throw_os_error();
+	}
+}
 //得到与他相连的Socket名字
 void Socket::get_peer_name(AddrV4 &addr)const{
 	#ifdef _WIN32
@@ -321,6 +355,20 @@ void Socket::get_peer_name(AddrV6 &addr)const{
 	#else
 	socklen_t len = sizeof(sockaddr_in6);
 	auto code = getpeername(fd,(sockaddr*)&addr,&len);
+	#endif
+	if(code != 0){
+		//失败
+		::throw_os_error();
+	}
+}
+//原始的接口
+void Socket::get_peer_name(void *addr,size_t addrsize) const{
+	#ifdef _WIN32
+	int len = static_cast<int>(addrsize);
+	auto code = getpeername(fd,static_cast<sockaddr*>(addr),&len);
+	#else
+	socklen_t len = static_cast<socklen_t>(addrsize);
+	auto code = getpeername(fd,static_cast<sockaddr*>(addr),&len);
 	#endif
 	if(code != 0){
 		//失败
@@ -582,9 +630,11 @@ const char *Socket::GetError(){
 }
 
 //一对TCPSocket
-void Socket::Pair(Socket **t1,Socket **t2){
+void Socket::Pair(Socket *socks[2] ){
 	#ifdef _WIN32
 	//Window是自己的实现
+	Socket *&t1 = socks[0];
+	Socket *&t2 = socks[1];
 	try{
 		TCP tcp(SockFamily::IPV4);
 		*t2 = new TCP(SockFamily::IPV4);//初始化第二个Socket
@@ -612,8 +662,8 @@ void Socket::Pair(Socket **t1,Socket **t2){
 		//失败
 		::throw_os_error();
 	}
-	*t1 = new Socket(fds[0]);
-	*t2 = new Socket(fds[1]);
+	socks[0] = new Socket(fds[0]);
+	socks[1] = new Socket(fds[1]);
 	//创建Socket
 	#endif
 }

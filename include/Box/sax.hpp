@@ -1,53 +1,61 @@
 #ifndef _BOX_SAX_HPP_
 #define _BOX_SAX_HPP_
 //SAX解析器
-#include <cstddef>
-#include <cstdarg>
+#include <vector>
+#include <functional>
+#include <string_view>
 struct _xmlParserCtxt;
 struct _xmlSAXHandler;
+static_assert(__cplusplus > 2017L,"这个头文件需要C++17支持");
 namespace Box{
-	namespace SAX{
-		class Handler{
-			//回调控制器
+	namespace LXml{
+		class Html;
+		class Xml;
+		template<typename T>
+		class Parser;
+		class SAXHandler{
+			//SAX解析器
 			public:
-				Handler();
-				Handler(const Handler &) = delete;
-				~Handler();
-				virtual void start_elem(const char *name,const char **attrs);//开始的时候调用
-				virtual void end_elem(const char *name);//元素结束时候调用
-				virtual void error();//遇到错误的时候调用
-				//XML的字符串函数
-				static int strcmp(const char *s1,const char *s2) noexcept;
+				//回调的定义
+				typedef std::vector<std::string_view> AttrList;
+				typedef std::function<void(const std::string_view &,const AttrList&)> StartElemFunc;
+			public:
+				SAXHandler();
+				SAXHandler(const SAXHandler &) = delete;
+				SAXHandler(SAXHandler &&);
+				~SAXHandler();
+				void start_elem(StartElemFunc func);
+				
+				inline _xmlSAXHandler *get_handler(){
+					//得到内部句柄
+					return handler;
+				};
 			private:
 				_xmlSAXHandler *handler;
-			friend class XMLParser;
-			friend class HTMLParser;
+				AttrList attrs;//属性的地方
+				
+			friend class Parser<Xml>;
+			friend class Parser<Html>;
 		};
-		class XMLParser{
+		//XmlParser
+		template<>
+		class Parser<Xml>{
+			//Xml解析器
 			public:
-				XMLParser(Handler &hander);
-				XMLParser(const XMLParser &) = delete;
-				~XMLParser();
-				void parse_string(const char *str);//解析字符串
-				void parse_chunk(const void *chunk,int size);//解析块
-				void done();//解析完成
-				void reset() noexcept;//重置
+				Parser(SAXHandler &);
+				Parser(const Parser &) = delete;
+				Parser(Parser &&);
+				~Parser();
 			private:
 				_xmlParserCtxt *ctxt;
 		};
-		class HTMLParser{
-			//HTML解析器
-			public:
-				HTMLParser(Handler &handler);
-				HTMLParser(const HTMLParser &) = delete;
-				~HTMLParser();
-				void parse_string(const char *str);//解析字符串
-				void parse_chunk(const void *chunk,int size);//解析块
-				void done();//解析完成
-				void reset() noexcept;//重置
-			private:
-				_xmlParserCtxt *ctxt;
+		//HtmlParser
+		template<>
+		class Parser<Html>{
+
 		};
-	}
+		typedef Parser<Xml> XmlParser;
+		typedef Parser<Html> HtmlParser;
+	};
 }
 #endif

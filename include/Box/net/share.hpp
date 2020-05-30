@@ -32,8 +32,9 @@ namespace Box{
 				void remove_handle(EasyPackage &pak);//移除包
 				void remove_handle(EasyPackage *pak);//移除包指针
 			private:
+				struct Mutexs;//内部锁集合
 				void *handle;
-				void *_mutex;//狐池锁的结构体指针
+				Mutexs *mutexs;//狐池锁的结构体指针
 		};
 	};
 };

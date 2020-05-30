@@ -1,8 +1,9 @@
 #ifndef _BOXNET_HPP_
 #define _BOXNET_HPP_
 #include <string>
-#include "net_easy.hpp"
-#include "net_headers.hpp"
+#include "net/easy.hpp"
+#include "net/factory.hpp"
+#include "net/headers.hpp"
 struct curl_slist;
 namespace Box{
 	namespace Net{

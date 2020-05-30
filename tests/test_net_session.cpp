@@ -1,4 +1,4 @@
-#include <Box/net_session.hpp>
+#include <Box/net/session.hpp>
 #include <Box/net.hpp>
 int main(){
     std::string s;

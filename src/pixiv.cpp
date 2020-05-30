@@ -2,9 +2,9 @@
 #include <cstdlib>
 #include <string>
 #include <algorithm>
-#include "net_easy.hpp"
-#include "net_factory.hpp"
-#include "net_share.hpp"
+#include "net/easy.hpp"
+#include "net/factory.hpp"
+#include "net/share.hpp"
 #include "exception.hpp"
 #include "string.hpp"
 #include "pixiv.hpp"
