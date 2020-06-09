@@ -2,6 +2,7 @@
 #include <cstring>
 #include <string>
 #include <fstream>
+#include <ostream>
 #include <utility>
 
 #include "cJSON.h"
@@ -581,6 +582,13 @@ Json Json::pop(const char *key,bool case_sensitive){
 	return Json(cjson);
 }
 //特殊操作
+//输出到流
+std::ostream& operator <<(std::ostream &stream,const Json &json){
+	char *ch = json.to_cstring();
+	stream << ch;
+	Json::Free(ch);
+	return stream;
+}
 Json *Json::clone() const{
 	//克隆自己
 	return new Json(cJSON_Duplicate((*holder),true));

@@ -1,92 +1,135 @@
-#ifdef _WIN32
-	#include <windows.h>
-#else
-	//Linux的信号量
-	#include <semaphore.h>
-	//#include <sys/sem.h>
-#endif
 #include <cstring>
 #include <cstdio>
 #include <cerrno>
+#include <mutex>
+#include <atomic>
+#include <utility>
+#include <chrono>
 #include "exception.hpp"
 #include "sem.hpp"
-using namespace Box::Sync;
-Sem::Sem(unsigned int value){
-	
-	if(sem_init(&sem,0,value) !=0 ){
-		//失败了
-		Box::Panic("sem_init() => %s",strerror(errno));
+namespace Box{
+namespace Sync{
+	//事件实现
+	Event::Event()
+		:val_isset(false){
+		//初始化没被设置
 	}
-}
-Sem::~Sem(){
-	//信号量销毁
-	 sem_destroy(&sem);
-}
-void Sem::wait(){
-	sem_wait(&sem);
-}
-void Sem::post(){
-	sem_post(&sem);
-}
-bool Sem::try_wait(){
-	if(sem_trywait(&sem) ==0){
+	Event::~Event(){
+
+	}
+	bool Event::is_set() const noexcept{
+		std::lock_guard<std::mutex> val_locker(val_mutex);
+		return val_isset;
+	}
+	void Event::set() noexcept{
+		std::lock_guard<std::mutex> val_locker(val_mutex);
+		if(val_isset){
+			//如果已经被设置了
+			return;
+		}
+		//设置一下
+		val_isset = true;
+		cond_var.notify_all();//唤醒所有
+	}
+	void Event::wait() noexcept{
+		val_mutex.lock();
+		if(val_isset){
+			val_mutex.unlock();
+			return;
+		}
+		else{
+			val_mutex.unlock();
+		}
+		std::mutex mtx;
+		std::unique_lock<std::mutex> locker(mtx);
+		cond_var.wait(locker);
+		//锁定
+	}
+	bool Event::wait(const std::chrono::microseconds &ms) noexcept{
+		//超时等待
+		val_mutex.lock();
+		if(val_isset){
+			//没有锁定
+			val_mutex.unlock();
+			return true;
+		}
+		else{
+			val_mutex.unlock();
+		}
+		//得到状态
+		std::mutex mtx;
+		std::unique_lock<std::mutex> locker(mtx);
+		//要被锁定
+		return cond_var.wait_for(locker,ms) == std::cv_status::no_timeout;
+	}
+	void Event::clear() noexcept{
+		std::lock_guard<std::mutex> val_locker(val_mutex);
+		val_isset = false;
+	}
+	//信号量
+	Semaphore::Semaphore(unsigned int value)
+		:sem_value(value){
+		//初始化
+	}
+	Semaphore::~Semaphore(){
+
+	}
+	unsigned int Semaphore::value() const noexcept{
+		std::lock_guard<std::mutex> locker(val_mutex);
+		return sem_value;
+	}
+	//加一个数值
+	void Semaphore::post() noexcept{
+		//锁住所有
+		std::lock_guard<std::mutex> locker(val_mutex);
+		if(sem_value == 0){
+			sem_value ++ ;//增加数字
+			cond_var.notify_all();//唤醒所有
+		}
+		else{
+			sem_value ++ ;
+		}
+	}
+	void Semaphore::wait() noexcept{
+		val_mutex.lock();
+		if(sem_value == 0){
+			//如果为0
+			val_mutex.unlock();
+			std::mutex mtx;
+			std::unique_lock<std::mutex> locker(mtx);
+			cond_var.wait(locker);
+			//等待一下
+		}
+		//减去数值
+		sem_value --;
+		val_mutex.unlock();
+	}
+	bool Semaphore::trywait() noexcept{
+		//尝试等待
+		std::lock_guard<std::mutex> locker(val_mutex);
+		if(sem_value == 0){
+			//失败
+			return false;
+		}
+		sem_value --;
 		return true;
 	}
-	else{
-		return false;
+	bool Semaphore::trywait(const std::chrono::microseconds &ms) noexcept{
+		//尝试等待ms
+		val_mutex.lock();
+		if(sem_value == 0){
+			val_mutex.unlock();
+			std::mutex mtx;
+			std::unique_lock<std::mutex> locker(mtx);
+			if(cond_var.wait_for(locker,ms) == std::cv_status::timeout){
+				//超时
+				return false;
+			};
+			//尝试等待
+		}
+		sem_value --;
+		val_mutex.unlock();
+		return true;
 	}
 }
-int Sem::get_value(){
-	int val;
-	sem_getvalue(&sem,&val);
-	return val;
-}
-//锁
-Mutex::Mutex():Sem(1){
-	//锁初始化值为1
-}
-void Mutex::lock(){
-	//减去信号1
-	this->wait();
-}
-void Mutex::unlock(){
-	//加上1
-	this->post();
-}
-//事件
-Event::Event():Sem(0){
-	//默认是0
-}
-void Event::set(){
-	mutex.lock();
-	_is_set = true;//已经被设置了
-	for (int i = 0; i < sleepers; i++){
-		Sem::post();
-	}
-	sleepers = 0;
-	mutex.unlock();
-}
-void Event::wait(){
-	mutex.lock();
-	bool status = _is_set;
-	//获得状态
-	if(status == true){
-		mutex.unlock();
-		return;
-	}
-	//已经被设置了
-	else{
-		sleepers++;
-		mutex.unlock();//释放锁
-		Sem::wait();
-	}
-}
-void Event::clear(){
-	//清除状态
-	mutex.lock();
-	_is_set = false;//没有被设置
-	mutex.unlock();
-}
-bool Event::is_set(){
-	return _is_set;
 }

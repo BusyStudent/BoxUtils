@@ -2,6 +2,7 @@
 #define _BOX_JSON_HPP_
 #include <cstddef>
 #include <string>
+#include <iosfwd>
 #include <initializer_list>
 #include "refptr.hpp"
 struct cJSON;//替代了#include "cJSON.h"
@@ -171,6 +172,7 @@ namespace Box{
 			//cJSON的malloc和free
 			static void *Malloc(size_t size);
 			static void  Free(void *ptr);
+			friend std::ostream& operator <<(std::ostream&,const Json&);
 		private:
 			RefPtr<JsonHolder> holder;//包裹Json的实现
 		friend class JsonIterator;

@@ -1,7 +1,7 @@
 #测试的一些目标
 CXX=g++
 CXXFLAGS=-g
-TARGET=test_buffer test_net_multi test_net_session test_assert test_json lxml
+TARGET=test_buffer test_net_multi test_net_session test_assert test_json lxml test_event test_timer
 DEP_LIB=../src/libbox_utils.so
 all:$(TARGET)
 test_buffer:test_buffer.cpp $(DEP_LIB)
@@ -16,5 +16,9 @@ test_json:test_json.cpp
 	$(CXX) $(CXXFLAGS) $(DEP_LIB) test_json.cpp -o ./test_json
 lxml:lxml.cpp
 	$(CXX) $(CXXFLAGS) $(DEP_LIB) lxml.cpp -o ./lxml
+test_event:test_event.cpp
+	$(CXX) $(CXXFLAGS) $(DEP_LIB) test_event.cpp -o ./test_event -pthread
+test_timer:test_timer.cpp
+	$(CXX) $(CXXFLAGS) $(DEP_LIB) test_timer.cpp -o ./test_timer -pthread
 clean:
 	-rm $(TARGET)

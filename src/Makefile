@@ -5,7 +5,7 @@ CXXFLAGS=-g -fPIC -Wall -Wextra
 INCLUDE=../include/Box/
 OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net_easy.o net_factory.o net_headers.o net_exception.o\
 	exception.o iconv.o sem.o base64.o socket.o string.o dns.o xv.o filesystem.o net_multi.o\
-	xml.o xpath.o sax.o time.o os.o backtrace.o net_share.o net_session.o\
+	xml.o xpath.o sax.o timer.o os.o backtrace.o net_share.o net_session.o\
 	coroutine.o scheduler.o dylib.o logger.o subprocess.o buffer.o ucontext.o stream.o\
 	assert.o pixiv.o
 LDFLAGS=-pthread -lcurl `xml2-config --libs`
@@ -48,7 +48,8 @@ xv.o:xv.cpp $(INCLUDE)xv.hpp socket.o
 string.o:string.cpp $(INCLUDE)string.hpp
 dns.o:dns.cpp $(INCLUDE)dns.hpp
 filesystem.o:filesystem.cpp $(INCLUDE)filesystem.hpp
-time.o:time.cpp $(INCLUDE)time.hpp
+#计时器
+timer.o:timer.cpp sem.o $(INCLUDE)timer.hpp
 xml.o:xml.cpp $(INCLUDE)xml.hpp
 	$(CXX) $(CXXFLAGS) $(XMLFLAGS) xml.cpp -c
 xpath.o:xpath.cpp $(INCLUDE)xpath.hpp $(INCLUDE)xml.hpp

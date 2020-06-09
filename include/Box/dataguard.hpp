@@ -18,7 +18,7 @@ namespace Box{
 					}
 				}
 			};
-			inline void done() noexcept{
+			inline void release() noexcept{
 				//取消守护
 				scoped = false;
 			};

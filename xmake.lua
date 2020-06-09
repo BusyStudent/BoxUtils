@@ -39,7 +39,7 @@ target("box_utils")
 	add_files("./src/filesystem.cpp")
 	add_files("./src/sem.cpp")
 	
-	add_files("./src/time.cpp")
+	add_files("./src/timer.cpp")
 	
 	add_files("./src/base64.cpp")
 	add_files("./src/json.cpp")

@@ -141,7 +141,7 @@ namespace Net{
 		}
 		while(true);
 	}
-	void Multi::for_msg(std::function <void(MultiMsg&)> fn){
+	void Multi::for_msg(const std::function <void(MultiMsg&)> &fn){
 		MultiMsg msg;
 		int msg_in_queue;
 		while(get_msg(msg,msg_in_queue)){
