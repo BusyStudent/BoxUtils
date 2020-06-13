@@ -1,24 +1,36 @@
 #ifndef _BOX_JSON_HPP_
 #define _BOX_JSON_HPP_
 #include <cstddef>
-#include <functional>
 #include <string>
+#include <iosfwd>
+#include <initializer_list>
+#include "refptr.hpp"
 struct cJSON;//替代了#include "cJSON.h"
 namespace Box{
+	struct JsonHolder{
+		//Json的内部实现
+		~JsonHolder();
+		inline operator cJSON*() const noexcept;
+		inline const cJSON *get() const noexcept;
+		inline cJSON *get() noexcept;
+		cJSON *cjson;//cJSON的数据
+		bool ref;//是否是引用
+	};
+	class JsonIterator;
 	class Json{
 		public:
 			//一些数据定义
-			class Iterator;
-			class TableIter;//真正的迭代器
-			class ArrayIter;
-			//这两个类提供了begin和end方法
-			class TableIteration;
-			class ArrayIteration;
+			typedef JsonIterator iterator;
+			typedef JsonIterator Iterator;
 		public:
 			//初始化是是否独立的
-			Json(cJSON *item,bool independence=true);
+			Json(cJSON *item,bool ref = false);//是否是引用
 			Json(Json &&json);//移动构造函数
 			Json(const Json &);
+			//从初始化列表构造
+			Json(const std::initializer_list<int>&);
+			Json(const std::initializer_list<double>&);
+			Json(const std::initializer_list<const char*>&);
 			~Json();
 			//打印等调试
 			void print() const;
@@ -79,13 +91,9 @@ namespace Box{
 			void set_string(const char *str);
 			void set_string(const std::string &str);
 			void set_bool(const bool &val);
-			ArrayIteration iter_array();//迭代数组
-			TableIteration iter_table();//迭代表
 			//迭代
-			Iterator begin();
-			Iterator end();
-			void for_array(std::function <void(Json&)>);//迭代数组
-			void for_table(std::function <void(const char*,Json&)>);//迭代表
+			iterator begin();
+			iterator end();
 			
 			Json operator [](const char*) const;//查找数据
 			Json operator [](int val) const;
@@ -138,10 +146,11 @@ namespace Box{
 			//一些操作
 			Json copy() const;//复制一个在堆上
 			Json *clone() const;//克隆一个Json
-			Json *move_toheap();//把数据转移到堆上
+			//Json *move_toheap();//把数据转移到堆上
 			//现在改成用std::move的
 			//构造Json的类型
 			static Json ParseString(const char *);
+			static Json ParseString(const std::string &str);
 			static Json CreateNull();
 			static Json CreateBool(bool boolen);
 			static Json CreateTrue();
@@ -163,72 +172,39 @@ namespace Box{
 			//cJSON的malloc和free
 			static void *Malloc(size_t size);
 			static void  Free(void *ptr);
+			friend std::ostream& operator <<(std::ostream&,const Json&);
 		private:
-			bool independence;//是否独立
-			cJSON *item;//对象
-			friend class Iterator;
-			friend class TableIteration;
-			friend class TableIter;
+			RefPtr<JsonHolder> holder;//包裹Json的实现
+		friend class JsonIterator;
+	};
+	//迭代器的实现
+	class JsonIterator{
 		public:
-			//迭代器的定义
-			class TableIteration{
-				public:
-					//通过json来迭代表
-					TableIteration(cJSON *item);
-					//访问开始和末尾
-					TableIter begin();
-					TableIter end();
-				private:
-					cJSON *item;//主要的json;
-			};
-			class ArrayIteration{
-				public:
-					ArrayIteration(cJSON *item);
-					ArrayIter begin();
-					ArrayIter end();
-				private:
-					cJSON *item;
-			};
-			class Iterator{
-				//基本的迭代器
-				public:
-					Iterator(cJSON *item);
-					Iterator(const Iterator &);
-					~Iterator();
-					inline Json &operator *(){
-						return *json;
-					};
-					inline Json *operator ->(){
-						return json;
-					};
-					inline Json &value(){
-						return *json;
-					};//得到值
-					inline bool operator !=(const Iterator &iter){
-						//判断不等于
-						return json->item != iter.json->item;
-					}
-					inline bool operator ==(const Iterator &iter){
-						//判断等于
-						return json->item == iter.json->item;
-					}
-					void operator ++();//去下一个
-					void operator --();//去前一个
-				protected:
-					//内部的实现结构
-					Json *json;//这个是不独立的Json
-			};
-			class TableIter:public Iterator{
-				public:
-					TableIter(cJSON *item);
-					std::string key();//得到键值
-					//如果键值为nullptr抛出NullPtrException
-			};
-			class ArrayIter:public Iterator{
-				//数组迭代器
-				public:
-					ArrayIter(cJSON *item);
-			};
+			JsonIterator(cJSON *cjson,cJSON *prev = nullptr);
+			~JsonIterator();
+			inline Json &operator *(){
+				return json;
+			}
+			inline Json *operator ->(){
+				return &json;
+			}
+			inline const Json &operator *() const{
+				return json;
+			}
+			inline const Json *operator ->() const{
+				return &json;
+			}
+			//一些解操作
+			//移动迭代器操作
+			void operator ++();
+			void operator ++(int);
+			void operator --();
+			void operator --(int);
+			bool operator == (const JsonIterator &);
+			bool operator != (const JsonIterator &);
+		private:
+			cJSON *prev;//前面一个
+			Json json;
 	};
 };
 #endif

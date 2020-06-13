@@ -177,7 +177,7 @@ RefPtr<SubProcess> SubProcess::Popen(const String::Vector &args,bool re_in,bool 
 }
 
 String::Vector SubProcess::Split(const std::string &val){
-	return String::Split(val.c_str()," ");
+	return StringHelper(val).split(" ");
 }
 //System
 int SubProcess::System(const String::Vector &args){

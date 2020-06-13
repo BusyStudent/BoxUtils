@@ -1,24 +1,12 @@
 #ifndef _BOX_CHANNAL_HPP_
 #define _BOX_CHANNAL_HPP_
 //多线程同步用的通道
-#include <cstddef>
-#include <string>
+#include <queue>
+#include <mutex>
+#include "sem.hpp"
 namespace Box{
 	namespace Sync{
 		//通道
-		namespace Impl{
-			//实现
-			//构建Socket对
-			void BuildPair(void **t,void **t2);
-			void Close(void *sock);
-			void Read(void *sock,void *dat,size_t size);
-			void Write(void *sock,const void *dat,size_t size);
-			void Flush(void *sock);
-			void ReadString(void *sock,std::string &s);//读入字符串
-			void WriteString(void *sock,const std::string &s);//写出字符串
-			void WaitForRead(void *sock);//等待直到可读
-			bool ReadAble(void *sock,int ms);//可读
-		};
 		template <class T>
 		class Port;//预先声明Port
 		template <class T>
@@ -83,12 +71,7 @@ namespace Box{
 			//端口
 			public:
 				typedef PortIter <T> iterator;//定义迭代器
-				inline Port <T>(void *sock){
-					this->sock = sock;
-				};
-				inline ~Port <T>(){
-					Impl::Close(sock);
-				};
+
 				inline void read(T &t){
 					operator >> (t);
 				};//读入
@@ -105,82 +88,55 @@ namespace Box{
 				};
 				inline void wait(){
 					//等待读入 有数据可读
-					Impl::WaitForRead(sock);
+					lock.lock();
+					if(qe.empty()){
+						lock.unlock();
+						event.wait();
+					}
+					else{
+						lock.unlock();
+					}
 				};
 				inline bool wait(int timeout_ms){
 					//等待读入 有超时版本
-					return Impl::ReadAble(sock,timeout_ms);
+					//return Impl::ReadAble(sock,timeout_ms);
 				};
-				inline bool try_read(T &t,int timeout_ms = 0);
-				inline void operator >>(T &t);
-				inline void operator <<(const T &t);
-				inline void flush();
+				bool try_read(T &t){
+					//尝试读入
+					return true;
+				};
+				void operator >>(T &t){
+
+				};
+				void operator <<(const T &t){
+
+				};
 			private:
-				void *sock;
+				Channal<T> &channal;
 		};
 		template <class T>
 		class Channal{
+			//通道的实现
 			public:
 				Channal<T>(const Channal &) = delete;
-				Channal<T>(){
-					//构建两个端口
-					void *socks[2];
-					Impl::BuildPair(&socks[0],&socks[1]);
-					_p1 = new Port<T>(socks[0]);
-					_p2 = new Port<T>(socks[1]);
-				};
-				~Channal<T>(){
-					//销毁两个
-					delete _p1;
-					delete _p2;
-				};
 				//得到两端口
 				inline Port <T> &front(){
-					return *_p1;
+					return _p1;
 				};
 				inline Port <T> &back(){
-					return *_p2;
+					return _p2;
 				};
 			private:
-				Port<T> *_p1;
-				Port<T> *_p2;
-		};
-		//通道字符串的实现
-		template <class T>
-		inline void Port<T>::flush(){
-			//刷新流
-			Impl::Flush(sock);
-		};
-		template <class T>
-		inline void Port<T>::operator >>(T & t){
-			//读入数据
-			Impl::Read(sock,&t,sizeof(t));
-		};
-		template <class T>
-		inline void Port<T>::operator <<(const T & t){
-			//写出
-			Impl::Write(sock,&t,sizeof(t));
-		};
-		//两个函数
-		//尝试读入
-		template <class T>
-		inline bool Port<T>::try_read(T &t,int timeout_ms){
-			if(Impl::ReadAble(sock,timeout_ms)){
-				Port<T>::operator >>(t);
-				return true;
-			}
-			return false;
-		};
-		//字符串的特殊读入
-		template <>
-		inline void Port<std::string>::operator >>(std::string &s){
-			s.clear();//先清空
-			Impl::ReadString(sock,s);
-		};
-		//字符串特殊的写入
-		template <>
-		inline void Port<std::string>::operator <<(const std::string &s){
-			Impl::WriteString(sock,s);
+				Port<T> _p1;
+				Port<T> _p2;
+				std::queue<T> p1_queue;
+				std::queue<T> p2_queue;
+				std::mutex p1_mutex;
+				std::mutex p2_mutex;
+				Event p1_event;
+				Event p2_event;
+				//两个mutex
+			friend class Port<T>;
 		};
 	};
 };

@@ -1,7 +1,9 @@
 //这个Buffer没写好
 #include <Box/buffer.hpp>
+#include <cstring>
 int main(){
-    Box::RingBuffer buf(5);
-    char t[] = "Hello World";
-    buf.write(t,sizeof(t));   
+    using Box::TBuffer;
+    TBuffer<char> buf(2);
+    buf.append("Hello World",strlen("Hello World"));
+    
 }

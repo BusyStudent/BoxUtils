@@ -45,7 +45,16 @@ namespace Box{
 				
 				void perform(int &running_handles);//正在运行的handle
 				bool get_msg(MultiMsg &msg,int &msg_in_queue);//得到信息
-				void for_msg(std::function <void(MultiMsg&)>);//遍历信息
+				template<class Fn>
+				void for_msg(const Fn &fn){
+					//遍历信息模板
+					MultiMsg msg;
+					int msg_in_queue;
+					while(get_msg(msg,msg_in_queue)){
+						fn(msg);
+					}
+				};
+				void for_msg(const std::function <void(MultiMsg&)> &);//遍历信息
 				//返回false表示没有信息了
 			private:
 				void *handle;

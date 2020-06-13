@@ -1,26 +1,51 @@
 #include <curl/curl.h>
+#include <utility>
+#include "libc/inet.h"
 #include "net.hpp"
-bool Box::Net::Init(bool init_all){
-	//初始化
-	long flags;
-	if(init_all){
-		flags = CURL_GLOBAL_ALL;
+namespace Box{
+	bool Net::Init(bool init_all){
+		//初始化
+		long flags;
+		if(init_all){
+			flags = CURL_GLOBAL_ALL;
+		}
+		else{
+			flags = CURL_GLOBAL_DEFAULT;
+		}
+		auto code = curl_global_init(flags);
+		//初始化socket
+		libc::socket_init();
+		if(code == CURLE_OK){
+			return true;
+		}
+		else{
+			return false;
+		}
 	}
-	else{
-		flags = CURL_GLOBAL_DEFAULT;
+	void Net::Quit(){
+		//退出
+		curl_global_cleanup();
+		//退出Socket
+		libc::socket_quit();
 	}
-	auto code = curl_global_init(flags);
-	if(code == CURLE_OK){
-		return true;
+	const char *Net::Version(){
+		return curl_version();
 	}
-	else{
-		return false;
+	//复制链表
+	curl_slist* Net::SListDup(curl_slist *slist){
+		curl_slist *new_list = nullptr;
+		while(slist != nullptr){
+			new_list = curl_slist_append(slist,slist->data);
+		}
+		return new_list;
 	}
-}
-void Box::Net::Quit(){
-	//退出
-	curl_global_cleanup();
-}
-const char *Box::Net::Version(){
-	return curl_version();
+	std::string Net::Get(const std::string &url){
+		//轻松的Get一下
+		Easy easy;
+		easy.set_url(url);
+		std::string content;
+		easy.set_ostream(content);
+		easy.perform();
+		return std::move(content);
+	}
 }

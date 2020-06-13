@@ -4,7 +4,7 @@ set_version("0.1")
 if is_plat("windows") then
 	-- Win32的储存库
 	cprint("${red}不是Linux平台 coroutine被禁用")
-	add_cxxflags("-lws2_32")
+	add_links("ws2_32")
 	--WinSocket
 	add_requires("xml2","curl",{optional = true})
 else
@@ -12,6 +12,8 @@ else
 end
 -- 库
 target("box_utils")
+	add_cxxflags("-std=c++17")
+	add_links("curl","xml2")
 	add_includedirs("./include")
 	add_includedirs("./include/Box")
 	--设置种类
@@ -38,7 +40,7 @@ target("box_utils")
 	add_files("./src/filesystem.cpp")
 	add_files("./src/sem.cpp")
 	
-	add_files("./src/time.cpp")
+	add_files("./src/timer.cpp")
 	
 	add_files("./src/base64.cpp")
 	add_files("./src/json.cpp")
@@ -50,10 +52,13 @@ target("box_utils")
 	add_files("./src/xpath.cpp")
 	add_files("./src/xml.cpp")
 	
-	add_files("./src/channal.cpp")
+	--add_files("./src/channal.cpp")
 	add_files("./src/backtrace.cpp")
 	add_files("./src/logger.cpp")
 	add_files("./src/buffer.cpp")
+	add_files("./src/assert.cpp")
+	add_files("./src/pixiv.cpp")
+	add_files("./src/ucontext.cpp")
 	if is_plat("linux") then
 		--Linux携程
 		add_files("./src/coroutine.cpp")
@@ -64,11 +69,13 @@ target("box_utils")
 	if not is_mode("debug") then
 		add_defines("NDEBUG")
 	end
+	--C组件
+	add_files("./src/libc/*.c")
 --测试
 target("test_buffer")
 	set_kind("binary")
 	add_files("./tests/test_buffer.cpp")
-	--add_deps("box_utils")
+	add_deps("box_utils")
 	add_includedirs("./src")
 	
 

@@ -32,6 +32,9 @@ namespace Box{
 	class NullPtrException:public std::exception{
 		//空指针错误
 		public:
+			NullPtrException();
+			NullPtrException(const NullPtrException &);
+			~NullPtrException();
 			const char *what() const throw();
 	};
 	class OSError:public std::exception{
@@ -55,6 +58,8 @@ namespace Box{
 	class JsonParseError:public Exception{
 		public:
 			JsonParseError(const char *msg);
+			JsonParseError(const JsonParseError&);
+			~JsonParseError();
 			const char *what() const throw();
 		private:
 			std::string msg;

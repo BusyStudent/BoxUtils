@@ -11,7 +11,7 @@
 #ifndef BOX_NBACKTRACE
 //打印BackTrace
 #define SHOW_BACKTRACE() \
-	Box::PrintBackTrace()
+	Box::Backtrace::Show()
 #else
 #define SHOW_BACKTRACE()
 #endif
@@ -50,6 +50,10 @@ namespace Box{
 		SHOW_BACKTRACE();
 		return "Got nullptr";
 	}
+	//构造和其他函数
+	NullPtrException::NullPtrException(){}
+	NullPtrException::NullPtrException(const NullPtrException&){}
+	NullPtrException::~NullPtrException(){}
 	//OSError
 	OSError::OSError(int code,const char *msg,const char *extra){
 		if(msg == nullptr){
@@ -108,6 +112,11 @@ namespace Box{
 	JsonParseError::JsonParseError(const char *msg){
 		this->msg = msg;
 	}
+	JsonParseError::JsonParseError(const JsonParseError &err)
+		:msg(err.msg){
+
+	}
+	JsonParseError::~JsonParseError(){}
 	const char *JsonParseError::what() const throw(){
 		return msg.c_str();
 	}

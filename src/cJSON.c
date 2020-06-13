@@ -67,12 +67,12 @@
 #undef false
 #endif
 #define false ((cJSON_bool)0)
-
+#include <threads.h>
 typedef struct {
     const unsigned char *json;
     size_t position;
 } error;
-static error global_error = { NULL, 0 };
+static _Thread_local error global_error = { NULL, 0 };
 
 CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)
 {
