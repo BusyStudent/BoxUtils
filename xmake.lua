@@ -12,6 +12,7 @@ else
 end
 -- 库
 target("box_utils")
+	add_cxxflags("-std=c++17")
 	add_links("curl","xml2")
 	add_includedirs("./include")
 	add_includedirs("./include/Box")
@@ -68,6 +69,8 @@ target("box_utils")
 	if not is_mode("debug") then
 		add_defines("NDEBUG")
 	end
+	--C组件
+	add_files("./src/libc/*.c")
 --测试
 target("test_buffer")
 	set_kind("binary")

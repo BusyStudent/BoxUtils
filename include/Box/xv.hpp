@@ -11,11 +11,15 @@ namespace Box{
 		struct Event{
 			//事件
 		};
+		struct ServiceImpl;
 		class Service{
+			//服务
 			public:
-				Service();
+				Service(unsigned int workers = 4);//有几个线程
 				~Service();
 				void loop();//运行
+			private:
+				ServiceImpl *service;
 			protected:
 
 		};

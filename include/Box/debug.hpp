@@ -25,6 +25,9 @@ namespace BoxDebug{
                 signal(SIGSEGV,[](int sig){
                     ReceiveSignal(sig,"SIGSEGV");
                 });
+                signal(SIGINT,[](int sig){
+                    ReceiveSignal(sig,"SIGINT");
+                });
             };
             ~Object(){
                 fprintf(stderr,"Program stop\n");

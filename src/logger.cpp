@@ -114,7 +114,7 @@ struct NetImpl:public LoggerImpl{
 	}
 	void vprintf(const char *fmt,va_list &varg){
 		//格式化输出
-		auto s = Box::String::Format(fmt,varg);
+		auto s = Box::StringHelper::format(fmt,varg);
 		socket->send(s.c_str(),s.length() * sizeof(char));
 	}
 	Box::Net::Socket *socket;

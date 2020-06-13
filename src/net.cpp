@@ -1,5 +1,6 @@
 #include <curl/curl.h>
 #include <utility>
+#include "libc/inet.h"
 #include "net.hpp"
 namespace Box{
 	bool Net::Init(bool init_all){
@@ -12,6 +13,8 @@ namespace Box{
 			flags = CURL_GLOBAL_DEFAULT;
 		}
 		auto code = curl_global_init(flags);
+		//初始化socket
+		libc::socket_init();
 		if(code == CURLE_OK){
 			return true;
 		}
@@ -22,6 +25,8 @@ namespace Box{
 	void Net::Quit(){
 		//退出
 		curl_global_cleanup();
+		//退出Socket
+		libc::socket_quit();
 	}
 	const char *Net::Version(){
 		return curl_version();

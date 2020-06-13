@@ -116,7 +116,11 @@ void ::TimerImpl::run(){
 			++ iter;
 		}
 		unlock_timers();
-		std::this_thread::sleep_for(sleep_ms);
+		event.clear();
+		if(event.wait(sleep_ms)){
+			//如果是被其他线程唤醒的话
+			event.clear();
+		}
 	}
 	BOX_DEBUG("Timer thread quited");
 }

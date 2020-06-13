@@ -1,7 +1,8 @@
 #测试的一些目标
 CXX=g++
 CXXFLAGS=-g
-TARGET=test_buffer test_net_multi test_net_session test_assert test_json lxml test_event test_timer
+TARGET=test_buffer test_net_multi test_net_session test_assert test_json lxml test_event test_timer libc_test
+TARGET+= thpool_test
 DEP_LIB=../src/libbox_utils.so
 all:$(TARGET)
 test_buffer:test_buffer.cpp $(DEP_LIB)
@@ -20,5 +21,9 @@ test_event:test_event.cpp
 	$(CXX) $(CXXFLAGS) $(DEP_LIB) test_event.cpp -o ./test_event -pthread
 test_timer:test_timer.cpp
 	$(CXX) $(CXXFLAGS) $(DEP_LIB) test_timer.cpp -o ./test_timer -pthread
+libc_test:libc_test.cpp
+	$(CXX) $(CXXFLAGS) $(DEP_LIB) libc_test.cpp -o ./libc_test
+thpool_test:thpool_test.cpp
+	$(CXX) $(CXXFLAGS) $(DEP_LIB) thpool_test.cpp -o ./thpool_test
 clean:
 	-rm $(TARGET)

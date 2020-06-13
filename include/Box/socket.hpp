@@ -19,8 +19,10 @@ namespace Box{
 		#else
 			typedef int NativeSocket;//本地的Socket
 		#endif
-		enum class ErrorCode{
+		enum class SockError{
+			//错误代码
 			AGAIN = EAGAIN,//再试一遍
+			WOULDBLOCK = EWOULDBLOCK,
 		};
 		struct AddrV4:public sockaddr_in{
 			//IPV4的地址
