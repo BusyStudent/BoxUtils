@@ -4,13 +4,17 @@ CXX=g++ -std=c++17
 CXXFLAGS=-g -fPIC -Wall -Wextra
 INCLUDE=../include/Box/
 OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net/easy.o net/factory.o net/headers.o net/exception.o\
-	exception.o iconv.o sem.o base64.o socket.o string.o dns.o xv.o filesystem.o net/multi.o\
+	exception.o iconv.o sem.o base64.o socket.o string.o dns.o filesystem.o net/multi.o\
 	xml.o xpath.o sax.o timer.o os.o backtrace.o net/share.o net/session.o\
 	coroutine.o scheduler.o dylib.o logger.o subprocess.o buffer.o ucontext.o stream.o\
 	assert.o pixiv.o threadpool.o
-LIBC_OBJ=libc/mem.o libc/inet.o
+LIBC_OBJ=libc/mem.o libc/inet.o libc/atexit.o libc/io.o
+LIBEVENT_OBJ=libevent/base.o
+
 OBJ+=$(LIBC_OBJ)
-LDFLAGS=-pthread -lcurl `xml2-config --libs`
+OBJ+=$(LIBEVENT_OBJ)
+
+LDFLAGS=-pthread -lcurl `xml2-config --libs` -levent
 XMLFLAGS=`xml2-config --cflags`
 #LIBXML的配置文件
 CXXFLAGS+=-I $(INCLUDE)
@@ -19,7 +23,7 @@ libbox_utils.so:$(OBJ)
 	$(CXX) $(LDFLAGS) $(OBJ) -shared -o libbox_utils.so
 random.o:random.cpp $(INCLUDE)random.hpp
 	$(CXX) $(CXXFLAGS) random.cpp -c
-os.o:os.cpp $(INCLUDE)os.hpp linux.cpp $(INCLUDE)linux.hpp
+os.o:os.cpp $(INCLUDE)os.hpp
 #操作系统的操作 目前只有Linux
 json.o:json.cpp $(INCLUDE)json.hpp cJSON.o exception.o
 #Json解析器和构建器
@@ -46,8 +50,6 @@ sem.o:sem.cpp $(INCLUDE)sem.hpp
 #信号量
 base64.o:base64.cpp $(INCLUDE)base64.hpp
 socket.o:socket.cpp $(INCLUDE)socket.hpp
-xv.o:xv.cpp $(INCLUDE)xv.hpp socket.o
-#简单封装服务器和客户端
 string.o:string.cpp $(INCLUDE)string.hpp
 dns.o:dns.cpp $(INCLUDE)dns.hpp
 filesystem.o:filesystem.cpp $(INCLUDE)filesystem.hpp
@@ -89,5 +91,9 @@ libc/mem.o:libc/mem.c $(INCLUDE)libc/mem.h
 	$(CC) $(CFLAGS) libc/mem.c -c -o ./libc/mem.o
 libc/inet.o:libc/inet.c $(INCLUDE)libc/inet.h
 	$(CC) $(CFLAGS) libc/inet.c -c -o ./libc/inet.o
+libc/atexit.o:libc/atexit.c $(INCLUDE)libc/atexit.h
+	$(CC) $(CFLAGS) libc/atexit.c -c -o ./libc/atexit.o
+libc/io.o:libc/io.c $(INCLUDE)libc/io.h
+	$(CC) $(CFLAGS) libc/io.c -c -o ./libc/io.o
 clean:
 	rm $(OBJ) libbox_utils.so

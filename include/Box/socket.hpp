@@ -7,6 +7,7 @@
 #else
 	#include <netinet/in.h> 
 #endif
+#include "libc/types.h"
 #include <ctime>
 #include <cstdio>
 #include <string>
@@ -79,6 +80,7 @@ namespace Box{
 		};
 		class Socket{
 			public:
+				using ssize_t = libc::ssize_t;//使用ssize_t
 				Socket(const Socket &) = delete;
 				Socket(Socket &&);
 				Socket(NativeSocket fd);
@@ -134,6 +136,10 @@ namespace Box{
 				void get_peer_name(void *addr,size_t addrsize) const;//得到连接的地址名字
 				NativeSocket get_fd() const;//得到文件描述符号
 				NativeSocket detach_fd();//分离fd
+				//转换为fd
+				explicit operator NativeSocket() const noexcept{
+					return fd;
+				}
 				//得到错误和select
 				static int Select(SockSet *r_set,SockSet *w_set,SockSet *e_set,const timeval *t = nullptr);
 				static int GetErrorCode();//得到错误代码

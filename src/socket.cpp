@@ -55,7 +55,7 @@ namespace{
 		socklen_t s = sizeof(sockaddr_in);
 		#endif
 		NativeSocket cfd = accept(fd,(sockaddr*)addr,&s);
-		if(not BOX_ISVAID_SOCKET(cfd)){
+		if(BOX_SOCKET_INVAID(cfd)){
 			//失败
 			SocketError::Throw(Socket::GetErrorCode());
 		}
@@ -119,7 +119,7 @@ Socket::~Socket(){
 }
 void Socket::close(){
 	//关掉
-	if(BOX_ISVAID_SOCKET(fd)){
+	if(not BOX_SOCKET_INVAID(fd)){
 		libc::closesocket(fd);
 	}
 }
@@ -322,7 +322,7 @@ ssize_t Socket::operator <<(const std::string & str){
 NativeSocket Socket::Create(int domain,int type,int prot){
 	NativeSocket sock = socket(domain,type,prot);
 	//创建一下
-	if(not BOX_ISVAID_SOCKET(sock)){
+	if(BOX_SOCKET_INVAID(sock)){
 		//失败
 		SocketError::Throw(Socket::GetErrorCode());
 	}
@@ -458,7 +458,7 @@ TCP::TCP(SockFamily family)
 //接受连接
 Socket *Socket::accept(AddrV4 *addr){
 	auto ret = ::sock_accept(fd,addr);
-	if(not BOX_ISVAID_SOCKET(ret)){
+	if(BOX_SOCKET_INVAID(ret)){
 		//不是有效的
 		return nullptr;
 	}

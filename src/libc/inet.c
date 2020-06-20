@@ -40,4 +40,27 @@ int Box_closesocket(Box_socket_t sock){
     return close(sock);
     #endif
 }
+//发送数据
+Box_ssize_t Box_send(Box_socket_t sock,const void *buf,size_t bufsize,int flags){
+    #ifdef _WIN32
+    return send(sock,(const char*)buf,bufsize,flags);
+    #else
+    return send(sock,buf,bufsize,flags);
+    #endif
+}
+Box_ssize_t Box_recv(Box_socket_t sock,void *buf,size_t bufsize,int flags){
+    #ifdef _WIN32
+    return recv(sock,(char*)buf,bufsize,flags);
+    #else
+    return recv(sock,buf,bufsize,flags);
+    #endif
+}
+//得到错误代码
+int Box_socket_errno(){
+    #ifdef _WIN32
+    return WSAGetLastError();
+    #else
+    return errno;
+    #endif
+}
 LIBC_END

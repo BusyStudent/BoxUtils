@@ -6,6 +6,7 @@
 #include <utility>
 #include <cstring>
 #include <cassert>
+#include <ostream>
 #include "xml.hpp"
 #include "xpath.hpp"
 #include "exception.hpp"
@@ -43,6 +44,7 @@ namespace LXml{
 	Error::Error(xmlErrorPtr ptr){
 		error = ptr;
 	}
+	Error::~Error(){}
 	const char *Error::what() const throw(){
 		//得到错误信息
 		if(error != nullptr){
@@ -176,6 +178,16 @@ namespace LXml{
 	}
 	void *Malloc(size_t byte){
 		return xmlMalloc(byte);
+	}
+	//输出到流
+	std::ostream &operator<<(std::ostream &ostr,const Xml &xml){
+		xmlChar *mem = nullptr;
+		int len;
+		xmlDocDumpFormatMemoryEnc(xml.holder->xml,&mem,&len,DefaultEncoding,1);
+		ostr.write(CastString(mem),len);
+		//到字符串
+		xmlFree(mem);
+		return ostr;
 	}
 	//常量
 	const char *DefaultVersion = "1.0";
@@ -316,6 +328,23 @@ namespace LXml{
 	bool Node::has_attr(const std::string &attr) const{
 		return has_attr(attr.c_str());
 	}
+	XPath::Object Node::xpath(const char *str){
+		Xml xml = Xml::ParseString(to_string());
+		//转换为xml
+		return xml.xpath(str);
+	}
+	XPath::Object Node::xpath(const std::string &str){
+		return xpath(str.c_str());
+	}
+	//输出到ostream
+	std::ostream &operator<<(std::ostream &ostr,const Node &node){
+		xmlBufferPtr buf = xmlBufferCreate();
+		//创建缓冲区
+		xmlNodeDump(buf,node.holder->node->doc,node.holder->node,1,1);
+		ostr.write((CastString(buf->content)),buf->use);
+		xmlBufferFree(buf);
+		return ostr;
+	}
 };
 };
 //Html
@@ -354,6 +383,14 @@ namespace LXml{
 		if(htmlDocDump(fstream,holder->xml) != 0){
 			throw Error(xmlGetLastError());
 		}
+	}
+	std::ostream &operator<<(std::ostream &ostr,const Html &html){
+		xmlChar *mem;
+		int size;
+		htmlDocDumpMemoryFormat(html.holder->xml,&mem,&size,1);
+		ostr.write(CastString(mem),size);
+		xmlFree(mem);
+		return ostr;
 	}
 };
 };

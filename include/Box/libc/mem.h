@@ -17,6 +17,8 @@ extern void *Box_memdup(const void *mem,size_t size,Box_allocator_t);//复制内
 extern void *Box_memdupfrom(const void *mem_begin,const void *mem_end,Box_allocator_t);
 //查找内存块 查找mem2 在mem1中
 extern void *Box_memmem(const void *mem1,size_t n1,const void *mem2,size_t n2);
+//随机填充一个内存块
+extern void *Box_memrand(void *mem,size_t n);
 //字符串函数
 extern char *Box_strdup(const char *str,Box_allocator_t);//复制字符串
 extern char *Box_strndup(const char *str,size_t n,Box_allocator_t);

@@ -2,6 +2,7 @@
 #ifndef _BOX_LIBC_INET_H_
 #define _BOX_LIBC_INET_H_
 #include <errno.h>
+#include "types.h"
 #ifdef _WIN32
 	#define fdopen _fdopen
 	//fdopen的宏
@@ -12,7 +13,7 @@
 	#include <process.h>
     typedef SOCKET Box_socket_t;
     typedef int Box_socklen_t;
-    #define BOX_ISVAID_SOCKET(S) ((S)!=INVALID_SOCKET)
+    #define BOX_SOCKET_INVAID(S) ((S)==INVALID_SOCKET)
     
     #if defined(_MSC_VER)
         typedef SSIZE_T ssize_t;
@@ -29,7 +30,7 @@
     typedef int Box_socket_t;
     //地址长度
     typedef socklen_t Box_socklen_t;
-    #define BOX_ISVAID_SOCKET(S) ((S) >= 0)
+    #define BOX_SOCKET_INVAID(S) ((S) <= 0)
 #endif
 
 #ifdef __cplusplus
@@ -40,13 +41,18 @@ extern "C"{
 extern int  Box_socket_init();//初始化
 extern void Box_socket_quit();//关闭
 extern int  Box_closesocket(Box_socket_t sock);//关闭Socket
+//Socket错误代码
+extern int  Box_socket_errno();
+extern int  Box_socket_strerror(int);//格式化错误
+extern Box_ssize_t Box_send(Box_socket_t sock,const void *buf,size_t bufsize,int flags);
+extern Box_ssize_t Box_recv(Box_socket_t sock,void *buf,size_t bufsize,int flags);
 #ifdef __cplusplus
 }
 namespace Box{
     namespace libc{
         //不同平台的定义
-        typedef Box_socket_t  socket_t;
-        typedef Box_socklen_t socklen_t;
+        using socket_t =  ::Box_socket_t;
+        using socklen_t = ::Box_socklen_t;
         //C函数别名
         inline int closesocket(socket_t sock){
             return Box_closesocket(sock);
@@ -59,19 +65,11 @@ namespace Box{
         }
         //发送数据
         inline ssize_t send(socket_t sock,const void *buf,size_t buflen,int flags) noexcept{
-            #ifdef _WIN32
-            return ::send(sock,static_cast<const char*>(buf),buflen,flags);
-            #else
-            return ::send(sock,buf,buflen,flags);
-            #endif
+            return Box_send(sock,buf,buflen,flags);
         }
         //接收取出数据
         inline ssize_t recv(socket_t sock,void *buf,size_t buflen,int flags) noexcept{
-            #ifdef _WIN32
-            return ::recv(sock,static_cast<char*>(buf),buflen,flags);
-            #else
-            return ::recv(sock,buf,buflen,flags);
-            #endif
+            return Box_recv(sock,buf,buflen,flags);
         }
         //发送到指定位置
         inline ssize_t sendto(socket_t sock,const void *buf,size_t buflen,

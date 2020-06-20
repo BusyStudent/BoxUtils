@@ -14,6 +14,7 @@
 #else
 	#include <unistd.h>
 #endif
+#include "libc/atexit.h"
 using namespace Box;
 namespace Box{
 	void Time::USleep(int us){
@@ -129,6 +130,8 @@ namespace Box{
 		//初始化线程
 		if(timer_impl == nullptr){
 			timer_impl = new ::TimerImpl();
+			//注册一下退出函数
+			libc::atexit_once(Timer::Quit);
 		}
 	}
 	void Timer::Quit(){

@@ -13,14 +13,14 @@ end
 -- 库
 target("box_utils")
 	add_cxxflags("-std=c++17")
-	add_links("curl","xml2")
+	--add_links("curl","xml2")
 	add_includedirs("./include")
 	add_includedirs("./include/Box")
 	--设置种类
 	--在加载的时候加入依赖
 	on_load(function (target)
 		--CURL的网络部分
-		target:add(find_packages("curl","xml2"))
+		target:add(find_packages("curl","xml2","event"))
 	end)
 	set_kind("shared")
 	--add_links("xml2")
@@ -31,7 +31,7 @@ target("box_utils")
 	add_files("./src/socket.cpp")
 	add_files("./src/string.cpp")
 	
-	add_files("./src/xv.cpp")
+	--add_files("./src/xv.cpp")
 	add_files("./src/exception.cpp")
 	add_files("./src/dns.cpp")
 	
@@ -41,13 +41,15 @@ target("box_utils")
 	add_files("./src/sem.cpp")
 	
 	add_files("./src/timer.cpp")
-	
+	add_files("./src/threadpool.cpp")
+
 	add_files("./src/base64.cpp")
 	add_files("./src/json.cpp")
 	add_files("./src/iconv.cpp")
 	add_files("./src/dylib.cpp")
 	--CURL网络部分
-	add_files("./src/net*.cpp")
+	add_files("./src/net/*.cpp")
+	add_files("./src/net.cpp")
 	--LIBXML2
 	add_files("./src/xpath.cpp")
 	add_files("./src/xml.cpp")
@@ -71,6 +73,8 @@ target("box_utils")
 	end
 	--C组件
 	add_files("./src/libc/*.c")
+	--libevent
+	add_files("./src/libevent/*.cpp")
 --测试
 target("test_buffer")
 	set_kind("binary")

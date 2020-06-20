@@ -26,3 +26,4 @@ BoxUtils
 [ucontext-win](https://github.com/brock7/ucontext-win)
 [curl](https://github.com/curl/curl)
 [libxml2](https://github.com/GNOME/libxml2)
+[fltk](https://github.com/fltk/fltk)
