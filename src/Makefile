@@ -1,3 +1,4 @@
+AR=ar
 CC=gcc
 CFLAGS=-g -fPIC -Wall -Wextra
 CXX=g++ -std=c++17
@@ -19,8 +20,11 @@ XMLFLAGS=`xml2-config --cflags`
 #LIBXML的配置文件
 CXXFLAGS+=-I $(INCLUDE)
 CFLAGS+=-I $(INCLUDE)
+all:libbox_utils.so
 libbox_utils.so:$(OBJ)
 	$(CXX) $(LDFLAGS) $(OBJ) -shared -o libbox_utils.so
+libbox_utils.a:$(OBJ)
+	$(AR) rv libbox_utils.a $(OBJ)
 random.o:random.cpp $(INCLUDE)random.hpp
 	$(CXX) $(CXXFLAGS) random.cpp -c
 os.o:os.cpp $(INCLUDE)os.hpp

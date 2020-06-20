@@ -67,7 +67,13 @@
 #undef false
 #endif
 #define false ((cJSON_bool)0)
-#include <threads.h>
+#ifndef __STDC_NO_THREADS__
+    //no std threads
+    #include <threads.h>
+#else
+    #define _Thread_local 
+    //ignore it
+#endif
 typedef struct {
     const unsigned char *json;
     size_t position;

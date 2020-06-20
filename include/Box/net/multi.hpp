@@ -24,6 +24,7 @@ namespace Box{
 				Multi();
 				Multi(const Multi &) = delete;
 				//禁用拷贝函数
+				Multi(Multi &&m);
 				~Multi();
 				//加入和移除曲柄(包) 这里你要自己保证曲柄的生命周期
 				//Userdata是用户数据

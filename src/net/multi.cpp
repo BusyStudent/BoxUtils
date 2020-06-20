@@ -1,4 +1,5 @@
 #include <curl/curl.h>
+#include <curl/curlver.h>
 #include <iostream>
 #include <functional>
 #include "exception.hpp"
@@ -38,8 +39,14 @@ namespace Net{
 		//生成multi接口
 		handle = curl_multi_init();
 	}
+	Multi::Multi(Multi &&m){
+		handle = m.handle;
+		m.handle = nullptr;
+	}
 	Multi::~Multi(){
-		curl_multi_cleanup(handle);
+		if(handle != nullptr){
+			curl_multi_cleanup(handle);
+		}
 	}
 	/*
 	int Multi::select(struct timeval &tv){
@@ -103,11 +110,11 @@ namespace Net{
 
 	int Multi::wait(int timeout_ms){
 		int numfds;
-		#if 1
-		auto code = curl_multi_poll(handle,nullptr,0,timeout_ms,&numfds);
+		#if LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 66
+		CURLMcode code = curl_multi_poll(handle,nullptr,0,timeout_ms,&numfds);
 		#else
 		//某些低版本的CURL
-		auto code = curl_multi_wait(handle,nullptr,0,timeout_ms,&numfds);
+		CURLMcode code = curl_multi_wait(handle,nullptr,0,timeout_ms,&numfds);
 		#endif
 		if(code != CURLM_OK){
 			return -1;

@@ -18,7 +18,7 @@ void __Box_stdc_handler(void *fn){
 };
 
 static BoxExitHandler *exit_handlers = nullptr;//退出的函数链表
-#ifdef BOX_LIBC_THSAFE
+#if defined(BOX_LIBC_THSAFE) && !defined(__STDC_NO_THREADS__)
     //线程安全
     #include <threads.h>
     static mtx_t handlers_mtx;
