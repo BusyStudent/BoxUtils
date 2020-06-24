@@ -10,6 +10,7 @@
     #include <new>
     #include <csignal>
     #include <cstdio>
+    #include <string>
     #include "backtrace.hpp"
 namespace BoxDebug{
     class Object{
@@ -49,4 +50,22 @@ namespace BoxDebug{
 //声明对象 启动调试
 #define BOX_DEBUG(FMT,...) fprintf(stderr,"Debug:"#FMT"\n",##__VA_ARGS__);
 #endif
+//Debug的函数
+namespace Box{
+    //调试打印
+    #ifdef NDEBUG
+    //忽略掉
+    template<class String,class ...Args>
+    void DebugPrint(const String&,Args...){
+
+    }
+    #else
+    template<class String,class ...Args>
+    void DebugPrint(const String &str,Args &&...args){
+        fputs("Debug:",stderr);
+        fprintf(stderr,str,args...);
+        fputc('\n',stderr);
+    };
+    #endif
+};
 #endif

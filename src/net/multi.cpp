@@ -72,7 +72,11 @@ namespace Net{
 				return;
 		}
 	}
-
+	int  Multi::perform(){
+		int running;
+		perform(running);
+		return running;
+	}
 	void Multi::add_handle(Easy &easy,void *userdata){
 		//添加曲柄
 		//设置Easy的对象地址
@@ -121,6 +125,9 @@ namespace Net{
 		}
 		return numfds;
 	}
+	int Multi::wait(const std::chrono::milliseconds &ms){
+		return wait(ms.count());
+	}
 	bool Multi::get_msg(MultiMsg &msg,int &msg_in_queue){
 		//得到信息 填充结构
 		CURLMsg *cmsg;//CURL的信息
@@ -148,7 +155,7 @@ namespace Net{
 		}
 		while(true);
 	}
-	void Multi::for_msg(const std::function <void(MultiMsg&)> &fn){
+	void Multi::for_msg(const std::function <void(const MultiMsg&)> &fn){
 		MultiMsg msg;
 		int msg_in_queue;
 		while(get_msg(msg,msg_in_queue)){
@@ -156,17 +163,20 @@ namespace Net{
 		}
 	}
 	//一些信息的函数
-	bool MultiMsg::ok(){
+	bool MultiMsg::ok() const noexcept{
 		//是否正常 传输
 		return this->code == CURLE_OK;
 	}
-	void MultiMsg::throw_for_error(){
+	void MultiMsg::throw_for_error() const{
 		if(code != CURLE_OK){
 			//抛出异常
 			throw EasyException(code);
 		}
 	}
-	const char* MultiMsg::strerr(){
+	void MultiMsg::throw_for_status() const{
+		return easy->throw_for_status();
+	}
+	const char* MultiMsg::strerr() const noexcept{
 		return curl_easy_strerror((CURLcode)code);
 	}
 }

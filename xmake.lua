@@ -78,8 +78,14 @@ target("box_utils")
 --测试
 target("test_buffer")
 	set_kind("binary")
+	add_includedirs("./include")
 	add_files("./tests/test_buffer.cpp")
 	add_deps("box_utils")
 	add_includedirs("./src")
-	
-
+target("thpool")
+	--thread pool
+	set_kind("binary")
+	add_includedirs("./include")
+	add_files("./tests/thpool_test.cpp")
+	add_deps("box_utils")
+	add_includedirs("./src")

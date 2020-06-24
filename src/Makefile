@@ -6,7 +6,7 @@ CXXFLAGS=-g -fPIC -Wall -Wextra
 INCLUDE=../include/Box/
 OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net/easy.o net/factory.o net/headers.o net/exception.o\
 	exception.o iconv.o sem.o base64.o socket.o string.o dns.o filesystem.o net/multi.o\
-	xml.o xpath.o sax.o timer.o os.o backtrace.o net/share.o net/session.o\
+	xml.o xpath.o sax.o timer.o os.o backtrace.o net/share.o\
 	coroutine.o scheduler.o dylib.o logger.o subprocess.o buffer.o ucontext.o stream.o\
 	assert.o pixiv.o threadpool.o
 LIBC_OBJ=libc/mem.o libc/inet.o libc/atexit.o libc/io.o
@@ -45,7 +45,6 @@ net/exception.o:net/exception.cpp $(INCLUDE)net/exception.hpp
 net/easy.o:net/easy.cpp $(INCLUDE)net/easy.hpp
 net/multi.o:net/multi.cpp $(INCLUDE)net/multi.hpp
 net/share.o:net/share.cpp $(INCLUDE)net/share.hpp
-net/session.o:net/session.cpp $(INCLUDE)net/session.hpp
 #异常
 excepton.o:exception.cpp $(INCLUDE)exception.hpp
 iconv.o:iconv.cpp $(INCLUDE)iconv.hpp
