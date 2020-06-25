@@ -7,6 +7,7 @@
 #include <cstring>
 #include <cassert>
 #include <ostream>
+#include "libc/atexit.h"
 #include "xml.hpp"
 #include "xpath.hpp"
 #include "exception.hpp"
@@ -166,7 +167,8 @@ namespace LXml{
 	}
 	//构建函数
 	void Init(){
-		xmlInitGlobals();	
+		xmlInitGlobals();
+		libc::atexit_once(LXml::Quit);
 	}
 	void Quit(){
 		xmlCleanupParser();

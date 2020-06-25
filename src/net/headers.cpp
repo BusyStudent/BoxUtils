@@ -52,9 +52,7 @@ namespace Net{
 	}
 	void Headers::add(const char *key,const char *value){
 		//加入值
-		std::stringstream stream;
-		stream << key << ':' << value;
-		add_string(stream.str().c_str());
+		add_string((key + std::string(":") + value).c_str());
 	}
 	void Headers::update(const Headers &h){
 		//从另一个头里加入值
@@ -117,7 +115,7 @@ namespace Net{
 		slist = new_list;
 		return status;
 	}
-	Box::Json *Headers::json(){
+	Box::Json Headers::json(){
 		//到Json
 		auto json = Box::Json::CreateTable();
 		//创建一个表
@@ -137,10 +135,10 @@ namespace Net{
 			json.add_string(key.c_str(),  splist_mark + 1);
 			next = next->next;
 		}
-		return new Json(std::move(json));//把数据转移到heap
+		return json;
 	}
 	//遍历
-	void Headers::for_each(std::function <void(const char*,const char*)> fn) const{
+	void Headers::for_each(const std::function <void(const char*,const char*)> &fn) const{
 		struct curl_slist *next = (struct curl_slist*)(slist);
 		std::string key;
 		const char *splist_mark;

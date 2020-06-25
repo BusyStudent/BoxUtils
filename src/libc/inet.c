@@ -63,4 +63,14 @@ int Box_socket_errno(){
     return errno;
     #endif
 }
+//连接
+int Box_connect(Box_socket_t sock,const void *addr,Box_socklen_t len){
+    return connect(sock,(const struct sockaddr*)addr,len);
+}
+int Box_bind(Box_socket_t sock,const void *addr,Box_socklen_t len){
+    return bind(sock,(const struct sockaddr*)addr,len);
+}
+Box_socket_t Box_accept(Box_socket_t sock,void *addr,Box_socklen_t *len){
+    return accept(sock,(struct sockaddr*)addr,len);
+}
 LIBC_END

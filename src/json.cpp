@@ -4,7 +4,7 @@
 #include <fstream>
 #include <ostream>
 #include <utility>
-
+#include <mutex>
 #include "cJSON.h"
 #include "cJSON_Utils.h"
 #include "json.hpp"
@@ -96,6 +96,11 @@ void Json::print() const{
 }
 //解析函数
 Json Json::ParseString(const char *str){
+	#ifdef __STDC_NO_THREADS__
+	//线程不安全 加锁
+	static std::mutex mtx;
+	std::lock_guard<std::mutex> locker(mtx);
+	#endif
 	cJSON *cjson = cJSON_Parse(str);
 	if(cjson == nullptr){
 		//解析失败
@@ -145,6 +150,10 @@ Json Json::LoadFile(const char *filename){
 	//打开文件
 	std::istreambuf_iterator<char> beg(stream),end;
 	std::string str(beg,end);
+	if(stream.bad()){
+		//失败
+		throw FileNotFoundError(errno,filename);
+	}
 	//读入所有字符
 	try{
 		Json json = ParseString(str.c_str());//解析字符串
@@ -156,6 +165,12 @@ Json Json::LoadFile(const char *filename){
 		stream.close();
 		throw;
 	};
+}
+Json Json::ParseFrom(std::istream &stream){
+	//从流解析
+	std::istreambuf_iterator<char> beg(stream),end;
+	std::string str(beg,end);
+	return ParseString(str);
 }
 void Json::SaveFile(Json &json,const char *filename){
 	//写出文件

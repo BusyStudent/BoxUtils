@@ -44,6 +44,13 @@ extern int  Box_closesocket(Box_socket_t sock);//关闭Socket
 //Socket错误代码
 extern int  Box_socket_errno();
 extern int  Box_socket_strerror(int);//格式化错误
+//连接
+extern int  Box_connect(Box_socket_t sock,const void *addr,Box_socklen_t len);
+//绑定
+extern int  Box_bind(Box_socket_t sock,const void *addr,Box_socklen_t len);
+//接收连接
+extern Box_socket_t Box_accept(Box_socket_t sock,void *addr,Box_socklen_t *len);
+
 extern Box_ssize_t Box_send(Box_socket_t sock,const void *buf,size_t bufsize,int flags);
 extern Box_ssize_t Box_recv(Box_socket_t sock,void *buf,size_t bufsize,int flags);
 #ifdef __cplusplus
@@ -88,6 +95,16 @@ namespace Box{
             #else
             return ::recvfrom(sock,buf,buflen,flags,addr,len);
             #endif
+        }
+        //抹掉类型的
+        inline socket_t accept(socket_t sock,void *addr,socklen_t *len){
+            return Box_accept(sock,addr,len);
+        }
+        inline int bind(socket_t sock,const void *addr,socklen_t len){
+            return Box_bind(sock,addr,len);
+        }
+        inline int connect(socket_t sock,const void *addr,socklen_t len){
+            return Box_connect(sock,addr,len);
         }
     };
 };

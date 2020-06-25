@@ -1,6 +1,7 @@
 #include <curl/curl.h>
 #include <utility>
 #include "libc/inet.h"
+#include "libc/atexit.h"
 #include "net.hpp"
 namespace Box{
 	bool Net::Init(bool init_all){
@@ -15,6 +16,8 @@ namespace Box{
 		auto code = curl_global_init(flags);
 		//初始化socket
 		libc::socket_init();
+		libc::atexit_once(Net::Quit);
+		//注册退出函数
 		if(code == CURLE_OK){
 			return true;
 		}
