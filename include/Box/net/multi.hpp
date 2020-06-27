@@ -66,6 +66,8 @@ namespace Box{
 				};
 				void for_msg(const std::function <void(const MultiMsg&)> &);//遍历信息
 				//返回false表示没有信息了
+				//设置最大连接
+				void set_max(long max);
 			private:
 				void *handle;
 		};

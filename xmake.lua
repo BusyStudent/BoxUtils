@@ -75,6 +75,14 @@ target("box_utils")
 	add_files("./src/libc/*.c")
 	--libevent
 	add_files("./src/libevent/*.cpp")
+--SDL部分
+-- target("box_sdl")
+-- 	set_kind("shared")
+-- 	add_cxxflags("-std=c++17")
+-- 	on_load(function (target)
+-- 		target:add(find_packages("SDL2","SDL2_mixer","SDL2_ttf","SDL2_image"))
+-- 	end)
+-- 	add_files("./src/sdl/*.cpp")
 --测试
 target("test_buffer")
 	set_kind("binary")

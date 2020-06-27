@@ -3,6 +3,7 @@
 #include <string>
 #include <iosfwd>
 #include <cstddef>
+#include <chrono>
 struct curl_mime_s;
 struct curl_mimepart_s;
 namespace Box{
@@ -33,7 +34,8 @@ namespace Box{
 				void set_url(const char *url);//设置URL
 				void set_url(const std::string &url);//设置URL
 				void set_proxy(const char *proxy);//设置代理
-				void set_timeout(long timeout);//设置超时
+				void set_timeout(long timeout_ms);//设置超时
+				void set_timeout(const std::chrono::milliseconds &ms);
 				void set_useragent(const char *str);//设置User-Agent
 				void set_referer(const char *str);//设置Referer
 				void set_ostream(std::string &str);//设置输出内容的字符流
@@ -45,23 +47,29 @@ namespace Box{
 				void set_post(const std::string &str);//设置Post的字符串数据
 				void set_post(const Mime &mime);//设置post的表单
 				void set_followlocation();//自动更寻重定向
+				void set_max_redirs(long max);//设置最大重定向
 				void reset();//重置
 
 				void clear_cookie();//清空cookie
 				void reset_cookie();//清空回话cookie
 				
 				//CURL的回调
-				void set_write_cb(EasyCallBack cb,void *param = nullptr);//设置写出的回调
+				void set_write_cb (EasyCallBack cb,void *param = nullptr);//设置写出的回调
 				void set_header_cb(EasyCallBack cb,void *param = nullptr);//设置头的回调
 				
 				void throw_for_status();//当状态代码不为200时候抛出异常
 
 				void *get_handle() const;//得到handle
-				std::string url() const;//得到URL
 				long status_code() const;
-				bool ok()const;//请求是否成功
+
+
+				std::string url()          const;//得到URL
+				std::string scheme()       const;//请求方案
+				std::string content_type() const;//得到内容类型
 				
-				Easy *clone()const;//复制自己
+				bool ok() const;//请求是否成功
+				
+				Easy *clone() const;//复制自己
 				//编码URL和解码
 				std::string escape_url(const char *url) const;
 				std::string unescape_url(const char *irl) const;

@@ -155,6 +155,9 @@ namespace Net{
 		}
 		while(true);
 	}
+	void Multi::set_max(long max){
+		curl_multi_setopt(handle,CURLMOPT_MAXCONNECTS,max);
+	}
 	void Multi::for_msg(const std::function <void(const MultiMsg&)> &fn){
 		MultiMsg msg;
 		int msg_in_queue;
