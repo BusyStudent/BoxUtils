@@ -58,13 +58,30 @@ namespace Box{
     template<class String,class ...Args>
     void DebugPrint(const String&,Args...){
 
-    }
+    };
+    template<class Fn,class ...Args>
+    void DebugCall(const Fn&,Args...){
+
+    };
     #else
-    template<class String,class ...Args>
-    void DebugPrint(const String &str,Args &&...args){
-        fputs("Debug:",stderr);
+    template<class ...Args>
+    void DebugPrint(const char *str,Args &&...args){
+        fputs("\033[32mDEBUG: \033[0m",stderr);
         fprintf(stderr,str,args...);
         fputc('\n',stderr);
+    };
+    template<class ...Args>
+    void DebugPrint(const std::string &str,Args &&...args){
+        DebugPrint(str.c_str(),args...);
+    };
+    template<class ...Args>
+    void DebugLog(){
+
+    };
+    //在调试的时候调用
+    template<class Fn,class ...Args>
+    void DebugCall(const Fn &fn,Args &&...args){
+        fn(args...);
     };
     #endif
 };

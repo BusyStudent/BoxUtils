@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: configure
-      run: sudo apt install libcurl4-openssl-dev libxml2-dev libevent-dev -y
+      run: sudo apt update && sudo apt install libcurl4-openssl-dev libxml2-dev libevent-dev -y
     - name: make
       run: cd ./src && make && cd ../
     - name: setup xmake
