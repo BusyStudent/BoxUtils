@@ -20,25 +20,18 @@ OBJ+=$(LIBEVENT_OBJ)
 #SDL_OBJ=sdl/sdl.o
 #SDL_LDFLAGS=-lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
 
-#QuickJS
-QJS_OBJ=quickjs/runtime.o quickjs/context.o quickjs/value.o
-QJS_LDFLAGS=-L./ -lbox_utils -lquickjs -lm
-
-
 LDFLAGS=-pthread -lcurl `xml2-config --libs` -levent
 XMLFLAGS=`xml2-config --cflags`
 #LIBXML的配置文件
 CXXFLAGS+=-I $(INCLUDE)
 CFLAGS+=-I $(INCLUDE)
-all:libbox_utils.so libbox_quickjs.so
+all:libbox_utils.so
 libbox_utils.so:$(OBJ)
 	$(CXX) $(LDFLAGS) $(OBJ) -shared -o libbox_utils.so
 libbox_utils.a:$(OBJ)
 	$(AR) rv libbox_utils.a $(OBJ)
 #libbox_sdl.so:$(SDL_OBJ)
 #	$(CXX) $(SDL_LDFLAGS) $(SDL_OBJ) -shared -o libbox_sdl.so
-libbox_quickjs.so:$(QJS_OBJ)
-	$(CXX) $(QJS_LDFLAGS) $(QJS_OBJ) -shared -o libbox_quickjs.so
 random.o:random.cpp $(INCLUDE)random.hpp
 	$(CXX) $(CXXFLAGS) random.cpp -c
 os.o:os.cpp $(INCLUDE)os.hpp
@@ -114,4 +107,3 @@ libc/io.o:libc/io.c $(INCLUDE)libc/io.h
 	$(CC) $(CFLAGS) libc/io.c -c -o ./libc/io.o
 clean:
 	-rm $(OBJ) libbox_utils.so
-	-rm $(QJS_OBJ)
