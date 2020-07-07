@@ -9,6 +9,10 @@
 #include "net/headers.hpp"
 #if defined(_MSC_VER) 
 	#define strncasecmp _strnicmp 
+#elif defined(_WIN32)
+	//Window下msys2没有这个strncasecmp
+	#include "libc/mem.h"
+	#define strncasecmp Box_strncasecmp
 #endif
 #define LEN(STR) ((strchr((STR),':') - (STR))/sizeof(char))
 namespace Box{

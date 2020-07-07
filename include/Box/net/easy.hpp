@@ -103,6 +103,12 @@ namespace Box{
 				Mime(const Easy &easy);
 				Mime(const Mime&) = delete;
 				~Mime();
+				//简单的添加一下
+				MimePart operator [](const char *name){
+					MimePart part = addpart();
+					part.set_name(name);
+					return part;
+				}
 				MimePart addpart();//添加一个部分
 			private:
 				curl_mime_s *mime;//表单数据

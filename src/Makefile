@@ -9,7 +9,7 @@ OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net/easy.o net/factory.o net/hea
 	exception.o iconv.o sem.o base64.o socket.o string.o dns.o filesystem.o net/multi.o\
 	xml.o xpath.o sax.o timer.o os.o backtrace.o net/share.o\
 	coroutine.o scheduler.o dylib.o logger.o subprocess.o buffer.o ucontext.o\
-	assert.o pixiv.o threadpool.o
+	assert.o pixiv.o threadpool.o fmt.o
 LIBC_OBJ=libc/mem.o libc/inet.o libc/atexit.o libc/io.o
 LIBEVENT_OBJ=libevent/base.o
 
@@ -96,6 +96,8 @@ pixiv.o:pixiv.cpp $(INCLUDE)pixiv.hpp net/easy.o net/factory.o json.o
 #stream.o:stream.cpp $(INCLUDE)stream.hpp
 #线程池子
 threadpool.o:threadpool.cpp $(INCLUDE)threadpool.hpp
+#格式化
+fmt.o:fmt.cpp $(INCLUDE)fmt.hpp
 #一些C函数文件
 libc/mem.o:libc/mem.c $(INCLUDE)libc/mem.h
 	$(CC) $(CFLAGS) libc/mem.c -c -o ./libc/mem.o

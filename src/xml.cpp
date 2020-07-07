@@ -13,7 +13,7 @@
 #include "exception.hpp"
 namespace Box{
 namespace LXml{
-	inline constexpr const char *CastString(const xmlChar *str){
+	inline const char *CastString(const xmlChar *str){
 		return (const char*)str;
 	}
 	XmlHolder::~XmlHolder(){
