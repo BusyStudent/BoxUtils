@@ -72,5 +72,15 @@ namespace Net{
 	void EasyFactory::add_header(const char *key,const char *value){
 		_headers.add(key,value);
 	}
+	EasyFactory::EasyFactory(const EasyFactory &f)
+		:_headers(f._headers),_easy(f._easy){
+
+	}
+	EasyFactory::EasyFactory(EasyFactory &&f)
+		:_headers(f._headers),_easy(f._easy){
+
+	}
+	EasyFactory::EasyFactory(){}
+	EasyFactory::~EasyFactory(){}
 }
 }

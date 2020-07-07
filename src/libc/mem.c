@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include "libc/atexit.h"
 #include "libc/mem.h"
 #include "libc.h"
 LIBC_BEGIN
@@ -146,4 +147,8 @@ int  Box_strncasecmp(const char *s1, const char *s2, size_t n){
     }
     return 0;
 }
+//随机填充内存
+void *Box_memrand(void *mem,size_t n){
+    
+};
 LIBC_END

@@ -9,6 +9,7 @@ namespace Box{
 	typedef std::invalid_argument InvalidArgument;
 	typedef std::exception Exception;
 	class IndexError:public std::exception{
+		//超出边界
 		public:
 			IndexError(int index);
 			const char *what()const throw();
@@ -16,9 +17,16 @@ namespace Box{
 			std::string reason;
 	};
 	class KeyError:public std::exception{
+		//没找到键
 		public:
 			KeyError(const char *key);
-			const char *what()const throw();
+			KeyError(const KeyError&);
+			~KeyError();
+			const char *what()const noexcept;
+			const std::string &value() const noexcept{
+				return key;
+			}
+		private:
 			std::string key;
 	};
 	class TypeError:public std::exception{
@@ -53,7 +61,11 @@ namespace Box{
 		//文件没有找到的错误
 		public:
 			FileNotFoundError(int code,const char *filename);
-			std::string filename;
+			FileNotFoundError(const FileNotFoundError &err);
+			~FileNotFoundError();
+		private:
+			//文件名字
+			std::string fname;
 	};
 	class JsonParseError:public Exception{
 		public:

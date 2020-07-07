@@ -109,7 +109,7 @@ namespace Box{
 				return not(operator==(t));
 			}
 			template <class T>
-			inline operator T(){
+			explicit inline operator T(){
 				//类型转换模板
 				T var;
 				operator >>(var);
@@ -151,6 +151,7 @@ namespace Box{
 			//构造Json的类型
 			static Json ParseString(const char *);
 			static Json ParseString(const std::string &str);
+			static Json ParseFrom(std::istream &stream);//从流解析
 			static Json CreateNull();
 			static Json CreateBool(bool boolen);
 			static Json CreateTrue();
@@ -165,7 +166,7 @@ namespace Box{
 			static void MinifyString(char *str);
 			//文件函数
 			static void  SaveFile(Json &json,const char *filename);
-			static Json LoadFile(const char *filename);
+			static Json  LoadFile(const char *filename);
 			//得到内部解析器的错误
 			static const char *GetError();//这个线程不安全的
 			static const char *Version();//得到版本

@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include "string.hpp"
 #include "backtrace.hpp"
 //GLIBC特有的
 #ifdef __gnu_linux__
@@ -12,6 +11,7 @@
 #elif !defined(_WIN32)
 	//POSIX的解析地址
 	#include <unwind.h>
+	#include <cstdint>
 #endif
 #ifdef __GNUC__
 #include <cxxabi.h>
@@ -31,7 +31,7 @@ namespace Backtrace{
 			//成功
 			std::string real_name(real);
 			free(real);
-			return std::move(real_name);
+			return real_name;
 		}
 		#else
 			#warning DemangleName Unsupported
@@ -77,7 +77,13 @@ namespace Backtrace{
 	}	
 	//得到调用堆栈地址
 	int GetCallStack(void **stack_ptr,int max) noexcept{
-		return backtrace(stack_ptr,max);
+		#ifdef __gnu_linux__
+			return backtrace(stack_ptr,max);
+		#elif !defined(_MSC_VER)
+			//unwind
+			//return __Unwind_Backtrace();
+		#endif
+
 	};
 	void Show(int max) noexcept{
 		//打印调用堆栈
@@ -88,6 +94,7 @@ namespace Backtrace{
 			//失败
 			return;
 		}
+		#ifdef __gnu_linux__
 		char **symbols = backtrace_symbols(callstack,ret);
 		//得到调用堆栈的符号名字
 		if(symbols == nullptr){
@@ -104,6 +111,13 @@ namespace Backtrace{
 			fprintf(stderr,"  at %p: %s\n",callstack[i],func.c_str());
 		}
 		free(symbols);
+
+		#else
+
+		for(int i = 0;i < ret; i ++){
+			fprintf(stderr,"  at %p\n",callstack[i]);
+		}
+		#endif
 	}
 	//得到堆栈详情
 	std::vector<StackFrame> Get(int max){
@@ -115,6 +129,7 @@ namespace Backtrace{
 			//失败
 			return frames;
 		}
+		#ifdef __gnu_linux__
 		char **symbols = backtrace_symbols(callstack,ret);
 		if(symbols == nullptr){
 			return frames;//返回空的
@@ -136,7 +151,19 @@ namespace Backtrace{
 			);
 		}
 
-		return std::move(frames);
+		#else
+		//压入地址
+
+		for(int i = 0;i < ret; i ++){
+			frames.push_back(
+				StackFrame{
+					.name = "???",
+					.addr = callstack[i]
+				}
+			);
+		}
+		#endif
+		return frames;
 	}
 }
 }

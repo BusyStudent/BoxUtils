@@ -34,22 +34,22 @@ namespace Box{
             void add_task(const StartEntry&);
             //添加一个任务(要得到返回值 如果要得到 请用async或者自己实现)
             template<class T,class ...Args>
-            void swpan(const T &fn,Args ...args){
+            void swpan(T &&fn,Args &&...args){
                 add_task(
-                    new std::function<void()>(std::bind(fn,args...))
+                    new std::function<void()>(std::bind(std::forward<T>(fn),std::forward<Args>(args)...))
                 );
             }
             template<class T,class ...Args>
-            auto async(const T &fn,Args ...args){
+            auto async(T &&fn,Args ...args) -> std::future<decltype(fn(args ...))>{
                 //包装任务
                 auto task = std::make_shared<std::packaged_task<decltype(fn(args ...))()>>(
-                    std::bind(fn,args...)
+                    std::bind(std::forward<T>(fn),std::forward<Args>(args)...)
                 );
                 //添加
                 add_task(new std::function<void()>([task](){
                     (*task)();
                 }));
-                return task;
+                return task->get_future();
             }
         private:
             struct Worker;

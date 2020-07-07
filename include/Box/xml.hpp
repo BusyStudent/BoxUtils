@@ -2,6 +2,7 @@
 #define _BOX_XML_HPP_
 #include <cstdio>
 #include <string>
+#include <iosfwd>
 #include <exception>
 #include "refptr.hpp"
 struct _xmlDoc;
@@ -22,6 +23,7 @@ namespace Box{
 			//错误
 			public:
 				Error(_xmlError *errptr);
+				~Error();
 				inline _xmlError* get() const {
 					//得到错误指针
 					return error;
@@ -77,12 +79,18 @@ namespace Box{
 				//是否有属性
 				bool has_attr(const char *attr  ) const;
 				bool has_attr(const std::string&) const;
+				//XPath
+				XPath::Object xpath(const char *exp);
+				XPath::Object xpath(const std::string &exp);
+				//输出ostream
+				friend std::ostream &operator <<(std::ostream&,const Node&);
 			private:
 				RefPtr<NodeHolder> holder;
 			friend class Xml;
 			friend class Html;
 			friend class XPath::ObjectIter;
 		};
+		class Html;
 		class Xml{
 			public:
 				typedef LXml::Node Node;
@@ -106,7 +114,9 @@ namespace Box{
 				//XPath
 				XPath::Object xpath(const char *exp);
 				XPath::Object xpath(const std::string &exp);
-
+				//输出ostream
+				friend std::ostream & operator<<(std::ostream&,const Xml&);
+				friend std::ostream & operator<<(std::ostream&,const Html&);
 				static Xml ParseString(const char *str);//解析字符串
 				static Xml ParseString(const std::string &str);
 				static Xml LoadFile(const char *filename);//加载文件
@@ -128,6 +138,7 @@ namespace Box{
 				void savefile(const char *file,int fmt,const char *enc = DefaultEncoding);
 				void dump(FILE *fstream);
 				//解析字符串
+				
 				static Html ParseString(const char *str);
 				static Html ParseString(const std::string &);
 		};

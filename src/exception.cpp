@@ -26,8 +26,16 @@ namespace Box{
 		SHOW_BACKTRACE();
 		return reason.c_str();
 	}
+	//KeyError
 	KeyError::KeyError(const char *key){
 		this->key = key;
+	}
+	KeyError::KeyError(const KeyError &err)
+		:key(err.key){
+
+	}
+	KeyError::~KeyError(){
+
 	}
 	const char *KeyError::what()const throw(){
 		SHOW_BACKTRACE();
@@ -105,8 +113,14 @@ namespace Box{
 	}
 	//FileNotFoundErrpr
 	FileNotFoundError::FileNotFoundError(int code,const char *filename)
-		:OSError(code,nullptr,filename){
-		this->filename = filename;
+		:OSError(code,nullptr,filename),fname(filename){
+	}
+	FileNotFoundError::FileNotFoundError(const FileNotFoundError &err)
+		:OSError(err),fname(err.fname){
+
+	}
+	FileNotFoundError::~FileNotFoundError(){
+
 	}
 	//JsonParseError
 	JsonParseError::JsonParseError(const char *msg){

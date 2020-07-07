@@ -1,5 +1,6 @@
 #ifndef _BOX_LIBC_H_
 #define _BOX_LIBC_H_
+#include "libc/attr.h"
 #ifdef _WIN32
     #define LIBC_EXPORT __declspec(dllimport) __cdecl
 #else

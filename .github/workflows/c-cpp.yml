@@ -1,0 +1,22 @@
+name: C/C++ CI
+
+on: [push]
+
+jobs:
+  build:
+    name: Build BoxUtils
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: configure
+      run: sudo apt update && sudo apt install libcurl4-openssl-dev libxml2-dev libevent-dev -y
+    - name: make
+      run: cd ./src && make && cd ../
+    - name: setup xmake
+      uses: xmake-io/github-action-setup-xmake@v1
+      with:
+      # The version to use. Should be a semver range or 'latest'. Or use branch@{branch_name} to select a branch.
+        xmake-version: latest
+    - name: Build release
+      run: xmake

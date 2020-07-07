@@ -1,4 +1,5 @@
 #include <curl/curl.h>
+#include <curl/curlver.h>
 #include <iostream>
 #include <functional>
 #include "exception.hpp"
@@ -38,8 +39,14 @@ namespace Net{
 		//生成multi接口
 		handle = curl_multi_init();
 	}
+	Multi::Multi(Multi &&m){
+		handle = m.handle;
+		m.handle = nullptr;
+	}
 	Multi::~Multi(){
-		curl_multi_cleanup(handle);
+		if(handle != nullptr){
+			curl_multi_cleanup(handle);
+		}
 	}
 	/*
 	int Multi::select(struct timeval &tv){
@@ -65,7 +72,11 @@ namespace Net{
 				return;
 		}
 	}
-
+	int  Multi::perform(){
+		int running;
+		perform(running);
+		return running;
+	}
 	void Multi::add_handle(Easy &easy,void *userdata){
 		//添加曲柄
 		//设置Easy的对象地址
@@ -103,16 +114,19 @@ namespace Net{
 
 	int Multi::wait(int timeout_ms){
 		int numfds;
-		#if 1
-		auto code = curl_multi_poll(handle,nullptr,0,timeout_ms,&numfds);
+		#if LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 66
+		CURLMcode code = curl_multi_poll(handle,nullptr,0,timeout_ms,&numfds);
 		#else
 		//某些低版本的CURL
-		auto code = curl_multi_wait(handle,nullptr,0,timeout_ms,&numfds);
+		CURLMcode code = curl_multi_wait(handle,nullptr,0,timeout_ms,&numfds);
 		#endif
 		if(code != CURLM_OK){
 			return -1;
 		}
 		return numfds;
+	}
+	int Multi::wait(const std::chrono::milliseconds &ms){
+		return wait(ms.count());
 	}
 	bool Multi::get_msg(MultiMsg &msg,int &msg_in_queue){
 		//得到信息 填充结构
@@ -141,7 +155,10 @@ namespace Net{
 		}
 		while(true);
 	}
-	void Multi::for_msg(const std::function <void(MultiMsg&)> &fn){
+	void Multi::set_max(long max){
+		curl_multi_setopt(handle,CURLMOPT_MAXCONNECTS,max);
+	}
+	void Multi::for_msg(const std::function <void(const MultiMsg&)> &fn){
 		MultiMsg msg;
 		int msg_in_queue;
 		while(get_msg(msg,msg_in_queue)){
@@ -149,17 +166,20 @@ namespace Net{
 		}
 	}
 	//一些信息的函数
-	bool MultiMsg::ok(){
+	bool MultiMsg::ok() const noexcept{
 		//是否正常 传输
 		return this->code == CURLE_OK;
 	}
-	void MultiMsg::throw_for_error(){
+	void MultiMsg::throw_for_error() const{
 		if(code != CURLE_OK){
 			//抛出异常
 			throw EasyException(code);
 		}
 	}
-	const char* MultiMsg::strerr(){
+	void MultiMsg::throw_for_status() const{
+		return easy->throw_for_status();
+	}
+	const char* MultiMsg::strerr() const noexcept{
 		return curl_easy_strerror((CURLcode)code);
 	}
 }

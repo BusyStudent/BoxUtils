@@ -11,56 +11,6 @@
 using namespace Box::Net;
 using namespace Box;
 namespace{
-	inline void sock_bind(NativeSocket fd,const AddrV4 &addr){
-		if(bind(fd,(const sockaddr*)&addr,sizeof(sockaddr_in)) != 0){
-			//失败
-			SocketError::Throw(Socket::GetErrorCode());
-		}
-	};
-	//原始的绑定API
-	inline void os_bind(NativeSocket fd,const void *addr,size_t addrsize){
-		if(bind(fd,static_cast<const sockaddr*>(addr),addrsize)!= 0){
-			SocketError::Throw(Socket::GetErrorCode());
-		}
-	};
-	//原始的连接API
-	inline void os_connect(NativeSocket fd,const void *addr,size_t addrsize){
-		if(connect(fd,static_cast<const sockaddr*>(addr),addrsize) != 0){
-			SocketError::Throw(Socket::GetErrorCode());
-		}
-	};
-	inline void sock_bind(NativeSocket fd,const AddrV6 &addr){
-		//IPV6版本绑定
-		if(bind(fd,(const sockaddr*)&addr,sizeof(sockaddr_in6)) != 0){
-			SocketError::Throw(Socket::GetErrorCode());
-		}
-	};
-	inline void sock_connect(NativeSocket fd,const AddrV4 &addr){
-		if(connect(fd,(const sockaddr*)&addr,sizeof(sockaddr_in)) != 0){
-			//失败
-			SocketError::Throw(Socket::GetErrorCode());
-		}
-	};//连接
-	//IPV6
-	inline void sock_connect(NativeSocket fd,const AddrV6 &addr){
-		if(connect(fd,(const sockaddr*)&addr,sizeof(sockaddr_in6)) != 0){
-			SocketError::Throw(Socket::GetErrorCode());
-		}
-	}
-	inline int sock_accept(NativeSocket fd,AddrV4 *addr){
-		//接受客户 addr是客户的地址
-		#ifdef _WIN32
-		int s = sizeof(sockaddr_in);
-		#else
-		socklen_t s = sizeof(sockaddr_in);
-		#endif
-		NativeSocket cfd = accept(fd,(sockaddr*)addr,&s);
-		if(not BOX_ISVAID_SOCKET(cfd)){
-			//失败
-			SocketError::Throw(Socket::GetErrorCode());
-		}
-		return cfd;
-	};
 	//得到主机的信息通过Addr
 	inline hostent *os_gethostbyaddr(const AddrV4 *addr){
 		#ifdef _WIN32
@@ -119,7 +69,7 @@ Socket::~Socket(){
 }
 void Socket::close(){
 	//关掉
-	if(BOX_ISVAID_SOCKET(fd)){
+	if(not BOX_SOCKET_INVAID(fd)){
 		libc::closesocket(fd);
 	}
 }
@@ -165,16 +115,21 @@ void Socket::set_nonblock(bool val){
 }
 //绑定地址
 void Socket::bind(const AddrV4 &addr){
-	//跳到SOCK BIND
-	::sock_bind(fd,addr);
+	if(libc::bind(fd,&addr,sizeof(sockaddr_in)) != 0){
+		SocketError::Throw(Socket::GetErrorCode());
+	}
 }
 //IPV6
 void Socket::bind(const AddrV6 &addr){
-	::sock_bind(fd,addr);
+	if(libc::bind(fd,&addr,sizeof(sockaddr_in6)) != 0){
+		SocketError::Throw(Socket::GetErrorCode());
+	}
 }
 //OS
 void Socket::bind(const void *addr,size_t addrsize){
-	::os_bind(fd,addr,addrsize);
+	if(libc::bind(fd,addr,addrsize) != 0){
+		SocketError::Throw(Socket::GetErrorCode());
+	}
 }
 //听
 void Socket::listen(int backlog){
@@ -186,15 +141,21 @@ void Socket::listen(int backlog){
 }
 //连接
 void Socket::connect(const AddrV4 &addr){
-	::sock_connect(fd,addr);
+	if(libc::connect(fd,&addr,sizeof(sockaddr_in)) != 0){
+		SocketError::Throw(Socket::GetErrorCode());
+	}
 }
 //IPV6的连接
 void Socket::connect(const AddrV6 &addr){
-	::sock_connect(fd,addr);
+	if(libc::connect(fd,&addr,sizeof(sockaddr_in6)) != 0){
+		SocketError::Throw(Socket::GetErrorCode());
+	}
 }
 //原始连接
 void Socket::connect(const void *addr,size_t addrsize){
-	::os_connect(fd,addr,addrsize);
+	if(libc::connect(fd,addr,addrsize) != 0){
+		SocketError::Throw(Socket::GetErrorCode());
+	}
 }
 //得到Socketd的地址
 AddrV4 Socket::get_addrv4_name()const{
@@ -322,7 +283,7 @@ ssize_t Socket::operator <<(const std::string & str){
 NativeSocket Socket::Create(int domain,int type,int prot){
 	NativeSocket sock = socket(domain,type,prot);
 	//创建一下
-	if(not BOX_ISVAID_SOCKET(sock)){
+	if(BOX_SOCKET_INVAID(sock)){
 		//失败
 		SocketError::Throw(Socket::GetErrorCode());
 	}
@@ -457,8 +418,9 @@ TCP::TCP(SockFamily family)
 }
 //接受连接
 Socket *Socket::accept(AddrV4 *addr){
-	auto ret = ::sock_accept(fd,addr);
-	if(not BOX_ISVAID_SOCKET(ret)){
+	libc::socklen_t len = sizeof(sockaddr_in);
+	libc::socket_t ret = libc::accept(fd,addr,&len);
+	if(BOX_SOCKET_INVAID(ret)){
 		//不是有效的
 		return nullptr;
 	}

@@ -1,4 +1,5 @@
 #include <curl/curl.h>
+#include <curl/curlver.h>
 #include <mutex>
 //狐池锁
 #include "net/easy.hpp"
@@ -15,7 +16,10 @@ namespace Net{
 		std::mutex m_dns;//DNS锁定
 		std::mutex m_ssl_session;//SSL会话锁定
 		std::mutex m_connect;//连接池子锁定
+		#if LIBCURL_VERSION_MAJOR >= 7 && LIBCURL_VERSION_MINOR >= 61
+		// 7.61.0后的功能
 		std::mutex m_psl;//公共后缀列表锁定
+		#endif
 		std::mutex m_share;//share加入曲柄时候的锁
 	};
 	//生成和释放曲柄
@@ -44,10 +48,12 @@ namespace Net{
 				//锁连接
 				m->m_connect.lock();
 				break;
+			#if LIBCURL_VERSION_MAJOR >= 7 && LIBCURL_VERSION_MINOR >= 61
 			case CURL_LOCK_DATA_PSL:
 				//锁PSL
 				m->m_psl.lock();
 				break;
+			#endif
 			case CURL_LOCK_DATA_SHARE:
 				//share加入曲柄时候的锁
 				m->m_share.lock();
@@ -78,10 +84,12 @@ namespace Net{
 				//解锁连接
 				m->m_connect.unlock();
 				break;
+			#if LIBCURL_VERSION_MAJOR >= 7 && LIBCURL_VERSION_MINOR >= 61
 			case CURL_LOCK_DATA_PSL:
 				//解锁PSL
 				m->m_psl.unlock();
 				break;
+			#endif
 			case CURL_LOCK_DATA_SHARE:{
 				//share加入曲柄时候的锁
 				m->m_share.unlock();
@@ -128,7 +136,9 @@ namespace Net{
 	}
 	void Share::set_share_psl(){
 		//共享公共后缀名
+		#if LIBCURL_VERSION_MAJOR >= 7 && LIBCURL_VERSION_MINOR >= 61
 		curl_share_setopt(handle,CURLSHOPT_SHARE,CURL_LOCK_DATA_PSL);
+		#endif
 	}
 	void Share::set_share_all(){
 		//分享上面所有的

@@ -1,7 +1,9 @@
 #include <curl/curl.h>
+#include <curl/curlver.h>
 #include <string>
 #include <cstring>
 #include <ostream>
+#include <chrono>
 #include "exception.hpp"
 #include "net/exception.hpp"
 #include "net/headers.hpp"
@@ -57,6 +59,8 @@ namespace Net{
 		#ifndef _WIN32
 		curl_easy_setopt(handle,CURLOPT_NOSIGNAL,1L);//不要有信号
 		#endif
+		curl_easy_setopt(handle,CURLOPT_PRIVATE,this);//设置自身
+		multi_userdata = nullptr;
 	}
 	void Easy::perform(){
 		//进行传输
@@ -101,9 +105,12 @@ namespace Net{
 			}
 		}
 	}
-	void Easy::set_timeout(long timeout){
+	void Easy::set_timeout(long timeout_ms){
 		//设置超时
-		curl_easy_setopt(handle,CURLOPT_CONNECTTIMEOUT,&timeout);
+		curl_easy_setopt(handle,CURLOPT_CONNECTTIMEOUT_MS,timeout_ms);
+	}
+	void Easy::set_timeout(const std::chrono::milliseconds &ms){
+		set_timeout(ms.count());
 	}
 	void Easy::set_proxy(const char *proxy){
 		curl_easy_setopt(handle,CURLOPT_PROXY,proxy);
@@ -210,14 +217,29 @@ namespace Net{
 	long Easy::status_code()const{
 		//得到状态代码
 		long code;
-		curl_easy_getinfo(handle,CURLINFO_RESPONSE_CODE,&code);
+		CURL_ASSERT(curl_easy_getinfo(handle,CURLINFO_RESPONSE_CODE,&code));
 		return code;
 	}
 	std::string Easy::url() const{
 		//得到URL
-		const char *url;
-		curl_easy_getinfo(handle,CURLINFO_EFFECTIVE_URL,&url);
-		return std::string(url);
+		#if LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 52
+			const char *url = nullptr;
+			CURL_ASSERT(curl_easy_getinfo(handle,CURLINFO_EFFECTIVE_URL,&url));
+			return std::string(url);
+		#else
+			throw std::exception();
+		#endif
+	}
+	std::string Easy::content_type() const{
+		//类型
+		char *type = nullptr;
+		CURL_ASSERT(curl_easy_getinfo(handle, CURLINFO_CONTENT_TYPE,&type));
+		return std::string(type);
+	}
+	std::string Easy::scheme() const{
+		char *scheme = nullptr;
+		CURL_ASSERT(curl_easy_getinfo(handle,CURLINFO_SCHEME,&scheme));
+		return scheme;
 	}
 	bool Easy::ok()const{
 		if(status_code() == 200){

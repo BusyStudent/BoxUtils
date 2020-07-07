@@ -38,6 +38,10 @@ namespace Box{
 		class EasyFactory{
 			//Easy对象工厂
 			public:
+				EasyFactory();
+				EasyFactory(const EasyFactory &f);
+				EasyFactory(EasyFactory &&f);
+				~EasyFactory();
 				void update_headers();//更新proxey
 				Headers &headers();//得到headers
 				void add_header(const char *key,const char *value);
@@ -46,11 +50,14 @@ namespace Box{
 
 				EasyPackage *allocate(const char *url);//在堆上
 				EasyPackage *allocate(const std::string &url);
-				
+				//配置一下
 				inline Easy *operator ->(){
 					return &_easy;
 				}
 				inline Easy &operator *(){
+					return _easy;
+				}
+				inline Easy &config(){
 					return _easy;
 				}
 			private:

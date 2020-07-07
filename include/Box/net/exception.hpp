@@ -14,7 +14,7 @@ namespace Box{
 					return curlcode;
 				};//得到代码
 				//从curlcode抛出异常
-				static void Throw(int curlcode);
+				[[noreturn]] static void Throw(int curlcode);
 			private:
 				int curlcode;
 		};
@@ -49,7 +49,7 @@ namespace Box{
 					return errcode; 
 				};//错误代码
 				const char *what() const noexcept;
-				static void Throw(int code);
+				[[noreturn]] static void Throw(int code);
 			private:
 				int errcode;
 				std::string msg;//信息
