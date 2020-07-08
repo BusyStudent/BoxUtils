@@ -64,7 +64,7 @@ namespace Pixiv{
     }
     Page Page::FromURL(const std::string &url){
         //从URL得到
-        auto vec = StringHelper(url).split("/");
+        auto vec = String(url).split<std::vector<std::string>>("/");
         for(auto &str:vec){
             //遍历一下
             for(auto &ch:str){

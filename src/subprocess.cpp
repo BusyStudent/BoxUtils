@@ -43,7 +43,7 @@ SubProcess::~SubProcess(){
 		assert(pipe(FDS) == 0);\
 	}
 //运行参数
-void SubProcess::run(const String::Vector &args,bool re_in,bool re_out,bool re_err){
+void SubProcess::run(const std::vector<std::string> &args,bool re_in,bool re_out,bool re_err){
 	if(args.size() == 0){
 		//一个参数也没有
 		throw std::invalid_argument("args.size() == 0");
@@ -170,16 +170,16 @@ int SubProcess::kill(int sig){
 int SubProcess::terminate(){
 	return this->kill(SIGTERM);
 }
-RefPtr<SubProcess> SubProcess::Popen(const String::Vector &args,bool re_in,bool re_out,bool re_err){
+RefPtr<SubProcess> SubProcess::Popen(const std::vector<std::string> &args,bool re_in,bool re_out,bool re_err){
 	RefPtr<SubProcess> proc(new SubProcess());
 	proc->run(args,re_in,re_out,re_err);
 	return proc;
 }
 
-String::Vector SubProcess::Split(const std::string &val){
-	return StringHelper(val).split(" ");
+std::vector<std::string> SubProcess::Split(const std::string &val){
+	return String(val).split<std::vector<std::string>>(" ");
 }
 //System
-int SubProcess::System(const String::Vector &args){
+int SubProcess::System(const std::vector<std::string> &args){
 	return Popen(args)->wait();
 }

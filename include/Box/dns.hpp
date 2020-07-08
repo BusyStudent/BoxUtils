@@ -1,13 +1,13 @@
 #ifndef _BOX_DNS_HPP_
 #define _BOX_DNS_HPP_
 #include <string>
+#include <vector>
 #include "socket.hpp"
-#include "string.hpp"
 namespace Box{
 	namespace DNS{
 		struct HostInfo{
 			Box::Net::SockFamily type;//类型
-			String::Vector addrs;//地址
+			std::vector<std::string> addrs;//地址
 			unsigned int size();
 			std::string &operator [](unsigned int);
 		};

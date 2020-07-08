@@ -38,8 +38,9 @@ target("box_utils")
 	add_files("./src/os.cpp")
 	add_files("./src/random.cpp")
 	add_files("./src/filesystem.cpp")
-	add_files("./src/sem.cpp")
-	
+	--add_files("./src/sem.cpp")
+	add_files("./src/sync/*.cpp")
+
 	add_files("./src/timer.cpp")
 	add_files("./src/threadpool.cpp")
 

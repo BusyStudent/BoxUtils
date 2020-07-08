@@ -19,14 +19,14 @@ namespace Box{
 			SubProcess(const SubProcess &) = delete;//不能拷贝
 			~SubProcess();
 			//打开一个新的进程
-			void run(const String::Vector &args,
+			void run(const std::vector<std::string> &args,
 				bool redirect_in = false,bool redirect_out = false,bool redirect_err = false);//运行
 				//redirect代表是否重定向流
 			//打开一个
-			static RefPtr<SubProcess> Popen(const String::Vector &args,
+			static RefPtr<SubProcess> Popen(const std::vector<std::string> &args,
 				bool redirect_in = false,bool redirect_out = false,bool redirect_err = false);
-			static String::Vector Split(const std::string &);//切割字符串到run需要的vector
-			static int System(const String::Vector &args);//运行一下 出错会出异常
+			static std::vector<std::string> Split(const std::string &);//切割字符串到run需要的vector
+			static int System(const std::vector<std::string> &args);//运行一下 出错会出异常
 			bool poll(int *ret_val);//尝试得到返回值 失败返回false
 			int wait();//等待 得到返回值
 			int kill(int sig);//发送信号

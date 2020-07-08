@@ -8,49 +8,34 @@
 #include "base64.hpp"
 #include "string.hpp"
 namespace Box{
-	StringHelper::vector StringHelper::split(const std::string_view &delim){
-		//切割字符串
-		std::vector<std::string> vec;
-		size_t len = strlen(delim.data());
-		const char *pos = str;//开始查找位置
-		const char *delim_pos;
-		while(true){
-			delim_pos = strstr(pos,delim.data());
-			//查找
-			if(delim_pos == nullptr){
-				//没找到了把剩下部分压入
-				vec.push_back(std::string(pos));
-				break;
-			}
-			vec.push_back(std::string(pos,delim_pos));
-			pos = delim_pos + len;
+	String String::trim() const{
+		const_iterator i_begin = begin();
+		const_iterator i_end = --end();//得到末尾迭代器的前一个
+		//得到开始和结束
+		while(*i_begin == ' ' and i_begin != end()){
+			//移到没有空格的
+			++ i_begin;
 		}
-		return vec;
-	}
-	StringHelper StringHelper::format(const std::string_view &fmt,...){
-		//得到字符串大小
-		size_t strsize;
-		va_list varg;
-		va_start(varg,fmt);
-		strsize = vsnprintf(nullptr,0,fmt.data(),varg);
-		va_end(varg);
-		//申请内存
-		char *str = static_cast<char*>(malloc((strsize + 1) * sizeof(char)));
-
-		va_start(varg,fmt);
-		vsnprintf(str,strsize,fmt.data(),varg);
-		va_end(varg);
-		return StringHelper(str,true);
-	}
-	StringHelper StringHelper::format(const std::string_view &fmt,va_list varg){
-		char *str;
-		vasprintf(&str,fmt.data(),varg);
-		return StringHelper(str,true);
-	}
-	StringHelper::~StringHelper(){
-		if(owned){
-			free(const_cast<char*>(str));
+		while(*i_end == ' ' and i_end != begin()){
+			-- i_end;
 		}
+		return String(i_begin,i_end);
 	}
-	
+	//替换所有
+	String String::replace_all(const std::string &old,const std::string &ne) const{
+		String self(*this);
+		//拷贝一下
+		std::string & str = self.get();
+		size_type old_len = old.length();
+		size_type new_len = ne.length();
+		size_type first = 0;
+		size_type pos = str.find(old,first);//位置
+		//替换所有
+		while(pos != npos){
+			str.replace(pos,old_len,ne);
+			first = pos + new_len;
+			pos = str.find(old,first);
+		}
+		return self;
+	}
 };

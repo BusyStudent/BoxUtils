@@ -4,11 +4,13 @@
 #include <iosfwd>
 #include <string>
 #include <cstdio>
+#include <cstdarg>
 #include <cstring>
 namespace Box{
     namespace FmtImpl{
         //Fmt的实现
         std::string Format(const char *fmt,...);
+        std::string VFormat(const char *fmt,va_list varg);
     } // namespace FmtImpl
     namespace Fmt{
         //到字符串
@@ -18,7 +20,7 @@ namespace Box{
         };
         //字符串的包装器
         template<>
-        std::string ToString<std::string>(const std::string &str){
+        inline std::string ToString<std::string>(const std::string &str){
             return str;
         };
         inline std::string ToString(const void *ptr){

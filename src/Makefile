@@ -6,10 +6,10 @@ CXXFLAGS=-g -fPIC -Wall -Wextra
 INCLUDE=../include/Box/
 #主要的对象
 OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net/easy.o net/factory.o net/headers.o net/exception.o\
-	exception.o iconv.o sem.o base64.o socket.o string.o dns.o filesystem.o net/multi.o\
+	exception.o iconv.o sync/sem.o base64.o socket.o string.o dns.o filesystem.o net/multi.o\
 	xml.o xpath.o sax.o timer.o os.o backtrace.o net/share.o\
 	coroutine.o scheduler.o dylib.o logger.o subprocess.o buffer.o ucontext.o\
-	assert.o pixiv.o threadpool.o fmt.o
+	assert.o pixiv.o threadpool.o fmt.o net/url.o
 LIBC_OBJ=libc/mem.o libc/inet.o libc/atexit.o libc/io.o
 LIBEVENT_OBJ=libevent/base.o
 
@@ -52,12 +52,14 @@ net/exception.o:net/exception.cpp $(INCLUDE)net/exception.hpp
 net/easy.o:net/easy.cpp $(INCLUDE)net/easy.hpp
 net/multi.o:net/multi.cpp $(INCLUDE)net/multi.hpp
 net/share.o:net/share.cpp $(INCLUDE)net/share.hpp
+net/url.o:net/url.cpp $(INCLUDE)net/url.hpp
 #异常
 excepton.o:exception.cpp $(INCLUDE)exception.hpp
 iconv.o:iconv.cpp $(INCLUDE)iconv.hpp
 #字符串编码
-sem.o:sem.cpp $(INCLUDE)sem.hpp
-#信号量
+#线程同步通讯
+sync/sem.o:sync/sem.cpp $(INCLUDE)sync/sem.hpp
+
 base64.o:base64.cpp $(INCLUDE)base64.hpp
 socket.o:socket.cpp $(INCLUDE)socket.hpp
 string.o:string.cpp $(INCLUDE)string.hpp

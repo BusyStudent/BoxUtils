@@ -93,7 +93,7 @@ void Socket::set_nonblock(bool val){
 	}
 	if(ioctlsocket(fd,FIONBIO,&arg) !=0){
 		//失败
-		throw_os_error();
+		SocketError::Throw(Socket::GetErrorCode());
 	}
 	#else
 	//得到flags
@@ -525,7 +525,7 @@ void Socket::Pair(Socket *socks[2] ){
 		*t1 = tcp.accept();//结束
 		return;
 	}
-	catch(OSError err){
+	catch(SockError &){
 		//回收资源
 		if(*t1 != nullptr){
 			delete *t1;
