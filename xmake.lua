@@ -20,7 +20,7 @@ target("box_utils")
 	--在加载的时候加入依赖
 	on_load(function (target)
 		--CURL的网络部分
-		target:add(find_packages("curl","xml2","event"))
+		target:add(find_packages("curl","xml2"))
 	end)
 	set_kind("shared")
 	--add_links("xml2")
@@ -74,8 +74,6 @@ target("box_utils")
 	end
 	--C组件
 	add_files("./src/libc/*.c")
-	--libevent
-	add_files("./src/libevent/*.cpp")
 --SDL部分
 -- target("box_sdl")
 -- 	set_kind("shared")

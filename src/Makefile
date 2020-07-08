@@ -11,16 +11,14 @@ OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net/easy.o net/factory.o net/hea
 	coroutine.o scheduler.o dylib.o logger.o subprocess.o buffer.o ucontext.o\
 	assert.o pixiv.o threadpool.o fmt.o net/url.o
 LIBC_OBJ=libc/mem.o libc/inet.o libc/atexit.o libc/io.o
-LIBEVENT_OBJ=libevent/base.o
 
 OBJ+=$(LIBC_OBJ)
-OBJ+=$(LIBEVENT_OBJ)
 
 #SDL的对象
 #SDL_OBJ=sdl/sdl.o
 #SDL_LDFLAGS=-lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
 
-LDFLAGS=-pthread -lcurl `xml2-config --libs` -levent
+LDFLAGS=-pthread -lcurl `xml2-config --libs`
 XMLFLAGS=`xml2-config --cflags`
 #LIBXML的配置文件
 CXXFLAGS+=-I $(INCLUDE)
@@ -66,7 +64,7 @@ string.o:string.cpp $(INCLUDE)string.hpp
 dns.o:dns.cpp $(INCLUDE)dns.hpp
 filesystem.o:filesystem.cpp $(INCLUDE)filesystem.hpp
 #计时器
-timer.o:timer.cpp sem.o $(INCLUDE)timer.hpp
+timer.o:timer.cpp sync/sem.o $(INCLUDE)timer.hpp
 xml.o:xml.cpp $(INCLUDE)xml.hpp
 	$(CXX) $(CXXFLAGS) $(XMLFLAGS) xml.cpp -c
 xpath.o:xpath.cpp $(INCLUDE)xpath.hpp $(INCLUDE)xml.hpp
