@@ -8,8 +8,9 @@ INCLUDE=../include/Box/
 OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net/easy.o net/factory.o net/headers.o net/exception.o\
 	exception.o iconv.o sync/sem.o base64.o socket.o string.o dns.o filesystem.o net/multi.o\
 	xml.o xpath.o sax.o timer.o os.o backtrace.o net/share.o\
-	coroutine.o scheduler.o dylib.o logger.o subprocess.o buffer.o ucontext.o\
-	assert.o pixiv.o threadpool.o fmt.o net/url.o
+	dylib.o logger.o subprocess.o buffer.o\
+	assert.o threadpool.o fmt.o net/url.o\
+	co/context.o
 LIBC_OBJ=libc/mem.o libc/inet.o libc/atexit.o libc/io.o
 
 OBJ+=$(LIBC_OBJ)
@@ -73,9 +74,7 @@ sax.o:sax.cpp $(INCLUDE)sax.hpp $(INCLUDE)xml.hpp
 	$(CXX) $(CXXFLAGS) $(XMLFLAGS) sax.cpp -c
 #XML解析
 backtrace.o:backtrace.cpp $(INCLUDE)backtrace.hpp
-coroutine.o:coroutine.cpp $(INCLUDE)coroutine.hpp
-#协程的实现 基于ucontext
-scheduler.o:scheduler.cpp $(INCLUDE)scheduler.hpp
+
 #调度器
 dylib.o:dylib.cpp $(INCLUDE)dylib.hpp
 #动态库
@@ -86,12 +85,8 @@ logger.o:logger.cpp $(INCLUDE)logger.hpp
 subprocess.o:subprocess.cpp $(INCLUDE)subprocess.hpp
 #缓冲区
 buffer.o:buffer.cpp $(INCLUDE)buffer.hpp
-#ucontext封装
-ucontext.o:ucontext.cpp $(INCLUDE)ucontext.hpp
 #断言的实现
 assert.o:assert.cpp $(INCLUDE)assert.hpp
-#对Pixiv访问的接口
-pixiv.o:pixiv.cpp $(INCLUDE)pixiv.hpp net/easy.o net/factory.o json.o
 #流抽象
 #stream.o:stream.cpp $(INCLUDE)stream.hpp
 #线程池子
@@ -107,5 +102,7 @@ libc/atexit.o:libc/atexit.c $(INCLUDE)libc/atexit.h
 	$(CC) $(CFLAGS) libc/atexit.c -c -o ./libc/atexit.o
 libc/io.o:libc/io.c $(INCLUDE)libc/io.h
 	$(CC) $(CFLAGS) libc/io.c -c -o ./libc/io.o
+#协程的文件
+co/context.o:co/context.cpp $(INCLUDE)co/context.hpp
 clean:
 	-rm $(OBJ) libbox_utils.so

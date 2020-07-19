@@ -60,20 +60,14 @@ target("box_utils")
 	add_files("./src/logger.cpp")
 	add_files("./src/buffer.cpp")
 	add_files("./src/assert.cpp")
-	add_files("./src/pixiv.cpp")
-	add_files("./src/ucontext.cpp")
-	if is_plat("linux") then
-		--Linux携程
-		add_files("./src/coroutine.cpp")
-		add_files("./src/scheduler.cpp")
-		--子进程
-		add_files("./src/subprocess.cpp")
-	end
+
 	if not is_mode("debug") then
 		add_defines("NDEBUG")
 	end
 	--C组件
 	add_files("./src/libc/*.c")
+	--Fmt
+	add_files("./src/fmt.cpp")
 --SDL部分
 -- target("box_sdl")
 -- 	set_kind("shared")
