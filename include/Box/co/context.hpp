@@ -7,7 +7,7 @@
     #include <ucontext.h>
 #endif
 
-#ifdef _ANDROID_
+#ifdef __ANDROID__
 //Android上用libucontext
 extern "C"{
     extern int getcontext (ucontext_t *uctxt);
@@ -32,8 +32,9 @@ namespace Box{
     namespace Co{
         typedef void(*ContextEntry)(void*);
         struct Context:public libc::ucontext_t{
+            void set_stack(void *ptr,size_t size);
             //设置入口点
-            void set_entry(ContextEntry,void *data = nullptr);
+            void set_entry(ContextEntry,void *data = nullptr);//最后设置
             //切换进入这个上下文
             bool set() const;
             bool operator ()() const;

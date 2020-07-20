@@ -15,6 +15,11 @@ namespace{
 
 namespace Box{
 namespace Co{
+    //设置堆栈
+    void Context::set_stack(void *ptr,size_t size){
+        uc_stack.ss_size = size;
+        uc_stack.ss_sp = ptr;
+    }
     //设置进入点
     void Context::set_entry(ContextEntry entry,void *data){
         libc::makecontext(this,ucontext_wrapper,entry,uc_link,data);
