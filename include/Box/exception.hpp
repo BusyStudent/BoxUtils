@@ -77,5 +77,6 @@ namespace Box{
 			std::string msg;
 	};
 	void Panic(const char *fmt,...);//退出
+	[[noreturn]] void throwNullPtrException();
 };
 #endif

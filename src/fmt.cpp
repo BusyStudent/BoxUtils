@@ -5,9 +5,7 @@
 #include "fmt.hpp"
 namespace Box{
 namespace FmtImpl{
-    std::string Format(const char *fmt,...){
-        va_list varg;
-        va_start(varg,fmt);
+    std::string VFormat(const char *fmt,va_list varg){
         //可变参数
         std::string ret;
         //指针
@@ -23,6 +21,12 @@ namespace FmtImpl{
             ptr = strstr(fmt,"{}");//查找
         }
         ret += fmt;//加入剩下的字符串
+        return ret;
+    };
+    std::string Format(const char *fmt,...){
+        va_list varg;
+        va_start(varg,fmt);
+        std::string ret = VFormat(fmt,varg);
         va_end(varg);
         return ret;
     };

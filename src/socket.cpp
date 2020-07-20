@@ -27,33 +27,6 @@ namespace{
 		return gethostbyaddr(addr,sizeof(sockaddr_in6),AF_INET6);
 		#endif
 	};
-	#ifdef _WIN32
-	//Window inet_ptoa的实现 ntop
-	//IP转地址
-	int inet_pton(int type,const char *str,void *addr){
-		int len;//地址长度
-		if(type == AF_INET){
-			len = sizeof(sockaddr_in);
-		}
-		else{
-			len = sizeof(sockaddr_in6);
-		}
-		//我不知道这个函数会不会改变原本字符串 那个值没有被const
-		return WSAStringToAddress((char*)str,type,nullptr,(sockaddr*)addr,&len);
-	}
-	//地址转IP
-	int inet_ntop(int type,const void *addr,char *buf,unsigned long buflen){
-		int len;//地址长度
-		if(type == AF_INET){
-			len = sizeof(sockaddr_in);
-		}
-		else{
-			len = sizeof(sockaddr_in6);
-		}
-		//这里也是 不知道addr会不会被改变 还有那个最后一个参数 LPDWORD
-		return WSAAddressToString((sockaddr*)addr,len,nullptr,buf,&buflen);
-	}
-	#endif
 };
 //内连函数
 Socket::Socket(NativeSocket fd){
@@ -93,7 +66,7 @@ void Socket::set_nonblock(bool val){
 	}
 	if(ioctlsocket(fd,FIONBIO,&arg) !=0){
 		//失败
-		throw_os_error();
+		SocketError::Throw(Socket::GetErrorCode());
 	}
 	#else
 	//得到flags
@@ -397,7 +370,7 @@ std::string AddrV6::get_host() const{
 //得到IP地址
 std::string AddrV6::get_ip() const{
 	char buf[INET6_ADDRSTRLEN];//缓冲区
-	inet_ntop(AF_INET6,&sin6_addr,buf,sizeof(buf));
+	libc::inet_ntop(AF_INET6,&sin6_addr,buf,sizeof(buf));
 	return std::string(buf);
 }
 uint16_t AddrV6::get_port() const{
@@ -512,27 +485,23 @@ const char *Socket::GetError(){
 void Socket::Pair(Socket *socks[2] ){
 	#ifdef _WIN32
 	//Window是自己的实现
-	Socket *&t1 = socks[0];
-	Socket *&t2 = socks[1];
+	socks[0] = nullptr;
+	socks[1] = nullptr;
 	try{
 		TCP tcp(SockFamily::IPV4);
-		*t2 = new TCP(SockFamily::IPV4);//初始化第二个Socket
+		socks[1] = new TCP(SockFamily::IPV4);//初始化第二个Socket
 		tcp.listen(1);
 		AddrV4 addr;
 		tcp.get_name(addr);
 		//得到主机地址
-		(*t2)->connect(addr);//连接
-		*t1 = tcp.accept();//结束
+		socks[1]->connect(addr);//连接
+		socks[0] = tcp.accept();//结束
 		return;
 	}
-	catch(OSError err){
+	catch(SockError &){
 		//回收资源
-		if(*t1 != nullptr){
-			delete *t1;
-		}
-		if(*t2 != nullptr){
-			delete *t2;
-		}
+		delete socks[0];
+		delete socks[1];
 		throw;//再抛出
 	}
 	#else

@@ -1,9 +1,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 #include "libc/atexit.h"
 #include "libc/mem.h"
 #include "libc.h"
+#ifdef __linux
+    #include <sys/random.h>
+#endif
 LIBC_BEGIN
 //内存
 void *Box_malloc0(size_t n){
@@ -149,6 +153,17 @@ int  Box_strncasecmp(const char *s1, const char *s2, size_t n){
 }
 //随机填充内存
 void *Box_memrand(void *mem,size_t n){
-    
+    #ifdef __linux
+    if(getrandom(mem,n,GRND_NONBLOCK) > 0){
+        return mem;
+    }
+    #endif
+    //使用seed随机生成数据
+    unsigned int seed = time(nullptr);
+    for(size_t i = 0; i < n; i++){
+        seed = seed *1103515245 +12345;
+        ((uint8_t*)mem)[i] =  (uint8_t)((seed/65536) % 32768);
+    }
+    return mem;
 };
 LIBC_END

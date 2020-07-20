@@ -134,4 +134,8 @@ namespace Box{
 	const char *JsonParseError::what() const throw(){
 		return msg.c_str();
 	}
+	//抛出异常函数
+	[[noreturn]] void throwNullPtrException(){
+		throw NullPtrException();
+	};
 };

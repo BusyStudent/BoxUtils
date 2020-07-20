@@ -6,21 +6,20 @@ CXXFLAGS=-g -fPIC -Wall -Wextra
 INCLUDE=../include/Box/
 #主要的对象
 OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net/easy.o net/factory.o net/headers.o net/exception.o\
-	exception.o iconv.o sem.o base64.o socket.o string.o dns.o filesystem.o net/multi.o\
+	exception.o iconv.o sync/sem.o base64.o socket.o string.o dns.o filesystem.o net/multi.o\
 	xml.o xpath.o sax.o timer.o os.o backtrace.o net/share.o\
-	coroutine.o scheduler.o dylib.o logger.o subprocess.o buffer.o ucontext.o\
-	assert.o pixiv.o threadpool.o fmt.o
+	dylib.o logger.o subprocess.o buffer.o\
+	assert.o threadpool.o fmt.o net/url.o\
+	co/context.o
 LIBC_OBJ=libc/mem.o libc/inet.o libc/atexit.o libc/io.o
-LIBEVENT_OBJ=libevent/base.o
 
 OBJ+=$(LIBC_OBJ)
-OBJ+=$(LIBEVENT_OBJ)
 
 #SDL的对象
 #SDL_OBJ=sdl/sdl.o
 #SDL_LDFLAGS=-lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
 
-LDFLAGS=-pthread -lcurl `xml2-config --libs` -levent
+LDFLAGS=-pthread -lcurl `xml2-config --libs`
 XMLFLAGS=`xml2-config --cflags`
 #LIBXML的配置文件
 CXXFLAGS+=-I $(INCLUDE)
@@ -52,19 +51,21 @@ net/exception.o:net/exception.cpp $(INCLUDE)net/exception.hpp
 net/easy.o:net/easy.cpp $(INCLUDE)net/easy.hpp
 net/multi.o:net/multi.cpp $(INCLUDE)net/multi.hpp
 net/share.o:net/share.cpp $(INCLUDE)net/share.hpp
+net/url.o:net/url.cpp $(INCLUDE)net/url.hpp
 #异常
 excepton.o:exception.cpp $(INCLUDE)exception.hpp
 iconv.o:iconv.cpp $(INCLUDE)iconv.hpp
 #字符串编码
-sem.o:sem.cpp $(INCLUDE)sem.hpp
-#信号量
+#线程同步通讯
+sync/sem.o:sync/sem.cpp $(INCLUDE)sync/sem.hpp
+
 base64.o:base64.cpp $(INCLUDE)base64.hpp
 socket.o:socket.cpp $(INCLUDE)socket.hpp
 string.o:string.cpp $(INCLUDE)string.hpp
 dns.o:dns.cpp $(INCLUDE)dns.hpp
 filesystem.o:filesystem.cpp $(INCLUDE)filesystem.hpp
 #计时器
-timer.o:timer.cpp sem.o $(INCLUDE)timer.hpp
+timer.o:timer.cpp sync/sem.o $(INCLUDE)timer.hpp
 xml.o:xml.cpp $(INCLUDE)xml.hpp
 	$(CXX) $(CXXFLAGS) $(XMLFLAGS) xml.cpp -c
 xpath.o:xpath.cpp $(INCLUDE)xpath.hpp $(INCLUDE)xml.hpp
@@ -73,9 +74,7 @@ sax.o:sax.cpp $(INCLUDE)sax.hpp $(INCLUDE)xml.hpp
 	$(CXX) $(CXXFLAGS) $(XMLFLAGS) sax.cpp -c
 #XML解析
 backtrace.o:backtrace.cpp $(INCLUDE)backtrace.hpp
-coroutine.o:coroutine.cpp $(INCLUDE)coroutine.hpp
-#协程的实现 基于ucontext
-scheduler.o:scheduler.cpp $(INCLUDE)scheduler.hpp
+
 #调度器
 dylib.o:dylib.cpp $(INCLUDE)dylib.hpp
 #动态库
@@ -86,12 +85,8 @@ logger.o:logger.cpp $(INCLUDE)logger.hpp
 subprocess.o:subprocess.cpp $(INCLUDE)subprocess.hpp
 #缓冲区
 buffer.o:buffer.cpp $(INCLUDE)buffer.hpp
-#ucontext封装
-ucontext.o:ucontext.cpp $(INCLUDE)ucontext.hpp
 #断言的实现
 assert.o:assert.cpp $(INCLUDE)assert.hpp
-#对Pixiv访问的接口
-pixiv.o:pixiv.cpp $(INCLUDE)pixiv.hpp net/easy.o net/factory.o json.o
 #流抽象
 #stream.o:stream.cpp $(INCLUDE)stream.hpp
 #线程池子
@@ -107,5 +102,7 @@ libc/atexit.o:libc/atexit.c $(INCLUDE)libc/atexit.h
 	$(CC) $(CFLAGS) libc/atexit.c -c -o ./libc/atexit.o
 libc/io.o:libc/io.c $(INCLUDE)libc/io.h
 	$(CC) $(CFLAGS) libc/io.c -c -o ./libc/io.o
+#协程的文件
+co/context.o:co/context.cpp $(INCLUDE)co/context.hpp
 clean:
 	-rm $(OBJ) libbox_utils.so

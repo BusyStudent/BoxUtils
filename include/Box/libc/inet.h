@@ -43,7 +43,7 @@ extern void Box_socket_quit();//关闭
 extern int  Box_closesocket(Box_socket_t sock);//关闭Socket
 //Socket错误代码
 extern int  Box_socket_errno();
-extern int  Box_socket_strerror(int);//格式化错误
+extern const char* Box_socket_strerror(int);//格式化错误
 //连接
 extern int  Box_connect(Box_socket_t sock,const void *addr,Box_socklen_t len);
 //绑定
@@ -53,6 +53,11 @@ extern Box_socket_t Box_accept(Box_socket_t sock,void *addr,Box_socklen_t *len);
 
 extern Box_ssize_t Box_send(Box_socket_t sock,const void *buf,size_t bufsize,int flags);
 extern Box_ssize_t Box_recv(Box_socket_t sock,void *buf,size_t bufsize,int flags);
+//地址转换
+//IP到地址
+extern int Box_inet_pton(int type,const char *str,void *addr);
+//地址到IP
+extern const char *Box_inet_ntop(int type,const void *addr,char *buf,size_t buflen);
 #ifdef __cplusplus
 }
 namespace Box{
@@ -105,6 +110,13 @@ namespace Box{
         }
         inline int connect(socket_t sock,const void *addr,socklen_t len){
             return Box_connect(sock,addr,len);
+        }
+        //地址转换
+        inline int inet_pton(int type,const char *str,void *addr){
+            return Box_inet_pton(type,str,addr);
+        }
+        inline const char* inet_ntop(int type,const void *addr,char *buf,size_t buflen){
+            return Box_inet_ntop(type,addr,buf,buflen);
         }
     };
 };

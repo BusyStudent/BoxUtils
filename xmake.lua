@@ -20,7 +20,7 @@ target("box_utils")
 	--在加载的时候加入依赖
 	on_load(function (target)
 		--CURL的网络部分
-		target:add(find_packages("curl","xml2","event"))
+		target:add(find_packages("curl","xml2"))
 	end)
 	set_kind("shared")
 	--add_links("xml2")
@@ -38,8 +38,9 @@ target("box_utils")
 	add_files("./src/os.cpp")
 	add_files("./src/random.cpp")
 	add_files("./src/filesystem.cpp")
-	add_files("./src/sem.cpp")
-	
+	--add_files("./src/sem.cpp")
+	add_files("./src/sync/*.cpp")
+
 	add_files("./src/timer.cpp")
 	add_files("./src/threadpool.cpp")
 
@@ -59,22 +60,14 @@ target("box_utils")
 	add_files("./src/logger.cpp")
 	add_files("./src/buffer.cpp")
 	add_files("./src/assert.cpp")
-	add_files("./src/pixiv.cpp")
-	add_files("./src/ucontext.cpp")
-	if is_plat("linux") then
-		--Linux携程
-		add_files("./src/coroutine.cpp")
-		add_files("./src/scheduler.cpp")
-		--子进程
-		add_files("./src/subprocess.cpp")
-	end
+
 	if not is_mode("debug") then
 		add_defines("NDEBUG")
 	end
 	--C组件
 	add_files("./src/libc/*.c")
-	--libevent
-	add_files("./src/libevent/*.cpp")
+	--Fmt
+	add_files("./src/fmt.cpp")
 --SDL部分
 -- target("box_sdl")
 -- 	set_kind("shared")

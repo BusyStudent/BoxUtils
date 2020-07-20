@@ -9,6 +9,7 @@
 #include "logger.hpp"
 #include "socket.hpp"
 #include "string.hpp"
+#include "fmt.hpp"
 struct LoggerImpl{
 	//记录器内部实现
 	virtual ~LoggerImpl(){};
@@ -114,7 +115,7 @@ struct NetImpl:public LoggerImpl{
 	}
 	void vprintf(const char *fmt,va_list &varg){
 		//格式化输出
-		auto s = Box::StringHelper::format(fmt,varg);
+		auto s = Box::FmtImpl::VFormat(fmt,varg);
 		socket->send(s.c_str(),s.length() * sizeof(char));
 	}
 	Box::Net::Socket *socket;
