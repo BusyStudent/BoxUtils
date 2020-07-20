@@ -4,8 +4,15 @@
 #include <iosfwd>
 #include <cstddef>
 #include <chrono>
-struct curl_mime_s;
-struct curl_mimepart_s;
+#ifndef _WIN32
+	struct curl_mime_s;
+	struct curl_mimepart_s;
+	typedef curl_mime_s curl_mime;
+	typedef curl_mimepart_s curl_mimepart;
+#else
+	struct curl_mime;
+	struct curl_mimepart;
+#endif
 namespace Box{
 	namespace Net{
 		//简单网络接口
@@ -96,7 +103,7 @@ namespace Box{
 			void set_data(const void *data,size_t datasize);//设置数据从内存中
 			void set_type(const char *type);//设置类型
 			void set_filedata(const char *filename);//设置数据从文件中
-			curl_mimepart_s *part;
+			curl_mimepart *part;
 		};
 		class Mime{
 			public:
@@ -111,7 +118,7 @@ namespace Box{
 				}
 				MimePart addpart();//添加一个部分
 			private:
-				curl_mime_s *mime;//表单数据
+				curl_mime *mime;//表单数据
 			friend class Easy;
 		};
 	};

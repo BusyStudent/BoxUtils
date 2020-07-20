@@ -83,7 +83,7 @@ namespace Backtrace{
 			//unwind
 			//return __Unwind_Backtrace();
 		#endif
-
+		return -1;
 	};
 	void Show(int max) noexcept{
 		//打印调用堆栈

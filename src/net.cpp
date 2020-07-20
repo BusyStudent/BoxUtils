@@ -49,6 +49,6 @@ namespace Box{
 		std::string content;
 		easy.set_ostream(content);
 		easy.perform();
-		return std::move(content);
+		return content;
 	}
 }

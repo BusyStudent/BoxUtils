@@ -275,7 +275,7 @@ namespace LXml{
 		xmlNodeDump(buf,holder->node->doc,holder->node,1,1);
 		std::string str(CastString(buf->content));
 		xmlBufferFree(buf);
-		return std::move(str);
+		return str
 	}
 	//提取出属性
 	std::string Node::operator[](const char *name) const{
@@ -372,7 +372,7 @@ namespace LXml{
 		htmlDocDumpMemoryFormat(holder->xml,&mem,&size,1);
 		std::string str(CastString(mem),size);
 		xmlFree(mem);
-		return std::move(str);
+		return str
 	}
 	//保存
 	void Html::savefile(const char *filename,int fmt,const char *enc){
