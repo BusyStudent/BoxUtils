@@ -1,5 +1,9 @@
+#include <new>
 #include <cstdlib>
+#include <cstring>
+#include <exception>
 #include "co/context.hpp"
+#include "co/task.hpp"
 namespace{
     using Box::Co::ContextEntry;
     void ucontext_wrapper(ContextEntry entry,ucontext_t *next,void *data){
@@ -31,12 +35,35 @@ namespace Co{
     bool Context::operator()() const{
         return Context::set();
     }
-    
+    bool Context::swap(const Context &new_ctxt){
+        return libc::swapcontext(this,&new_ctxt) == 0;
+    }
     //得到当前上下文
     Context ThisContext() noexcept{
         Context ctxt;
         libc::getcontext(&ctxt);
         return ctxt;
     }
+    void *AllocateStack(size_t size){
+        void *ret;
+        #ifdef _WIN32
+            //在Window上以64对齐
+            ret = aligned_alloc(size,64);
+        #else
+            ret = malloc(size);
+        #endif
+        if(ret == nullptr){
+            throw std::bad_alloc();
+        }
+        memset(ret,0,size);
+        return ret;
+    }
+};
+};
+
+namespace Box{
+namespace CoImpl{
+    //当前任务
+    thread_local void *current_task = nullptr;
 };
 };

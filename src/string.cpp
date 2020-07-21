@@ -4,6 +4,7 @@
 #include <cstdarg>
 #include <string>
 #include <vector>
+#include <locale>
 #include <stdexcept>
 #include "base64.hpp"
 #include "string.hpp"

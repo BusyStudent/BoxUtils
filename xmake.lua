@@ -61,6 +61,8 @@ target("box_utils")
 	add_files("./src/buffer.cpp")
 	add_files("./src/assert.cpp")
 
+	add_files("./src/co/*.cpp")
+
 	if not is_mode("debug") then
 		add_defines("NDEBUG")
 	end
@@ -77,6 +79,12 @@ target("box_utils")
 -- 	end)
 -- 	add_files("./src/sdl/*.cpp")
 --测试
+target("box_spider")
+	set_kind("shared")
+	add_includedirs("./include/Box")
+	add_files("./spider/*.cpp")
+	add_deps("box_utils")
+
 target("test_buffer")
 	set_kind("binary")
 	add_includedirs("./include")

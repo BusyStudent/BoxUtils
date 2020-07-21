@@ -9,6 +9,9 @@ namespace Box{
     namespace Sync{
         //单向管道
         template<class T>
+        class PipeIterator;
+
+        template<class T>
         class Pipe{
             public:
                 Pipe(){}
@@ -37,7 +40,7 @@ namespace Box{
                 void read(T &data){
                     //查队列
                     mtx.lock();
-                    if(data_queue.empty()){
+                    while(data_queue.empty()){
                         empty_ev.clear();
                         mtx.unlock();
                         //等待唤醒
@@ -55,7 +58,7 @@ namespace Box{
                 template<class Time>
                 bool read(T &data,const Time &time){
                     mtx.lock();
-                    if(data_queue.empty()){
+                    while(data_queue.empty()){
                         empty_ev.clear();
                         mtx.unlock();
                         
@@ -94,10 +97,33 @@ namespace Box{
                     write(data);
                     return *this;
                 };
+                //读入迭代器
+                typedef PipeIterator<T> iterator;
+                typedef PipeIterator<T> Iterator;
+
+                Iterator begin(){
+                    return Iterator(this);
+                };
+                Iterator end(){
+                    return Iterator(nullptr);
+                };
             private:
                 std::queue<T> data_queue;//数据队列
                 mutable std::mutex mtx;
                 Event empty_ev;
+        };
+        //迭代器
+        template<class T>
+        class PipeIterator{
+            public:
+                PipeIterator(Pipe<T> *p):pipe(p){};
+                PipeIterator<T> &operator ++(){
+                    pipe->read(value);
+                    return *this;
+                };
+            private:
+                Pipe<T> *pipe;
+                T value;
         };
     } // namespace Sync
     

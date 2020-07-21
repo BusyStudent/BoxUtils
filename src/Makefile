@@ -10,7 +10,7 @@ OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net/easy.o net/factory.o net/hea
 	xml.o xpath.o sax.o timer.o os.o backtrace.o net/share.o\
 	dylib.o logger.o subprocess.o buffer.o\
 	assert.o threadpool.o fmt.o net/url.o\
-	co/context.o
+	co/context.o co/ucontext.o
 LIBC_OBJ=libc/mem.o libc/inet.o libc/atexit.o libc/io.o
 
 OBJ+=$(LIBC_OBJ)
@@ -104,5 +104,6 @@ libc/io.o:libc/io.c $(INCLUDE)libc/io.h
 	$(CC) $(CFLAGS) libc/io.c -c -o ./libc/io.o
 #协程的文件
 co/context.o:co/context.cpp $(INCLUDE)co/context.hpp
+co/ucontext.o:co/ucontext.cpp $(INCLUDE)co/ucontext.h
 clean:
 	-rm $(OBJ) libbox_utils.so

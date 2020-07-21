@@ -2,7 +2,7 @@
 #define _BOX_CO_CONTEXT_HPP_
 
 #if defined(_WIN32)
-    #warning 
+    #include "ucontext.h"
 #else
     #include <ucontext.h>
 #endif
@@ -38,9 +38,13 @@ namespace Box{
             //切换进入这个上下文
             bool set() const;
             bool operator ()() const;
+            //交换上下文
+            bool swap(const Context &);
         };
         //当前的上下文
         Context ThisContext() noexcept;
+        //申请堆栈
+        void *AllocateStack(size_t stack_size);
     };
 };
 
