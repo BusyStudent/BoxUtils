@@ -20,9 +20,9 @@ jobs:
         xmake-version: latest
     - name: Build release
       run: xmake
-    
+
     - name: update release
-    - uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v2
       with:
           name: libbox_utils.so
           path: ./build/linux/x86_64/release/libbox_utils.so
