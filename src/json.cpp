@@ -96,7 +96,7 @@ void Json::print() const{
 }
 //解析函数
 Json Json::ParseString(const char *str){
-	#if defined(__STDC_NO_THREADS__) || defined(_WIN32)
+	#if defined(__STDC_NO_THREADS__) || defined(_WIN32) || defined(__ANDROID__)
 	//线程不安全 加锁
 	static std::mutex mtx;
 	std::lock_guard<std::mutex> locker(mtx);

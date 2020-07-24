@@ -67,7 +67,7 @@
 #undef false
 #endif
 #define false ((cJSON_bool)0)
-#if !defined(__STDC_NO_THREADS__) && !defined(_WIN32)
+#if !defined(__STDC_NO_THREADS__) && !defined(_WIN32) && !defined(__ANDROID__)
     //no std threads
     #include <threads.h>
 #else
