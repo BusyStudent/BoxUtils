@@ -1,54 +1,86 @@
-#include "dylib.hpp"
 #ifdef _WIN32
-	#include <window.hpp>
+	#include <windows.h>
 #else
 	#include <dlfcn.h>
 #endif
-using namespace Box;
-Dylib::Dylib(){
-	//把指针给为nullptr
-	handle = nullptr;
-	err = "";
-}
-Dylib::~Dylib(){
-	this->close();
-}
-bool Dylib::open(const char *lib,int mode){
-	//打开库
-	if(mode == 0){
-		mode = RTLD_NOW;
+#include <cerrno>
+#include <stdexcept>
+#include "dylib.hpp"
+#include "exception.hpp"
+namespace Box{
+	//Windows的module
+	struct WinModule{
+		HMODULE mod;
+	};
+	Library::Library(const char *filename){
+		handle = OpenLibrary(filename);
+		if(handle == nullptr){
+			#ifdef _WIN32
+			char buf[128];
+			FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,
+				nullptr,
+				GetLastError(),
+				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+				buf,
+				sizeof(buf),
+				nullptr);
+			//格式化错误
+			throw std::runtime_error(buf);
+			#else
+			throw std::runtime_error(dlerror());
+			#endif
+		}
 	}
-	handle = dlopen(lib,mode);
-	if(handle == nullptr){
-		//得到错误
-		err = dlerror();
+	Library::~Library(){
+		CloseLibrary(handle);
+	}
+	void *Library::find(const char *name){
+		return FindFunction(handle,name);
+	}
+	//一些函数
+	void *OpenLibrary(const char *filename){
+		#ifdef _WIN32
+		HMODULE mod = LoadLibraryA(filename);
+		//打开库
+		if(mod == nullptr){
+			return nullptr;
+		}
+		else{
+			return new WinModule{
+				mod
+			};
+		}
+		#else
+		return dlopen(filename,RTLD_DEFAULT);
+		#endif
+	};
+	void *FindFunction(void *handle,const char *name){
+		#ifdef _WIN32
+		if(handle == nullptr){
+			throwNullPtrException();
+		}
+		else{
+			return reinterpret_cast<void*>(GetProcAddress(static_cast<WinModule*>(handle)->mod,name));
+		}
+		#else
+		return dlsym(handle,name);
+		#endif
+	}
+	bool  CloseLibrary(void *handle){
+		#ifdef _WIN32
+		WinModule *mod = static_cast<WinModule*>(handle);
+		if(mod != nullptr){
+			WINBOOL ret = FreeLibrary(mod->mod);
+			delete mod;
+			return ret == TRUE ? true : false;
+		}
 		return false;
-	}
-	return true;
-}
-bool Dylib::close(){
-	if(handle == nullptr){
+		#else
+
+		if(handle != nullptr){
+			return dlclose(handle) == 0;
+		}
 		return false;
-	}
-	if(dlclose(handle) == 0){
-		//OK
-		handle = nullptr;
-		return true;
-	}
-	//得到错误
-	err = dlerror();
-	return false;
-}
-//得到错误
-const char *Dylib::get_error() const{
-	return err;
-}
-//查找符号
-void *Dylib::find(const char *symbol){
-	void *s = dlsym(handle,symbol);
-	if(s == nullptr){
-		//失败
-		err = dlerror();
-	}
-	return s;
-}
+		#endif
+	};
+};

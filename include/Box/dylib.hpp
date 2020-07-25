@@ -15,5 +15,24 @@ namespace Box{
 			const char *err;//错误信息
 			void *handle;
 	};
+	//库
+	class Library{
+		public:
+			Library(const char *filename);
+			Library(const Library &) = delete;
+			Library(Library &&);
+			~Library();
+			void *find(const char *name);
+			static const char *GetError();//得到错误
+		private:
+			void *handle;
+	};
+	//一些函数
+	void *FindFunction(void *handle,const char *name);
+	//查找函数
+	void *OpenLibrary(const char *filename);
+	//打开库
+	bool  CloseLibrary(void *handle);
+	//关闭库
 };
 #endif

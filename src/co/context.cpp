@@ -4,6 +4,7 @@
 #include <exception>
 #include "co/context.hpp"
 #include "co/task.hpp"
+#include "libc/mem.h"
 namespace{
     using Box::Co::ContextEntry;
     void ucontext_wrapper(ContextEntry entry,ucontext_t *next,void *data){
@@ -48,7 +49,7 @@ namespace Co{
         void *ret;
         #ifdef _WIN32
             //在Window上以64对齐
-            ret = aligned_alloc(size,64);
+            ret = libc::aligned_alloc(64,size);
         #else
             ret = malloc(size);
         #endif

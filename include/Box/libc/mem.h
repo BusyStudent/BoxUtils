@@ -13,6 +13,7 @@ typedef void*(*Box_allocator_t)(size_t);
 extern void *Box_malloc0(size_t n);//申请一块内存 初始化为0
 extern void *Box_realloc0(void *ptr,size_t old_n,size_t new_n);//重新申请 把新的地方设置为0
 //如果ptr为nullptr old_n为0 那会等效与Box_malloc0 否则返回nullptr
+extern void *Box_aligned_alloc(size_t align,size_t size);//内存对齐的申请内存
 extern void *Box_memdup(const void *mem,size_t size,Box_allocator_t);//复制内存
 extern void *Box_memdupfrom(const void *mem_begin,const void *mem_end,Box_allocator_t);
 //查找内存块 查找mem2 在mem1中
@@ -75,6 +76,9 @@ namespace Box{
         template<class T>
         T*    realloc0(T *ptr,size_t old_n,size_t new_n){
             return static_cast<T*>(::Box_realloc0(ptr,old_n,new_n));
+        }
+        inline void *aligned_alloc(size_t aligned,size_t size){
+            return Box_aligned_alloc(aligned,size);
         }
         //字符串复制一份
         inline char *strdup(const char *str,allocator allocate = malloc){

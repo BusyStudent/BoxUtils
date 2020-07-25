@@ -22,9 +22,12 @@
 
 #ifdef _WIN32
 
+#include <signal.h>
+
 #include "co/ucontext.h"
 #include <cstdarg>
 #include <cstdio>
+#include <cerrno>
 #include <thread>
 #include <mutex>
 
@@ -32,34 +35,98 @@
 #include "sync/pipe.hpp"
 #include "sync/sem.hpp"
 
+#include "libc/atexit.h"
+
 namespace{
 	using Box::Sync::Pipe;
 	using Box::Sync::Event;
+
+	using namespace Box;
+
 	struct Message{
 		HANDLE target;//handle to get context
+		LPCONTEXT mcontext;
 		int *ret;//ret value pointer
-		Event wait_ev;
+		Event *wait_ev;
+		bool quit;//Quit Thread
 	};
 	struct HelperThread{
 		std::thread th;
+		Pipe<Message> pipeline;
+		void run();
+		//get thread context
+		int get_context(LPCONTEXT ctxt);
 	};
+	static HelperThread *helper = nullptr;
+	void quit_thread(){
+		//Send to quit thread
+		helper->pipeline.write(Message{
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr,
+			true
+		});
+		helper->th.join();
+		delete helper;
+		helper = nullptr;
+	}
+	void check_init(){
+		//is the thread started?
+		if(helper != nullptr){
+			helper = new HelperThread();
+			helper->th = std::thread([](){
+				helper->run();
+			});
+			libc::atexit_once(quit_thread);
+		}
+	}
+	void HelperThread::run(){
+		for(auto &msg:pipeline){
+			if(msg.quit){
+				//quit the helper thread
+				return;
+			}
+			else{
+				*(msg.ret) = GetThreadContext(msg.target,msg.mcontext);
+				//Wake up
+				msg.wait_ev->set();
+			}
+		}
+	}
+	int HelperThread::get_context(LPCONTEXT ctxt){
+		int ret;
+		Message msg{
+			.target = GetCurrentThread(),
+			.mcontext = ctxt,
+			.ret = &ret,
+			.wait_ev = new Event(),
+			.quit = false
+		};
+		pipeline << msg;
+		msg.wait_ev->wait();
+		delete msg.wait_ev;
+		return ret;
+	}
 };
 
 extern "C"{
 
 int getcontext(ucontext_t *ucp)
 {
+	check_init();
 	int ret;
 
 	/* Retrieve the full machine context */
 	ucp->uc_mcontext.ContextFlags = CONTEXT_FULL;
-	ret = GetThreadContext(GetCurrentThread(), &ucp->uc_mcontext);
-
+	//ret = GetThreadContext(GetCurrentThread(), &ucp->uc_mcontext);
+	ret = helper->get_context(&ucp->uc_mcontext);
 	return (ret == 0) ? -1: 0;
 }
 
 int setcontext(const ucontext_t *ucp)
 {
+	check_init();
 	int ret;
 	
 	/* Restore the full machine context (already set) */
@@ -69,6 +136,7 @@ int setcontext(const ucontext_t *ucp)
 
 int makecontext(ucontext_t *ucp, void (*func)(), int argc, ...)
 {
+	check_init();
 	int i;
     va_list ap;
 	char *sp;
@@ -109,10 +177,12 @@ int makecontext(ucontext_t *ucp, void (*func)(), int argc, ...)
 
 int swapcontext(ucontext_t *oucp, const ucontext_t *ucp)
 {
+	check_init();
 	int ret;
 
 	if ((oucp == NULL) || (ucp == NULL)) {
 		/*errno = EINVAL;*/
+		_set_errno(EINVAL);
 		return -1;
 	}
 

@@ -121,6 +121,18 @@ namespace Box{
                     pipe->read(value);
                     return *this;
                 };
+                bool operator !=(const PipeIterator<T> &iter) const noexcept{
+                    return iter.pipe != pipe;
+                }
+                bool operator ==(const PipeIterator<T> &iter) const noexcept{
+                    return iter.pipe == pipe;
+                }
+                T &operator *() noexcept{
+                    return value;
+                }
+                const T &operator *() const noexcept{
+                    return value;
+                }
             private:
                 Pipe<T> *pipe;
                 T value;

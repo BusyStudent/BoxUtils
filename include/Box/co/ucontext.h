@@ -24,7 +24,7 @@
 #define UCONTEXT_H
 
 #ifdef __cplusplus
-extern "C"
+extern "C"{
 #endif
 
 #include <windows.h>

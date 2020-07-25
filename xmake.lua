@@ -7,7 +7,7 @@ if is_plat("windows") then
 	add_links("ws2_32")
 	--WinSocket
 	add_requires("xml2","curl",{optional = true})
-else
+elseif is_plat("linux") then
 	add_includedirs("/usr/include/libxml2")
 end
 -- 库
@@ -18,14 +18,32 @@ target("box_utils")
 	add_includedirs("./include/Box")
 	--设置种类
 	--在加载的时候加入依赖
-	on_load(function (target)
-		--CURL的网络部分
-		target:add(find_packages("curl","xml2"))
-	end)
 	set_kind("shared")
 	--add_links("xml2")
 	--add_links("curl")
 	-- add files
+	on_load(function(target)
+		target:add(find_packages("xml2","curl"))
+	end)
+	if not is_mode("debug") then
+		add_defines("NDEBUG")
+	end
+	--检查LIBXML2
+	if has_package("xml2") then
+		--LIBXML2
+		add_files("./src/xpath.cpp")
+		add_files("./src/xml.cpp")
+	else
+		print("Warning package xml2 not found")
+	end
+	
+	if has_package("curl") then
+		--CURL网络部分
+		add_files("./src/net/*.cpp")
+		add_files("./src/net.cpp")
+	else
+		print("Warning package curl not found")
+	end
 	add_files("./src/cJSON.c")
 	add_files("./src/cJSON_Utils.c")
 	add_files("./src/socket.cpp")
@@ -48,12 +66,8 @@ target("box_utils")
 	add_files("./src/json.cpp")
 	add_files("./src/iconv.cpp")
 	add_files("./src/dylib.cpp")
-	--CURL网络部分
-	add_files("./src/net/*.cpp")
-	add_files("./src/net.cpp")
-	--LIBXML2
-	add_files("./src/xpath.cpp")
-	add_files("./src/xml.cpp")
+	
+	
 	
 	--add_files("./src/channal.cpp")
 	add_files("./src/backtrace.cpp")
@@ -62,10 +76,6 @@ target("box_utils")
 	add_files("./src/assert.cpp")
 
 	add_files("./src/co/*.cpp")
-
-	if not is_mode("debug") then
-		add_defines("NDEBUG")
-	end
 	--C组件
 	add_files("./src/libc/*.c")
 	--Fmt

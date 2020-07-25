@@ -19,6 +19,11 @@ void *Box_malloc0(size_t n){
     memset(mem,0,n);
     return mem;
 }
+void *Box_aligned_alloc(size_t aligned,size_t size){
+    size_t n = size & aligned;
+    //补全
+    return malloc(size + aligned - n);
+}
 void *Box_realloc0(void *ptr,size_t old_n,size_t new_n){
     if(ptr == nullptr){
         if(old_n == 0){
