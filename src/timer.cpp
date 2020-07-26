@@ -1,3 +1,4 @@
+#define _BOX_SOURCE
 #include <algorithm>
 #include <ctime>
 #include <chrono>
@@ -5,6 +6,7 @@
 #include <mutex>
 #include <atomic>
 #include <thread>
+#include "threadpool.hpp"
 #include "atomic.hpp"
 #include "debug.hpp"
 #include "timer.hpp"
@@ -29,6 +31,7 @@ namespace Box{
 namespace{
 	using Box::Sync::Atomic;
 	using Box::Sync::Event;
+	using Box::StartThread;
 	struct TimerData{
 		Box::Timer::Callback callback;//回调
 		std::chrono::microseconds ms;//剩下的时间
@@ -40,7 +43,11 @@ namespace{
 	TimerImpl *timer_impl = nullptr;
 	struct TimerImpl{
 		//计时器线程
-		TimerImpl():running(true),th([this](){run();}){
+		TimerImpl():running(true),th(StartThread(
+			[](void *self){
+				static_cast<TimerImpl*>(self)->run();
+			},this
+		)){
 
 		}
 		TimerImpl(const TimerImpl &) = delete;

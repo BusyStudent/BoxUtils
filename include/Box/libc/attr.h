@@ -35,4 +35,12 @@
 #else
     #warning do not support it
 #endif
+
+#ifdef _BOX_SOURCE
+    //原代码文件
+    #define BOXAPI BOX_EXPORT
+#else
+    #define BOXAPI BOX_IMPORT
+#endif
+
 #endif

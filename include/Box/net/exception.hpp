@@ -39,21 +39,6 @@ namespace Box{
 				int code;
 				std::string msg;
 		};
-		//Socket的错误
-		class SocketError:public std::exception{
-			public:
-				SocketError(int code);
-				SocketError(const SocketError &);
-				~SocketError();
-				int code() const noexcept{
-					return errcode; 
-				};//错误代码
-				const char *what() const noexcept;
-				[[noreturn]] static void Throw(int code);
-			private:
-				int errcode;
-				std::string msg;//信息
-		};
 	};
 };
 #endif

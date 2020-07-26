@@ -7,10 +7,10 @@
 #else
 	#include <netinet/in.h> 
 #endif
-#include "libc/types.h"
 #include <ctime>
 #include <cstdio>
 #include <string>
+#include <exception>
 namespace Box{
 	class OSError;//定义在exception.hpp 
 	//基本的Socket
@@ -24,6 +24,21 @@ namespace Box{
 			//错误代码
 			AGAIN = EAGAIN,//再试一遍
 			WOULDBLOCK = EWOULDBLOCK,
+		};
+		//Socket的错误
+		class SocketError:public std::exception{
+			public:
+				SocketError(int code);
+				SocketError(const SocketError &);
+				~SocketError();
+				int code() const noexcept{
+					return errcode; 
+				};//错误代码
+				const char *what() const noexcept;
+				[[noreturn]] static void Throw(int code);
+			private:
+				int errcode;
+				std::string msg;//信息
 		};
 		struct AddrV4:public sockaddr_in{
 			//IPV4的地址
@@ -80,7 +95,11 @@ namespace Box{
 		};
 		class Socket{
 			public:
-				using ssize_t = libc::ssize_t;//使用ssize_t
+				#ifdef _WIN32
+				using ssize_t = SSIZE_T;
+				#else
+				using ssize_t = ::ssize_t;//使用ssize_t
+				#endif
 				Socket(const Socket &) = delete;
 				Socket(Socket &&);
 				Socket(NativeSocket fd);

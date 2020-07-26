@@ -1,3 +1,4 @@
+#define _BOX_SOURCE
 #include <condition_variable>
 #include <thread>
 #include <future>
@@ -198,4 +199,8 @@ namespace Box{
         }
         return n;
     }
+    //启动线程
+    BOXAPI std::thread StartThread(void(*fn)(void*),void *arg){
+        return std::thread(fn,arg);
+    };
 };

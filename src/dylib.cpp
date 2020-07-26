@@ -9,9 +9,11 @@
 #include "exception.hpp"
 namespace Box{
 	//Windows的module
+	#ifdef _WIN32
 	struct WinModule{
 		HMODULE mod;
 	};
+	#endif
 	Library::Library(const char *filename){
 		handle = OpenLibrary(filename);
 		if(handle == nullptr){
@@ -51,7 +53,7 @@ namespace Box{
 			};
 		}
 		#else
-		return dlopen(filename,RTLD_DEFAULT);
+		return dlopen(filename,RTLD_LAZY);
 		#endif
 	};
 	void *FindFunction(void *handle,const char *name){

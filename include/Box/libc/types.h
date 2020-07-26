@@ -3,7 +3,8 @@
 //各种操作系统的类型
 #ifdef _WIN32
     //Windows
-    #include <BaseTsd.h>
+    #include <winsock2.h>
+    #include <windows.h>
     typedef SOCKET  Box_socket_t;
     typedef SSIZE_T Box_ssize_t;
     typedef HANDLE  Box_fd_t;

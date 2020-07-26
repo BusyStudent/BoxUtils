@@ -8,6 +8,7 @@
 #include "exception.hpp"
 #include "socket.hpp"
 #include "libc/inet.h"
+#include "libc/types.h"
 using namespace Box::Net;
 using namespace Box;
 namespace{
@@ -515,3 +516,24 @@ void Socket::Pair(Socket *socks[2] ){
 	//创建Socket
 	#endif
 }
+namespace Box{
+namespace Net{
+	//SocketError
+	SocketError::SocketError(int code):
+		errcode(code),msg(OSError::Format(code,nullptr,nullptr)){
+		//初始化错误
+	}
+	SocketError::SocketError(const SocketError &err):
+		errcode(err.errcode),msg(err.msg){
+
+	}
+	SocketError::~SocketError(){}
+	//输出
+	const char *SocketError::what() const noexcept{
+		return msg.c_str();
+	}
+	void SocketError::Throw(int code){
+		throw SocketError(code);
+	}
+};
+};

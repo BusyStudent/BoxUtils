@@ -1,3 +1,4 @@
+#define _BOX_SOURCE
 #include <functional>
 #include <cstring>
 #include <string>

@@ -6,11 +6,12 @@
 #include <cstdio>
 #include <cstdarg>
 #include <cstring>
+#include "libc/attr.h"
 namespace Box{
     namespace FmtImpl{
         //Fmt的实现
-        std::string Format(const char *fmt,...);
-        std::string VFormat(const char *fmt,va_list varg);
+        extern std::string Format(const char *fmt,...);
+        extern std::string VFormat(const char *fmt,va_list varg);
     } // namespace FmtImpl
     namespace Fmt{
         //到字符串

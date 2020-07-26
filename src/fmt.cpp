@@ -1,3 +1,4 @@
+#define _BOX_SOURCE
 #include <string>
 #include <cstring>
 #include <cstdarg>
@@ -5,7 +6,7 @@
 #include "fmt.hpp"
 namespace Box{
 namespace FmtImpl{
-    std::string VFormat(const char *fmt,va_list varg){
+    BOXAPI std::string VFormat(const char *fmt,va_list varg){
         //可变参数
         std::string ret;
         //指针
@@ -23,7 +24,7 @@ namespace FmtImpl{
         ret += fmt;//加入剩下的字符串
         return ret;
     };
-    std::string Format(const char *fmt,...){
+    BOXAPI std::string Format(const char *fmt,...){
         va_list varg;
         va_start(varg,fmt);
         std::string ret = VFormat(fmt,varg);

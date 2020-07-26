@@ -4,6 +4,7 @@
 #include <string>
 #include <iosfwd>
 #include <initializer_list>
+#include "libc/attr.h"
 #include "refptr.hpp"
 struct cJSON;//替代了#include "cJSON.h"
 namespace Box{
@@ -17,7 +18,7 @@ namespace Box{
 		bool ref;//是否是引用
 	};
 	class JsonIterator;
-	class Json{
+	class BOXAPI Json{
 		public:
 			//一些数据定义
 			typedef JsonIterator iterator;
@@ -179,7 +180,7 @@ namespace Box{
 		friend class JsonIterator;
 	};
 	//迭代器的实现
-	class JsonIterator{
+	class BOXAPI JsonIterator{
 		public:
 			JsonIterator(cJSON *cjson,cJSON *prev = nullptr);
 			~JsonIterator();

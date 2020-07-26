@@ -4,6 +4,7 @@
 #include <string>
 #include <iosfwd>
 #include <exception>
+#include "libc/attr.h"
 #include "refptr.hpp"
 struct _xmlDoc;
 struct _xmlNode;
@@ -19,7 +20,7 @@ namespace Box{
 		};
 		extern const char *DefaultVersion;//默认的版本
 		extern const char *DefaultEncoding;//默认编码方式
-		class Error:public std::exception{
+		class BOXAPI Error:public std::exception{
 			//错误
 			public:
 				Error(_xmlError *errptr);
@@ -45,7 +46,7 @@ namespace Box{
 			_xmlNode *node;
 			bool ref;
 		};
-		class Node{
+		class BOXAPI Node{
 			//节点
 			public:
 				Node(_xmlNode *node,bool ref = false);
@@ -91,7 +92,7 @@ namespace Box{
 			friend class XPath::ObjectIter;
 		};
 		class Html;
-		class Xml{
+		class BOXAPI Xml{
 			public:
 				typedef LXml::Node Node;
 				Xml(const char *version = DefaultVersion);
@@ -126,7 +127,7 @@ namespace Box{
 			friend class XPath::Context;
 			//friend class XPath::ObjectIter;
 		};
-		class Html:public Xml{
+		class BOXAPI Html:public Xml{
 			public:
 				typedef LXml::Node Node;
 				using Xml::Xml;
@@ -142,10 +143,10 @@ namespace Box{
 				static Html ParseString(const char *str);
 				static Html ParseString(const std::string &);
 		};
-		void Init();//初始化
-		void Quit();//退出
-		void *Malloc(size_t byte);
-		void  Free(void *mem);
+		extern void Init();//初始化
+		extern void Quit();//退出
+		extern void *Malloc(size_t byte);
+		extern void  Free(void *mem);
 	};
 	typedef LXml::Xml Xml;
 	typedef LXml::Html Html;

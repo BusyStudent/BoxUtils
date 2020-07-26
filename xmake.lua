@@ -3,10 +3,15 @@ set_project("BoxUtils")
 set_version("0.1")
 if is_plat("windows") then
 	-- Win32的储存库
-	cprint("${red}不是Linux平台 coroutine被禁用")
+	--print("不是Linux平台 coroutine被禁用")
 	add_links("ws2_32")
 	--WinSocket
 	add_requires("xml2","curl",{optional = true})
+elseif is_plat("mingw") then
+	--Mingw编译
+	add_links("ws2_32","iconv")
+	add_cxxflags("-Wl,--export-all-symbols")
+	add_cflags("-Wl,--export-all-symbols")
 elseif is_plat("linux") then
 	add_includedirs("/usr/include/libxml2")
 end

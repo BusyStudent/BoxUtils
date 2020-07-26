@@ -4,12 +4,16 @@
 #include <condition_variable>
 #include <functional>
 #include <future>
-#include <list>
+#include <thread>
 #include <mutex>
+#include <list>
 #include <memory>
+
+
+#include "libc/attr.h"
 #include "sem.hpp"
 namespace Box{
-    class ThreadPool{
+    class BOXAPI ThreadPool{
         //线程池子
         public:
             //入口点
@@ -63,5 +67,6 @@ namespace Box{
             //没有任务的事件
             mutable Sync::Event empty_event;
     };
+    BOXAPI std::thread StartThread(void(*fn)(void*),void *arg);
 };
 #endif

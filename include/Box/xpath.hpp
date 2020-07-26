@@ -2,6 +2,7 @@
 #define _BOX_XPATH_HPP_
 //XPath表达式
 #include <string>
+#include "libc/attr.h"
 #include "xml.hpp"
 #include "dataguard.hpp"
 struct _xmlXPathContext;
@@ -15,7 +16,7 @@ namespace Box{
 		namespace XPath{
 			class Object;
 			class Expression;
-			class Context{
+			class BOXAPI Context{
 				//内容
 				public:
 					Context(Xml &);
@@ -33,7 +34,7 @@ namespace Box{
 					RefPtr <LXml::XmlHolder> holder;//包裹Xml
 					//防止xml超出范围后销毁掉 使结果失效
 			};
-			class ObjectIter{
+			class BOXAPI ObjectIter{
 				//迭代器
 				public:
 					ObjectIter(const RefData <_xmlXPathObject*> &,_xmlNode *node,int where);
@@ -54,7 +55,7 @@ namespace Box{
 					Node node;
 					int where;//所在位置
 			};
-			class Object{
+			class BOXAPI Object{
 				//得到的结果
 				public:
 					typedef ObjectIter iterator;
@@ -88,7 +89,7 @@ namespace Box{
 					RefPtr <LXml::XmlHolder> holder;
 					//防止xml超出范围后销毁掉 使结果失效
 			};
-			class Expression{
+			class BOXAPI Expression{
 				//表达式
 				public:
 					Expression(const char *exp);

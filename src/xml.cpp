@@ -1,3 +1,4 @@
+#define _BOX_SOURCE
 #include <libxml/xmlstring.h>
 #include <libxml/tree.h>
 #include <libxml/parser.h>

@@ -2,11 +2,12 @@
 #define _BOX_TIME_HPP_
 //时间的操作
 #include <chrono>
+#include "libc/attr.h"
 namespace Box{
 	namespace Time{
 		void USleep(int us);
 	};
-	class Timer{
+	class BOXAPI Timer{
 		public:
 			/*
 			Timer();

@@ -1,3 +1,4 @@
+#define _BOX_SOURCE
 #include <libxml/tree.h>
 #include <libxml/xpath.h>
 #include <utility>
@@ -124,7 +125,7 @@ namespace XPath{
 		}
 		std::string str((const char *)mem);
 		xmlFree(mem);
-		return std::move(str);
+		return str;
 	}
 	//迭代器操作
 	ObjectIter::ObjectIter(const RefData <_xmlXPathObject*> &_obj,_xmlNode *nodeptr,int where)

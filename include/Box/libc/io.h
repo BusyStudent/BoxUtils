@@ -16,7 +16,7 @@ extern "C"{
 //打开方式
 enum{
     #ifdef _WIN32
-
+    BOX_EMPTY = 0
     #else
     //Linux
     BOX_O_CREATE = O_CREAT,//创建
