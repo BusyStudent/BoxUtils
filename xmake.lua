@@ -5,16 +5,17 @@ if is_plat("windows") then
 	-- Win32的储存库
 	--print("不是Linux平台 coroutine被禁用")
 	add_links("ws2_32")
+	add_requires("libiconv")
 	--WinSocket
-	add_requires("xml2","curl",{optional = true})
 elseif is_plat("mingw") then
 	--Mingw编译
-	add_links("ws2_32","iconv")
-	add_cxxflags("-Wl,--export-all-symbols")
-	add_cflags("-Wl,--export-all-symbols")
+	add_links("ws2_32","iconv","pthread","dl")
 elseif is_plat("linux") then
-	add_includedirs("/usr/include/libxml2")
+	add_links("pthread","dl")
+elseif is_plat("macosx") then
+	add_requires("libiconv")
 end
+add_requires("libxml-2.0","libcurl")
 -- 库
 target("box_utils")
 	add_cxxflags("-std=c++17")
@@ -28,7 +29,7 @@ target("box_utils")
 	--add_links("curl")
 	-- add files
 	on_load(function(target)
-		target:add(find_packages("xml2","curl"))
+		target:add(find_packages("libxml-2.0","libcurl"))
 	end)
 	if not is_mode("debug") then
 		add_defines("NDEBUG")
@@ -38,16 +39,12 @@ target("box_utils")
 		--LIBXML2
 		add_files("./src/xpath.cpp")
 		add_files("./src/xml.cpp")
-	else
-		print("Warning package xml2 not found")
 	end
 	
 	if has_package("curl") then
 		--CURL网络部分
 		add_files("./src/net/*.cpp")
 		add_files("./src/net.cpp")
-	else
-		print("Warning package curl not found")
 	end
 	add_files("./src/cJSON.c")
 	add_files("./src/cJSON_Utils.c")
