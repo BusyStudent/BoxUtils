@@ -10,8 +10,8 @@
 namespace Box{
     namespace FmtImpl{
         //Fmt的实现
-        extern std::string Format(const char *fmt,...);
-        extern std::string VFormat(const char *fmt,va_list varg);
+        extern BOXAPI std::string Format(const char *fmt,...);
+        extern BOXAPI std::string VFormat(const char *fmt,va_list varg);
     } // namespace FmtImpl
     namespace Fmt{
         //到字符串
@@ -30,6 +30,9 @@ namespace Box{
             return buf;
         };
         inline std::string ToString(const char *str){
+            return str;
+        };
+        inline std::string ToString(char *str){
             return str;
         };
         //格式化

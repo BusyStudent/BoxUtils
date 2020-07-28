@@ -1,3 +1,4 @@
+#define _BOX_SOURCE
 #include <string>
 #include <cerrno>
 #include <cstring>
@@ -7,8 +8,9 @@
 #include "backtrace.hpp"
 #include "exception.hpp"
 #include "socket.hpp"
+#include "fmt.hpp"
 #include "libc/inet.h"
-#include "libc/types.h"
+#include "libc/atexit.h"
 using namespace Box::Net;
 using namespace Box;
 namespace{
@@ -259,7 +261,24 @@ NativeSocket Socket::Create(int domain,int type,int prot){
 	//创建一下
 	if(BOX_SOCKET_INVAID(sock)){
 		//失败
-		SocketError::Throw(Socket::GetErrorCode());
+		#ifdef _WIN32
+		int code = WSAGetLastError();
+		if(code == WSANOTINITIALISED){
+			//如果没初始化
+			libc::socket_init();
+			libc::atexit_once(libc::socket_quit);
+			sock = socket(domain,type,prot);
+			//再申请一次
+			if(BOX_SOCKET_INVAID(sock)){
+				throwSocketError();
+			}
+		}
+		else{
+			throwSocketError();
+		}
+		#else
+		throwSocketError();
+		#endif
 	}
 	return sock;
 }
@@ -473,10 +492,21 @@ int Socket::GetErrorCode(){
 		return errno;
 	#endif
 }
-const char *Socket::GetError(){
+std::string Socket::GetError(){
 	//得到错误
 	#ifdef _WIN32
-		return strerror(WSAGetLastError());
+		char *buf = nullptr;
+		FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+			nullptr,
+			WSAGetLastError(),
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			(LPSTR)&buf,
+			0,
+			nullptr);
+		//格式化错误信息
+		std::string msg(buf);
+		LocalFree(buf);
+		return msg;
 	#else
 		return strerror(errno);
 	#endif
@@ -519,8 +549,30 @@ void Socket::Pair(Socket *socks[2] ){
 namespace Box{
 namespace Net{
 	//SocketError
+	//格式化错误
+	std::string FormatError(int code){
+		using Box::Format;
+		char *os_msg;//系统错误
+		#ifdef _WIN32
+		FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+			nullptr,
+			code,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			(LPSTR)&os_msg,
+			0,
+			nullptr);
+		//转换SocketError
+		#else
+		os_msg = strerror(code);
+		#endif
+		std::string ret = Format("[SockError {}] {}",code,os_msg);
+		#ifdef _WIN32
+		LocalFree(os_msg);
+		#endif
+		return ret;
+	}
 	SocketError::SocketError(int code):
-		errcode(code),msg(OSError::Format(code,nullptr,nullptr)){
+		errcode(code),msg(FormatError(code)){
 		//初始化错误
 	}
 	SocketError::SocketError(const SocketError &err):
@@ -532,7 +584,10 @@ namespace Net{
 	const char *SocketError::what() const noexcept{
 		return msg.c_str();
 	}
-	void SocketError::Throw(int code){
+	[[noreturn]] void SocketError::Throw(int code){
+		throw SocketError(code);
+	}
+	BOXAPI [[noreturn]] void throwSocketError(int code){
 		throw SocketError(code);
 	}
 };

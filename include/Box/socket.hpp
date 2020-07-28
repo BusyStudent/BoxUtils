@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <string>
 #include <exception>
+#include "libc/attr.h"
 namespace Box{
 	class OSError;//定义在exception.hpp 
 	//基本的Socket
@@ -22,11 +23,17 @@ namespace Box{
 		#endif
 		enum class SockError{
 			//错误代码
+			#ifdef _WIN32
+			//在非堵塞下 再试一遍
+			AGAIN = WSAEWOULDBLOCK,
+			WOULDBLOCK = WSAEWOULDBLOCK,
+			#else
 			AGAIN = EAGAIN,//再试一遍
 			WOULDBLOCK = EWOULDBLOCK,
+			#endif
 		};
 		//Socket的错误
-		class SocketError:public std::exception{
+		class BOXAPI SocketError:public std::exception{
 			public:
 				SocketError(int code);
 				SocketError(const SocketError &);
@@ -40,7 +47,7 @@ namespace Box{
 				int errcode;
 				std::string msg;//信息
 		};
-		struct AddrV4:public sockaddr_in{
+		struct BOXAPI AddrV4:public sockaddr_in{
 			//IPV4的地址
 			AddrV4();
 			AddrV4(const std::string &ip,uint16_t port);
@@ -58,7 +65,7 @@ namespace Box{
 			bool operator ==(const AddrV4 &) const;
 			bool operator !=(const AddrV4 &) const;
 		};
-		struct AddrV6:public sockaddr_in6{
+		struct BOXAPI AddrV6:public sockaddr_in6{
 			//IPV6的地址
 			AddrV6();
 			AddrV6(const std::string &ip,uint16_t port);//从参数构建
@@ -82,7 +89,7 @@ namespace Box{
 			IPV6 = AF_INET6
 		};
 		class Socket;
-		struct SockSet:public fd_set{
+		struct BOXAPI SockSet:public fd_set{
 			//集合 这里的方法都不会抛出异常
 			SockSet();//初始化会被清空
 			void clear();//清空
@@ -93,7 +100,7 @@ namespace Box{
 			NativeSocket max_fd;
 			#endif
 		};
-		class Socket{
+		class BOXAPI Socket{
 			public:
 				#ifdef _WIN32
 				using ssize_t = SSIZE_T;
@@ -162,7 +169,7 @@ namespace Box{
 				//得到错误和select
 				static int Select(SockSet *r_set,SockSet *w_set,SockSet *e_set,const timeval *t = nullptr);
 				static int GetErrorCode();//得到错误代码
-				static const char *GetError();//得到错误
+				static std::string GetError();//得到错误
 				//创建一对互相连接的Socket
 				static void Pair(Socket *[2]);
 				//创建操作系统的Socket 
@@ -174,17 +181,18 @@ namespace Box{
 			friend class UDP;
 		};
 		//TCPSocket
-		class TCP:public Socket{
+		class BOXAPI TCP:public Socket{
 			public:
 				using Socket::Socket;
 				TCP(SockFamily family = SockFamily::IPV4);
 		};
 		//UDPSocket
-		class UDP:public Socket{
+		class BOXAPI UDP:public Socket{
 			public:
 				using Socket::Socket;
 				UDP(SockFamily family = SockFamily::IPV4);
 		};
+		BOXAPI [[noreturn]] void throwSocketError(int code = Socket::GetErrorCode());
 	};
 	//兼容之前写的代码
 	typedef Net::TCP TCPSocket;

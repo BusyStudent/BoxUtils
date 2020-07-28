@@ -15,7 +15,7 @@ namespace Box{
 		}
 		auto code = curl_global_init(flags);
 		//初始化socket
-		libc::socket_init();
+		//libc::socket_init();
 		libc::atexit_once(Net::Quit);
 		//注册退出函数
 		if(code == CURLE_OK){
@@ -29,7 +29,7 @@ namespace Box{
 		//退出
 		curl_global_cleanup();
 		//退出Socket
-		libc::socket_quit();
+		//libc::socket_quit();
 	}
 	const char *Net::Version(){
 		return curl_version();
