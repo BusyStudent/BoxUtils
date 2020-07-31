@@ -46,6 +46,9 @@ target("box_utils")
 		add_files("./src/net/*.cpp")
 		add_files("./src/net.cpp")
 	end
+	--OS API
+	add_files("./src/os/*.cpp")
+	add_files("./src/table.cpp")
 	add_files("./src/cJSON.c")
 	add_files("./src/cJSON_Utils.c")
 	add_files("./src/socket.cpp")

@@ -13,6 +13,11 @@
 #include "libc/atexit.h"
 using namespace Box::Net;
 using namespace Box;
+#ifdef _WIN32
+	#define BOX_H_ERRNO WSAGetLastError()
+#else
+	#define BOX_H_ERRNO h_errno
+#endif
 namespace{
 	//得到主机的信息通过Addr
 	inline hostent *os_gethostbyaddr(const AddrV4 *addr){
@@ -155,7 +160,7 @@ void Socket::get_name(AddrV4 &addr)const{
 	#endif
 	if(code != 0){
 		//失败
-		SocketError::Throw(Socket::GetErrorCode());
+		SocketError::Throw(BOX_H_ERRNO);
 	}
 }
 //IPV6版本
@@ -169,7 +174,7 @@ void Socket::get_name(AddrV6 &addr)const{
 	#endif
 	if(code != 0){
 		//失败
-		SocketError::Throw(Socket::GetErrorCode());
+		SocketError::Throw(BOX_H_ERRNO);
 	}
 }
 //通过地址大小的到
@@ -183,7 +188,7 @@ void Socket::get_name(void *addr,size_t addrsize) const{
 	#endif
 	if(code != 0){
 		//失败
-		SocketError::Throw(Socket::GetErrorCode());
+		SocketError::Throw(BOX_H_ERRNO);
 	}
 }
 //得到与他相连的Socket名字
@@ -197,7 +202,7 @@ void Socket::get_peer_name(AddrV4 &addr)const{
 	#endif
 	if(code != 0){
 		//失败
-		SocketError::Throw(Socket::GetErrorCode());
+		SocketError::Throw(BOX_H_ERRNO);
 	}
 }
 //IPV6
@@ -211,7 +216,7 @@ void Socket::get_peer_name(AddrV6 &addr)const{
 	#endif
 	if(code != 0){
 		//失败
-		SocketError::Throw(Socket::GetErrorCode());
+		SocketError::Throw(BOX_H_ERRNO);
 	}
 }
 //原始的接口
@@ -225,7 +230,7 @@ void Socket::get_peer_name(void *addr,size_t addrsize) const{
 	#endif
 	if(code != 0){
 		//失败
-		SocketError::Throw(Socket::GetErrorCode());
+		SocketError::Throw(BOX_H_ERRNO);
 	}
 }
 //OS API 接受数据和发送数据
@@ -254,6 +259,29 @@ NativeSocket Socket::detach_fd(){
 }
 ssize_t Socket::operator <<(const std::string & str){
 	return this->send(str.c_str(),str.length() * sizeof(char));
+}
+//复制Socket
+Socket Socket::dup(){
+	NativeSocket s;
+	#ifdef _WIN32
+	WSAPROTOCOL_INFO info;
+	if(DuplicateSocket(
+		fd，
+		GetCurrentProcess(),
+		&info
+	) != 0){
+		throwSocketError();	
+	}
+	//创建Socket
+	s = WSASocket(0,0,0,&info,0,0);
+	#else
+	s = ::dup(fd);
+	#endif
+	//出错
+	if(BOX_SOCKET_INVAID(s)){
+		throwSocketError();
+	}
+	return Socket(s);
 }
 //创建Socket
 NativeSocket Socket::Create(int domain,int type,int prot){

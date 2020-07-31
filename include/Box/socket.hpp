@@ -162,6 +162,8 @@ namespace Box{
 				void get_peer_name(void *addr,size_t addrsize) const;//得到连接的地址名字
 				NativeSocket get_fd() const;//得到文件描述符号
 				NativeSocket detach_fd();//分离fd
+				//复制
+				Socket dup();
 				//转换为fd
 				explicit operator NativeSocket() const noexcept{
 					return fd;

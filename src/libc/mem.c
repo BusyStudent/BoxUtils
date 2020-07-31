@@ -1,6 +1,8 @@
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 #include <time.h>
 #include "libc/atexit.h"
 #include "libc/mem.h"
@@ -8,8 +10,55 @@
 #ifdef __linux
     #include <sys/random.h>
 #endif
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <unistd.h>
+    #include <sys/mman.h>
+#endif
 LIBC_BEGIN
 //内存
+typedef struct MapedMemory{
+    size_t size;
+    char memory[];
+}MapedMemory;
+void *Box_kmalloc(size_t n){
+    #ifdef _WIN32
+    //没实现
+    return malloc(n);
+    #else
+    size_t pagesize = getpagesize();
+    size_t offset;
+    n += sizeof(struct MapedMemory);
+    offset = n % pagesize;
+    if(offset != 0){
+        //没有申请够一个页
+        n = n - offset + pagesize;
+    }
+    MapedMemory *mem = (MapedMemory*)mmap(nullptr,n,PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS,-1,0);
+    if(mem == MAP_FAILED){
+        return nullptr;
+    }
+    else{
+        //设置大小
+        mem->size = n;
+        return mem->memory;
+    }
+    #endif
+}
+void Box_kfree(void *ptr){
+    #ifdef _WIN32
+    free(ptr);
+    #else
+    if(ptr == nullptr){
+        return;
+    }
+    MapedMemory *mem = (MapedMemory*)(ptr - offsetof(MapedMemory,memory));
+    //指针差
+    //检查
+    LIBC_ASSERT_PERROR(munmap(mem,mem->size) == 0);
+    #endif
+}
 void *Box_malloc0(size_t n){
     //申请一块内存被设置为0内存
     if(n == 0){

@@ -10,6 +10,8 @@ extern "C"{
 //C的函数
 typedef void*(*Box_allocator_t)(size_t);
 //内存申请函数
+extern void *Box_kmalloc(size_t n);//系统API申请内存
+extern void  Box_kfree(void *ptr);//释放内存
 extern void *Box_malloc0(size_t n);//申请一块内存 初始化为0
 extern void *Box_realloc0(void *ptr,size_t old_n,size_t new_n);//重新申请 把新的地方设置为0
 //如果ptr为nullptr old_n为0 那会等效与Box_malloc0 否则返回nullptr

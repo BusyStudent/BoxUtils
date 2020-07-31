@@ -138,4 +138,7 @@ namespace Box{
 	[[noreturn]] void throwNullPtrException(){
 		throw NullPtrException();
 	};
+	[[noreturn]] void throwKeyError(const char *key){
+		throw KeyError(key);
+	};
 };

@@ -8,9 +8,10 @@ INCLUDE=../include/Box/
 OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net/easy.o net/factory.o net/headers.o net/exception.o\
 	exception.o iconv.o sync/sem.o base64.o socket.o string.o dns.o filesystem.o net/multi.o\
 	xml.o xpath.o sax.o timer.o os.o backtrace.o net/share.o\
-	dylib.o logger.o subprocess.o buffer.o\
+	dylib.o logger.o subprocess.o buffer.o table.o\
 	assert.o threadpool.o fmt.o net/url.o\
-	co/context.o co/ucontext.o
+	co/context.o co/ucontext.o\
+	os/handle.o os/exception.o
 LIBC_OBJ=libc/mem.o libc/inet.o libc/atexit.o libc/io.o
 
 OBJ+=$(LIBC_OBJ)
@@ -64,6 +65,7 @@ socket.o:socket.cpp $(INCLUDE)socket.hpp
 string.o:string.cpp $(INCLUDE)string.hpp
 dns.o:dns.cpp $(INCLUDE)dns.hpp
 filesystem.o:filesystem.cpp $(INCLUDE)filesystem.hpp
+table.o:table.cpp $(INCLUDE)table.hpp
 #计时器
 timer.o:timer.cpp sync/sem.o $(INCLUDE)timer.hpp
 xml.o:xml.cpp $(INCLUDE)xml.hpp
@@ -105,5 +107,8 @@ libc/io.o:libc/io.c $(INCLUDE)libc/io.h
 #协程的文件
 co/context.o:co/context.cpp $(INCLUDE)co/context.hpp
 co/ucontext.o:co/ucontext.cpp $(INCLUDE)co/ucontext.h
+#操作系统api的文件
+os/handle.o:os/handle.cpp $(INCLUDE)os/handle.hpp
+os/exception.o:os/exception.cpp $(INCLUDE)os/exception.hpp
 clean:
 	-rm $(OBJ) libbox_utils.so

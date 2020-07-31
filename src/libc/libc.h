@@ -1,5 +1,8 @@
 #ifndef _BOX_LIBC_H_
 #define _BOX_LIBC_H_
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
 #include "libc/attr.h"
 #ifdef _WIN32
     #define LIBC_EXPORT __declspec(dllimport) __cdecl
@@ -26,4 +29,10 @@
     #define LIBC_BEGIN extern "C"{
     #define LIBC_END   }
 #endif
+//检查 失败打印Error
+#define LIBC_ASSERT_PERROR(VAL) \
+    if(not (VAL)){\
+        puts(strerror(errno));\
+        abort();\
+    }
 #endif

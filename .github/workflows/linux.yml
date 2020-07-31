@@ -20,7 +20,8 @@ jobs:
         xmake-version: latest
     - name: Build release
       run: xmake
-
+    - name: Pack source
+      run: sh ./release_code.sh
     - name: update release
       uses: actions/upload-artifact@v2
       with:
@@ -30,3 +31,7 @@ jobs:
       with:
           name: libbox_spider.so
           path: ./build/linux/x86_64/release/libbox_spider.so
+    - uses: actions/upload-artifact@v2
+      with:
+          name: libbox_code.tar.bz2
+          path: ./libbox_code.tar.bz2

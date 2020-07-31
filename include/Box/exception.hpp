@@ -78,5 +78,6 @@ namespace Box{
 	};
 	void Panic(const char *fmt,...);//退出
 	[[noreturn]] void throwNullPtrException();
+	[[noreturn]] void throwKeyError(const char *key);
 };
 #endif

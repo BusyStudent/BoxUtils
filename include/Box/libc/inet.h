@@ -3,6 +3,7 @@
 #define _BOX_LIBC_INET_H_
 #include <errno.h>
 #include "types.h"
+#include "attr.h"
 #ifdef _WIN32
 	#define fdopen _fdopen
 	//fdopen的宏
@@ -66,25 +67,25 @@ namespace Box{
         using socket_t =  ::Box_socket_t;
         using socklen_t = ::Box_socklen_t;
         //C函数别名
-        inline int closesocket(socket_t sock){
+        BOX_INLINE inline int closesocket(socket_t sock){
             return Box_closesocket(sock);
         }
-        inline int  socket_init(){
+        BOX_INLINE inline int  socket_init(){
             return Box_socket_init();
         }
-        inline void socket_quit(){
+        BOX_INLINE inline void socket_quit(){
             return Box_socket_quit();
         }
         //发送数据
-        inline ssize_t send(socket_t sock,const void *buf,size_t buflen,int flags) noexcept{
+        BOX_INLINE inline ssize_t send(socket_t sock,const void *buf,size_t buflen,int flags) noexcept{
             return Box_send(sock,buf,buflen,flags);
         }
         //接收取出数据
-        inline ssize_t recv(socket_t sock,void *buf,size_t buflen,int flags) noexcept{
+        BOX_INLINE inline ssize_t recv(socket_t sock,void *buf,size_t buflen,int flags) noexcept{
             return Box_recv(sock,buf,buflen,flags);
         }
         //发送到指定位置
-        inline ssize_t sendto(socket_t sock,const void *buf,size_t buflen,
+        BOX_INLINE inline ssize_t sendto(socket_t sock,const void *buf,size_t buflen,
                               int flags,const sockaddr *addr,socklen_t len) noexcept{
             #ifdef _WIN32
             return ::sendto(sock,static_cast<const char*>(buf),buflen,flags,addr,len);
@@ -93,7 +94,7 @@ namespace Box{
             #endif
         }
         //接收
-        inline ssize_t recvfrom(socket_t sock,void *buf,size_t buflen,
+        BOX_INLINE inline ssize_t recvfrom(socket_t sock,void *buf,size_t buflen,
                               int flags,sockaddr *addr,socklen_t *len) noexcept{
             #ifdef _WIN32
             return ::recvfrom(sock,static_cast<char*>(buf),buflen,flags,addr,len);
@@ -102,20 +103,20 @@ namespace Box{
             #endif
         }
         //抹掉类型的
-        inline socket_t accept(socket_t sock,void *addr,socklen_t *len){
+        BOX_INLINE inline socket_t accept(socket_t sock,void *addr,socklen_t *len){
             return Box_accept(sock,addr,len);
         }
-        inline int bind(socket_t sock,const void *addr,socklen_t len){
+        BOX_INLINE inline int bind(socket_t sock,const void *addr,socklen_t len){
             return Box_bind(sock,addr,len);
         }
-        inline int connect(socket_t sock,const void *addr,socklen_t len){
+        BOX_INLINE inline int connect(socket_t sock,const void *addr,socklen_t len){
             return Box_connect(sock,addr,len);
         }
         //地址转换
-        inline int inet_pton(int type,const char *str,void *addr){
+        BOX_INLINE inline int inet_pton(int type,const char *str,void *addr){
             return Box_inet_pton(type,str,addr);
         }
-        inline const char* inet_ntop(int type,const void *addr,char *buf,size_t buflen){
+        BOX_INLINE inline const char* inet_ntop(int type,const void *addr,char *buf,size_t buflen){
             return Box_inet_ntop(type,addr,buf,buflen);
         }
     };
