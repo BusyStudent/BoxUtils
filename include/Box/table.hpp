@@ -3,7 +3,7 @@
 #include <list>
 #include <string>
 #include <typeinfo>
-#include <type_traits>
+#include <initializer_list>
 #include "libc/attr.h"
 namespace Box{
     //内部一些常量
@@ -38,11 +38,14 @@ namespace Box{
         
         template<>
         BOXAPI const std::type_info* TypeInfo<std::string>();
+        
+        template<>
+        BOXAPI const std::type_info* TypeInfo<std::wstring>();
 
         //销毁函数模板
         template<class T>
         BOXAPI void DeleteFn(void *ptr){
-            delete static_cast<T*>(ptr);
+            delete static_cast<typename std::remove_reference<T>::type*>(ptr);
         };
         
         template<>
@@ -65,84 +68,147 @@ namespace Box{
 
         template<>
         BOXAPI void DeleteFn<std::string>(void *ptr);
+
+        template<>
+        BOXAPI void DeleteFn<std::wstring>(void *ptr);
     };
-    //可以容纳各种类型的表 像Python dict
     class BOXAPI AnyObject{
-        //像any的东西
         public:
-            struct Holder{
-                //包裹器
-                ~Holder();
-                void *ptr;
-                void (*delete_fn)(void *ptr);
-                const std::type_info *type;
-            };
-        public:
-
-            template<class T>
-            //普通的构造
-            AnyObject(T &&data):AnyObject(
-                AnyImpl::DeleteFn<T>,
-                std::forward<T>(data)){}
-            
-            //特殊版本
-            AnyObject(int val){
-                holder = new Holder{
-                    .ptr = new int(val),
-                    .delete_fn = AnyImpl::DeleteFn<int>,
-                    .type = AnyImpl::TypeInfo<int>()
-                };
-            }
-
-            template<class T>
-            AnyObject(void (*delete_fn)(void*),T &&data){
-                holder = new Holder{
-                    .ptr = new T(data),
-                    .delete_fn = delete_fn,
-                    .type = AnyImpl::TypeInfo<T>()
-                };
-            }
-            //初始化一个空的值
-            AnyObject():holder(nullptr){};
+            //不能复制
+            AnyObject();//空的
+            AnyObject(const AnyObject &) = delete;
+            AnyObject(AnyObject &&);
+            AnyObject(const char *);//对于字符串的特殊化
             ~AnyObject();
-            //是否有数值
-            bool has_value() const noexcept{
-                return holder != nullptr;
+            //模板
+            template<class T>
+            AnyObject(T &&data){
+                //初始化一个对象
+                using std::remove_reference;
+                ptr = new typename remove_reference<T>::type (
+                    std::forward<T>(data)
+                );
+                delete_fn = AnyImpl::DeleteFn<typename remove_reference<T>::type>;
+                typeinfo = AnyImpl::TypeInfo<typename remove_reference<T>::type>();
             }
             //得到类型
             const std::type_info &type() const;
+            //得到类型字符串 demangle过后的
+            std::string type_name() const;
+            //重置
+            void reset();
+            //类型是否一样
+            template<class T>
+            bool is_same() const{
+                return *AnyImpl::TypeInfo<T>() == type();
+            }
+            //转换类型
+            template<class T>
+            T cast() const{
+                using std::remove_reference;
+                typedef typename remove_reference<T>::type BaseT;//基本类型
+                const BaseT *ptr = static_cast<const BaseT*>(load_ptr(
+                    *AnyImpl::TypeInfo<BaseT>()
+                ));
+                //得到指针
+                return *ptr;
+            }
+            //转换类型
+            template<class T>
+            T cast(){
+                using std::remove_reference;
+                typedef typename remove_reference<T>::type BaseT;//基本类型
+                BaseT *ptr = static_cast<BaseT*>(load_ptr(
+                    *AnyImpl::TypeInfo<BaseT>()
+                ));
+                //得到指针
+                return *ptr;
+            }
         public:
-            //一些早就有的销毁函数 和类型
+            //一些操作符号
+            //移动
+            AnyObject &operator =(AnyObject &&);
+            //字符串版本
+            AnyObject &operator =(const char *);
+            //赋值
+            template<class T>
+            AnyObject &operator =(T && data){
+                reset();
+                //重置 设置东西
+                using std::remove_reference;
+                ptr = new typename remove_reference<T>::type (
+                    std::forward<T>(data)
+                );
+                delete_fn = AnyImpl::DeleteFn<typename remove_reference<T>::type>;
+                typeinfo = AnyImpl::TypeInfo<typename remove_reference<T>::type>();
+                return *this;
+            }
+        public:
+            //一些于AnyTable AnyList一样接口 免的cast了
+            void insert(const std::string &key,AnyObject &&);//插入键值
+            void insert(const std::string &key,AnyObject *);//插入键值
+             //查找键值
+            const AnyObject &operator [](const std::string &key) const;
+                  AnyObject &operator [](const std::string &key);
+            //查找列表
+            const AnyObject &operator [](int index) const;
+                  AnyObject &operator [](int index);
+        public:
+            //得到原始指针
+            void *get_ptr() const{
+                return ptr;
+            }
+            //检查类型 读入指针
+            const void *load_ptr(const std::type_info &) const;
+                  void *load_ptr(const std::type_info &);
         private:
-            Holder *holder;
+            void *ptr;//保存内容指针
+            void (*delete_fn)(void *);//销毁器
+            const std::type_info *typeinfo;//类型
     };
     class BOXAPI AnyTable{
         public:
-            //查找
+            //一些构造和其他东西
+            AnyTable();
+            AnyTable(const AnyTable&) = delete;
+            AnyTable(AnyTable &&);
             ~AnyTable();
-            const AnyObject &operator[] (const std::string &) const;
-            AnyObject &operator[] (const std::string &);
-            //有这个键
+            void clear();//清空
+            bool remove(const std::string &key);//移除键值
+            void insert(const std::string &key,AnyObject &&);//插入键值
+            void insert(const std::string &key,AnyObject *);//插入键值
+            //是否有键值
             bool has_key(const std::string &key) const noexcept;
-            //得到里面的实现
-            //添加项目
-            template<class T>
-            void add_item(const std::string &key,T &&data){
-                table.emplace(std::make_pair(key,data));
-            };
-            void add_item(const std::string &key,AnyObject &&);
-            std::map<std::string,AnyObject> &get(){
-                return table;
-            }
+            //查找键值
+            const AnyObject &operator [](const std::string &key) const;
+                  AnyObject &operator [](const std::string &key);
+            //移动一个表
+            AnyTable &operator =(AnyTable &&);
+            //弹出一个数值 失败返回nullptr
+            AnyObject *pop(const std::string &key) noexcept;
         private:
-            std::map<std::string,AnyObject> table;
-        friend class AnyObject;
+            std::map<std::string,AnyObject*> table;
     };
+    //一个容纳任意类型的表
     class BOXAPI AnyList{
         public:
+            AnyList();
+            AnyList(const AnyList &) = delete;
+            AnyList(AnyList &&);
+            //从列表初始化
+            AnyList(std::initializer_list<AnyObject> &&vlist);
             ~AnyList();
+            //STL的操作
+            void push_back(AnyObject &&);
+            void push_front(AnyObject &&);
+            const AnyObject &operator [](int index) const;
+                  AnyObject &operator [](int index);
+            //得到开始和结束
+            //AnyListIterator begin();
+            //AnyListIterator   end();
         private:
-            std::list<AnyObject> objs;
+            std::list<AnyObject*> list;
     };
+    
 };
 #endif
