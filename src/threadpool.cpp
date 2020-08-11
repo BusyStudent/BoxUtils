@@ -1,4 +1,4 @@
-#define _BOX_SOURCE
+//#define _BOX_SOURCE
 #include <condition_variable>
 #include <thread>
 #include <future>
@@ -6,6 +6,7 @@
 #include <utility>
 #include <mutex>
 #include <memory>
+#include "common/def.hpp"
 #include "threadpool.hpp"
 #include "atomic.hpp"
 #include "sem.hpp"

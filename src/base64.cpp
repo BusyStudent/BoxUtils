@@ -3,6 +3,7 @@
 #include <climits>
 #include <cinttypes>
 #include <stdexcept>
+#include "common/def.hpp"
 #include "base64.hpp"
 namespace Box{
 	static inline uint8_t QueryTable(uint8_t ch) noexcept{

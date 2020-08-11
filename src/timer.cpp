@@ -1,4 +1,3 @@
-#define _BOX_SOURCE
 #include <algorithm>
 #include <ctime>
 #include <chrono>
@@ -6,6 +5,7 @@
 #include <mutex>
 #include <atomic>
 #include <thread>
+#include "common/def.hpp"
 #include "threadpool.hpp"
 #include "atomic.hpp"
 #include "debug.hpp"

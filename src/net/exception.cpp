@@ -2,6 +2,7 @@
 #include <exception>
 #include <cstring>
 #include <string>
+#include "common/def.hpp"
 #include "exception.hpp"
 #include "net/socket.hpp"
 #include "net/exception.hpp"

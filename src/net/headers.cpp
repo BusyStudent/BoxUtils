@@ -4,6 +4,7 @@
 #include <curl/curl.h>
 #include <functional>
 #include <initializer_list>
+#include "common/def.hpp"
 #include "json.hpp"
 #include "exception.hpp"
 #include "net/headers.hpp"

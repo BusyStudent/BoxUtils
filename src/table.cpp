@@ -2,6 +2,7 @@
 #include <typeinfo>
 #include <string>
 #include <list>
+#include "common/def.hpp"
 #include "table.hpp"
 #include "backtrace.hpp"
 #include "assert.hpp"

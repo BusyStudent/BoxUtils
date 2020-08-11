@@ -1,5 +1,6 @@
 //解析URL
 #include <string>
+#include "common/def.hpp"
 #include "net/url.hpp"
 namespace Box{
 namespace Net{

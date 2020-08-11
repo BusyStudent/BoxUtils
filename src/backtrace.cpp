@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include "common/def.hpp"
 #include "backtrace.hpp"
 //GLIBC特有的
 #ifdef __gnu_linux__

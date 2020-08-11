@@ -4,6 +4,9 @@
 #include <cstring>
 #include <ostream>
 #include <chrono>
+
+#include "common/def.hpp"
+
 #include "exception.hpp"
 #include "net/exception.hpp"
 #include "net/headers.hpp"

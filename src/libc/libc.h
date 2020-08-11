@@ -1,5 +1,6 @@
 #ifndef _BOX_LIBC_H_
 #define _BOX_LIBC_H_
+#define _BOX_SOURCE //确定是原代码
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -35,4 +36,5 @@
         puts(strerror(errno));\
         abort();\
     }
+
 #endif

@@ -11,6 +11,7 @@
 	#include <netdb.h>
 #endif
 #include <cerrno>
+#include "common/def.hpp"
 #include "socket.hpp"
 #include "exception.hpp"
 #include "dns.hpp"

@@ -24,7 +24,10 @@
 
 #include <signal.h>
 
+#include "common/def.hpp"
+#include "threadpool.hpp"
 #include "co/ucontext.h"
+
 #include <cstdarg>
 #include <cstdio>
 #include <cerrno>
@@ -73,13 +76,14 @@ namespace{
 	}
 	void check_init(){
 		//is the thread started?
-		if(helper != nullptr){
+		static std::once_flag flags;
+		std::call_once(flags,[](){
 			helper = new HelperThread();
-			helper->th = std::thread([](){
+			helper->th = StartThread([](void*){
 				helper->run();
 			});
 			libc::atexit_once(quit_thread);
-		}
+		});
 	}
 	void HelperThread::run(){
 		for(auto &msg:pipeline){

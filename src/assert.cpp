@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <cstdio>
 #include <cstdlib>
+#include "common/def.hpp"
 #include "backtrace.hpp"
 #include "assert.hpp"
 #ifdef _WIN32

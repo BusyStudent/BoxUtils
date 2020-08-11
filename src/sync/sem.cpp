@@ -5,6 +5,7 @@
 #include <atomic>
 #include <utility>
 #include <chrono>
+#include "common/def.hpp"
 #include "sync/sem.hpp"
 #include "exception.hpp"
 namespace Box{

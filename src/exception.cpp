@@ -1,3 +1,4 @@
+#include <new>
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
@@ -5,6 +6,7 @@
 #include <cstring>
 #include <cstdio>
 #include <cstdarg>
+#include "common/def.hpp"
 #include "exception.hpp"
 #include "string.hpp"
 #include "backtrace.hpp"
@@ -98,7 +100,7 @@ namespace Box{
 		return what_msg.c_str();
 	}
 	//Panic异常退出
-	void Panic(const char *fmt,...){
+	BOXAPI void Panic(const char *fmt,...){
 		fputs("Panic():",stderr);
 		va_list varg;
 		va_start(varg,fmt);
@@ -135,10 +137,13 @@ namespace Box{
 		return msg.c_str();
 	}
 	//抛出异常函数
-	[[noreturn]] void throwNullPtrException(){
+	BOXAPI [[noreturn]] void throwNullPtrException(){
 		throw NullPtrException();
 	};
-	[[noreturn]] void throwKeyError(const char *key){
+	BOXAPI [[noreturn]] void throwKeyError(const char *key){
 		throw KeyError(key);
+	};
+	BOXAPI [[noreturn]] void throwBadAlloc(){
+		throw std::bad_alloc();
 	};
 };

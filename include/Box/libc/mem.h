@@ -3,6 +3,7 @@
 //内存 字符串处理
 #include <stdlib.h>
 #include <stdint.h>
+#include "attr.h"
 #ifdef __cplusplus
 extern "C"{
 #endif
@@ -10,26 +11,26 @@ extern "C"{
 //C的函数
 typedef void*(*Box_allocator_t)(size_t);
 //内存申请函数
-extern void *Box_kmalloc(size_t n);//系统API申请内存
-extern void  Box_kfree(void *ptr);//释放内存
-extern void *Box_malloc0(size_t n);//申请一块内存 初始化为0
-extern void *Box_realloc0(void *ptr,size_t old_n,size_t new_n);//重新申请 把新的地方设置为0
+extern BOXAPI void *Box_kmalloc(size_t n);//系统API申请内存
+extern BOXAPI void  Box_kfree(void *ptr);//释放内存
+extern BOXAPI void *Box_malloc0(size_t n);//申请一块内存 初始化为0
+extern BOXAPI void *Box_realloc0(void *ptr,size_t old_n,size_t new_n);//重新申请 把新的地方设置为0
 //如果ptr为nullptr old_n为0 那会等效与Box_malloc0 否则返回nullptr
-extern void *Box_aligned_alloc(size_t align,size_t size);//内存对齐的申请内存
-extern void *Box_memdup(const void *mem,size_t size,Box_allocator_t);//复制内存
-extern void *Box_memdupfrom(const void *mem_begin,const void *mem_end,Box_allocator_t);
+extern BOXAPI void *Box_aligned_alloc(size_t align,size_t size);//内存对齐的申请内存
+extern BOXAPI void *Box_memdup(const void *mem,size_t size,Box_allocator_t);//复制内存
+extern BOXAPI void *Box_memdupfrom(const void *mem_begin,const void *mem_end,Box_allocator_t);
 //查找内存块 查找mem2 在mem1中
-extern void *Box_memmem(const void *mem1,size_t n1,const void *mem2,size_t n2);
+extern BOXAPI void *Box_memmem(const void *mem1,size_t n1,const void *mem2,size_t n2);
 //随机填充一个内存块
-extern void *Box_memrand(void *mem,size_t n);
+extern BOXAPI void *Box_memrand(void *mem,size_t n);
 //字符串函数
-extern char *Box_strdup(const char *str,Box_allocator_t);//复制字符串
-extern char *Box_strndup(const char *str,size_t n,Box_allocator_t);
+extern BOXAPI char *Box_strdup(const char *str,Box_allocator_t);//复制字符串
+extern BOXAPI char *Box_strndup(const char *str,size_t n,Box_allocator_t);
 //截取两个指针之间字符串
-extern char *Box_strdupfrom(const char *str_begin,const char *str_end,Box_allocator_t);
+extern BOXAPI char *Box_strdupfrom(const char *str_begin,const char *str_end,Box_allocator_t);
 //字符串比较
-extern int   Box_strcasecmp(const char *s1,const char *s2);
-extern int   Box_strncasecmp(const char *s1,const char *s2,size_t n);
+extern BOXAPI int   Box_strcasecmp(const char *s1,const char *s2);
+extern BOXAPI int   Box_strncasecmp(const char *s1,const char *s2,size_t n);
 #ifdef __cplusplus
 }
 //C++的包装

@@ -1,4 +1,3 @@
-#define _BOX_SOURCE
 #include <libxml/xmlstring.h>
 #include <libxml/tree.h>
 #include <libxml/parser.h>
@@ -8,6 +7,7 @@
 #include <cstring>
 #include <cassert>
 #include <ostream>
+#include "common/def.hpp"
 #include "libc/atexit.h"
 #include "xml.hpp"
 #include "xpath.hpp"

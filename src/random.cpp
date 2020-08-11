@@ -1,4 +1,5 @@
 #include <ctime>
+#include "common/def.hpp"
 #include "random.hpp"
 Box::Random::Random(){
 	this->seed = (unsigned int) time(nullptr);

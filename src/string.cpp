@@ -6,6 +6,7 @@
 #include <vector>
 #include <locale>
 #include <stdexcept>
+#include "common/def.hpp"
 #include "base64.hpp"
 #include "string.hpp"
 namespace Box{

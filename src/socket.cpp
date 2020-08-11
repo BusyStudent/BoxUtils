@@ -1,21 +1,27 @@
-#define _BOX_SOURCE
+//#define _BOX_SOURCE
 #include <string>
 #include <cerrno>
 #include <cstring>
 #include <cstdlib>
 #include <cstdarg>
+#include "common/def.hpp"
 #include "net/exception.hpp"
+#include "net/socket.hpp"
 #include "backtrace.hpp"
 #include "exception.hpp"
 #include "socket.hpp"
 #include "fmt.hpp"
+#include "libc/mem.h"
 #include "libc/inet.h"
 #include "libc/atexit.h"
 using namespace Box::Net;
 using namespace Box;
 #ifdef _WIN32
+	#include <windows.h>
+	#define BOX_POLL WSAPoll
 	#define BOX_H_ERRNO WSAGetLastError()
 #else
+	#define BOX_POLL poll
 	#define BOX_H_ERRNO h_errno
 #endif
 namespace{
@@ -265,12 +271,12 @@ Socket Socket::dup(){
 	NativeSocket s;
 	#ifdef _WIN32
 	WSAPROTOCOL_INFO info;
-	if(DuplicateSocket(
-		fd，
-		GetCurrentProcess(),
+	if(WSADuplicateSocket(
+		fd,
+		GetCurrentProcessId(),
 		&info
 	) != 0){
-		throwSocketError();	
+		throwSocketError();
 	}
 	//创建Socket
 	s = WSASocket(0,0,0,&info,0,0);
@@ -433,7 +439,7 @@ bool AddrV6::operator !=(const AddrV6 &addr) const{
 }
 
 //TCP
-TCP::TCP(SockFamily family)
+Tcp::Tcp(SockFamily family)
 	:Socket(Create((int)family,SOCK_STREAM,0)){
 		//创建一个TCPSocket
 }
@@ -448,7 +454,7 @@ Socket *Socket::accept(AddrV4 *addr){
 	return new Socket(ret);
 }
 //UDP SOCKET
-UDP::UDP(SockFamily family):
+Udp::Udp(SockFamily family):
 	Socket(Create((int)family,SOCK_DGRAM,0)){
 		//创建一个UDP Socket
 }
@@ -474,8 +480,102 @@ void SockSet::add(Socket &sock){
 bool SockSet::is_set(Socket &sock){
 	return FD_ISSET(sock.fd,this);
 }
+//Pollfds
+Pollfds::Pollfds(){
+	//一个也没有
+	pfds = nullptr;
+	n = 0;
+}
+Pollfds::~Pollfds(){
+	libc::free(pfds);
+}
+//添加一个fd
+void Pollfds::add(const Pollfd &f){
+	Pollfd *fds = libc::realloc(pfds,n + 1);
+	if(fds == nullptr){
+		//内存申请失败
+		throwBadAlloc();
+	}
+	pfds = fds;
+	//复制到原来空闲的地方
+	pfds[n] = f;
+	n += 1;
+}
+void Pollfds::add(Socket & sock,short events){
+	Pollfd pfd;
+	pfd.fd = sock.get_fd();
+	pfd.events = events;
+	pfd.revents = 0;
+	Pollfds::add(pfd);
+}
+void Pollfds::add(NativeSocket sock,short events){
+	Pollfd pfd;
+	pfd.fd = sock;
+	pfd.events = events;
+	pfd.revents = 0;
+	Pollfds::add(pfd);
+}
+//移除
+Pollfds::iterator Pollfds::erase(const iterator &iter){
+	if(iter.current < pfds or iter.current > pfds + n){
+		//无效的
+		return end();
+	}
+	size_t offset = (pfds + n - iter.current) / sizeof(Pollfd);
+	//得到与后面又多少
+	memmove(iter.current,iter.current + 1,offset - 1);
+	//把后面移动到前面
+	Pollfd *fds = libc::realloc(pfds,n - 1);
+	//向后偏移
+	if(fds == nullptr){
+		throwBadAlloc();
+	}
+	n -= 1;
+	return iterator{
+		iter.current + 1
+	};
+}
+//查找
+Pollfds::iterator Pollfds::find(NativeSocket sock) noexcept{
+	iterator iter = begin();
+	while(iter != end()){
+		if(iter->fd == sock){
+			return iter;
+		}
+		++iter;
+	}
+	return end();
+}
+Pollfds::iterator Pollfds::find(const Socket &sock) noexcept{
+	return Pollfds::find(sock.get_fd());
+}
+//移除Socket
+bool Pollfds::remove(NativeSocket sock){
+	iterator iter = find(sock);
+	if(iter == end()){
+		return false;
+	}
+	erase(iter);
+	return true;
+}
+bool Pollfds::remove(Socket &sock){
+	iterator iter = find(sock);
+	if(iter == end()){
+		return false;
+	}
+	erase(iter);
+	return true;
+}
+//轮询
+int Pollfds::poll(int timeout) noexcept{
+	return BOX_POLL(pfds,n,timeout);
+}
+//Poll
+int Socket::Poll(Pollfd fds[],size_t n,int timeout) noexcept{
+	return BOX_POLL(fds,n,timeout);
+}
 //Select
-int Socket::Select(SockSet *r_set,SockSet *w_set,SockSet *e_set,const timeval *t){
+int Socket::Select(SockSet *r_set,SockSet *w_set,SockSet *e_set,const timeval *t) noexcept{
 	#ifdef _WIN32
 	if(t != nullptr){
 		struct timeval teval = *t;
@@ -547,8 +647,8 @@ void Socket::Pair(Socket *socks[2] ){
 	socks[0] = nullptr;
 	socks[1] = nullptr;
 	try{
-		TCP tcp(SockFamily::IPV4);
-		socks[1] = new TCP(SockFamily::IPV4);//初始化第二个Socket
+		Tcp tcp(SockFamily::IPV4);
+		socks[1] = new Tcp(SockFamily::IPV4);//初始化第二个Socket
 		tcp.listen(1);
 		AddrV4 addr;
 		tcp.get_name(addr);
@@ -619,4 +719,10 @@ namespace Net{
 		throw SocketError(code);
 	}
 };
+};
+//Net Socket版本
+namespace Box{
+namespace Net{
+	
+}
 };

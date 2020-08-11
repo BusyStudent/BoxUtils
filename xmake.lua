@@ -9,7 +9,7 @@ if is_plat("windows") then
 	--WinSocket
 elseif is_plat("mingw") then
 	--Mingw编译
-	add_links("ws2_32","iconv","pthread","dl")
+	add_links("ws2_32","iconv","pthread")
 elseif is_plat("linux") then
 	add_links("pthread","dl")
 elseif is_plat("macosx") then

@@ -67,6 +67,6 @@ namespace Box{
             //没有任务的事件
             mutable Sync::Event empty_event;
     };
-    BOXAPI std::thread StartThread(void(*fn)(void*),void *arg);
+    BOXAPI std::thread StartThread(void(*fn)(void*),void *arg = nullptr);
 };
 #endif

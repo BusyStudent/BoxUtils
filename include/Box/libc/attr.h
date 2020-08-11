@@ -36,6 +36,12 @@
     #warning do not support it
 #endif
 
-#define BOXAPI BOX_EXPORT
+#ifdef _BOX_SOURCE
+    //是源代码文件
+    #define BOXAPI BOX_EXPORT
+#else
+    //不是 就忽略了
+    #define BOXAPI BOX_IMPORT
+#endif
 
 #endif

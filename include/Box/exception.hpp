@@ -4,6 +4,7 @@
 #include <exception>
 #include <stdexcept>
 #include <string>
+#include "libc/attr.h"
 namespace Box{
 	class Json;
 	typedef std::invalid_argument InvalidArgument;
@@ -76,8 +77,9 @@ namespace Box{
 		private:
 			std::string msg;
 	};
-	void Panic(const char *fmt,...);//退出
-	[[noreturn]] void throwNullPtrException();
-	[[noreturn]] void throwKeyError(const char *key);
+	BOXAPI void Panic(const char *fmt,...);//退出
+	BOXAPI [[noreturn]] void throwNullPtrException();
+	BOXAPI [[noreturn]] void throwKeyError(const char *key);
+	BOXAPI [[noreturn]] void throwBadAlloc();
 };
 #endif

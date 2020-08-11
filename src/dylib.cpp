@@ -5,6 +5,7 @@
 #endif
 #include <cerrno>
 #include <stdexcept>
+#include "common/def.hpp"
 #include "dylib.hpp"
 #include "exception.hpp"
 namespace Box{

@@ -10,6 +10,7 @@
 #include <vector>
 #include <functional>
 #include <string_view>
+#include "common/def.hpp"
 #include "xml.hpp"
 #include "sax.hpp"
 namespace Box{

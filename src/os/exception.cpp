@@ -5,6 +5,7 @@
 #endif
 #include <cerrno>
 #include <cstring>
+#include "common/def.hpp"
 #include "fmt.hpp"
 #include "libc/attr.h"
 #include "os/exception.hpp"
@@ -28,7 +29,7 @@ namespace OS{
         return strerror(code);
         #endif
     }
-    Error::Error(int code):
+    Error::Error(error_t code):
         err({code}),
         msg(Format("[OSError {}] {}",code,err.to_string())){
         //初始化错误
@@ -42,8 +43,15 @@ namespace OS{
         return msg.c_str();
     }
     //抛出异常
-    [[noreturn]] void throwError(int code){
+    [[noreturn]] void throwError(error_t code){
         throw Error(code);
+    }
+    [[noreturn]] void throwError(){
+        #ifdef _WIN32
+        throw Error(GetLastError());
+        #else
+        throw Error(errno);
+        #endif
     }
     //得到OS错误信息
     ErrorCode GetError(){

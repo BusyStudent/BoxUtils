@@ -1,6 +1,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <cinttypes>
+#include "common/def.hpp"
 #include "buffer.hpp"
 #include "libc/mem.h"
 //申请内存

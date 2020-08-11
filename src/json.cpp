@@ -6,6 +6,7 @@
 #include <ostream>
 #include <utility>
 #include <mutex>
+#include "common/def.hpp"
 #include "cJSON.h"
 #include "cJSON_Utils.h"
 #include "json.hpp"

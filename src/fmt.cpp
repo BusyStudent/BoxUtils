@@ -1,8 +1,8 @@
-#define _BOX_SOURCE
 #include <string>
 #include <cstring>
 #include <cstdarg>
 #include <algorithm>
+#include "common/def.hpp"
 #include "fmt.hpp"
 namespace Box{
 namespace FmtImpl{

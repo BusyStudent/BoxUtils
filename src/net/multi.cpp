@@ -2,6 +2,7 @@
 #include <curl/curlver.h>
 #include <iostream>
 #include <functional>
+#include "common/def.hpp"
 #include "exception.hpp"
 #include "net/exception.hpp"
 #include "net/easy.hpp"

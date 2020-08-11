@@ -1,3 +1,4 @@
+#define _BOX_SOURCE
 #include <stdlib.h>
 #include "libc/atexit.h"
 #include "libc.h"
@@ -11,7 +12,7 @@ struct BoxExitHandler{
     struct BoxExitHandler *next;
 };
 typedef struct BoxExitHandler BoxExitHandler;
-void __Box_stdc_handler(void *fn){
+BOXAPI void __Box_stdc_handler(void *fn){
     //对于标准C的兼容函数
     typedef void(*stdc_handler)();
     ((stdc_handler)fn)();
@@ -41,10 +42,10 @@ static void call_handlers(){
 };
 
 
-void Box_atexit(void(*fn)(),int nice){
+BOXAPI void Box_atexit(void(*fn)(),int nice){
     return Box_atexit_ex(__Box_stdc_handler,fn,nice);
 }
-void Box_atexit_once(void(*fn)(),int nice){
+BOXAPI void Box_atexit_once(void(*fn)(),int nice){
     for(BoxExitHandler *current = exit_handlers;current != nullptr;current = current->next){
         //查找有没有相同的
         if(current->fn == __Box_stdc_handler and current->param == fn){
@@ -55,7 +56,7 @@ void Box_atexit_once(void(*fn)(),int nice){
     return Box_atexit_ex(__Box_stdc_handler,fn,nice);
 }
 //真正的实现
-void Box_atexit_ex(void(*fn)(void*),void *param,int nice){
+BOXAPI void Box_atexit_ex(void(*fn)(void*),void *param,int nice){
     if(fn == nullptr){
         //检查一下
         return;

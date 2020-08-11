@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <exception>
+#include "common/def.hpp"
 #include "co/context.hpp"
 #include "co/task.hpp"
 #include "libc/mem.h"

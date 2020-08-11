@@ -5,12 +5,13 @@
 #else
     #include <sys/types.h>
 #endif
-#include "libc/attr.h"
+#include <cstdlib>
+#include "../libc/attr.h"
 //基本文件句柄
 namespace Box{
     namespace OS{
         #ifdef _WIN32
-        typedef HANDLE NativeHandle;
+        typedef void *NativeHandle;
         #else
         typedef int NativeHandle;
         #endif
@@ -38,7 +39,8 @@ namespace Box{
                 //拷贝
                 Handle dup();
                 //设置是否可以继承
-                void set_inheritance(bool val = true);
+                void set_inherit(bool val = true);
+                bool  is_inherit() const;//是否可继承
                 //操作符号
                 
                 explicit operator NativeHandle() const noexcept;
@@ -47,11 +49,18 @@ namespace Box{
 
                 bool operator ==(NativeHandle) const noexcept;
                 bool operator !=(NativeHandle) const noexcept;
-                
             private:
                 //基本的句柄
                 NativeHandle handle;
         };
+
+        BOXAPI Handle Stdin();//得到stdin的句柄
+        BOXAPI Handle Stdout();//得到stdout
+        BOXAPI Handle Stderr();
+        //设置Handle
+        BOXAPI void SetStdin (Handle &&);
+        BOXAPI void SetStdout(Handle &&);
+        BOXAPI void SetStderr(Handle &&);
     };
 };
 #endif

@@ -2,6 +2,7 @@
 #include <curl/curlver.h>
 #include <mutex>
 //狐池锁
+#include "common/def.hpp"
 #include "net/easy.hpp"
 #include "net/share.hpp"
 #include "net/factory.hpp"

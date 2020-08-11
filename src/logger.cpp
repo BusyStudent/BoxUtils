@@ -5,6 +5,7 @@
 #include <cassert>
 #include <string>
 #include <stdexcept>
+#include "common/def.hpp"
 #include "exception.hpp"
 #include "logger.hpp"
 #include "socket.hpp"
@@ -152,18 +153,18 @@ namespace Box{
 	}
 	void Logger::set_output(const std::string &ip,uint16_t port){
 		using namespace Box::Net;
-		TCP *tcp = nullptr;
+		Tcp *tcp = nullptr;
 		//创建一个
 		try{
 			if(ip.length() <= 16){
 				//创建一个IPV4的Socket
-				tcp = new TCP(SockFamily::IPV4);
+				tcp = new Tcp(SockFamily::IPV4);
 				//连接一下
 				tcp->connect(AddrV4::From(ip,port));
 			}
 			else{
 				//创建一个IPV6的Socket
-				tcp = new TCP(SockFamily::IPV6);
+				tcp = new Tcp(SockFamily::IPV6);
 				//连接一下
 				tcp->connect(AddrV6::From(ip,port));
 			}

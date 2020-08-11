@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cerrno>
+#include "common/def.hpp"
 #include "exception.hpp"
 #include "filesystem.hpp"
 namespace Box{

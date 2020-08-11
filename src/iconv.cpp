@@ -5,6 +5,7 @@
 #include <cerrno>
 #include <vector>
 #include <string>
+#include "common/def.hpp"
 #include "iconv.hpp"
 namespace Box{
 	//Iconv错误

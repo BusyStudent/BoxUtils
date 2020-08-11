@@ -39,26 +39,26 @@ extern "C"{
 #endif
 //C的部分
 //关闭socket
-extern int  Box_socket_init();//初始化
-extern void Box_socket_quit();//关闭
-extern int  Box_closesocket(Box_socket_t sock);//关闭Socket
+extern BOXAPI int  Box_socket_init();//初始化
+extern BOXAPI void Box_socket_quit();//关闭
+extern BOXAPI int  Box_closesocket(Box_socket_t sock);//关闭Socket
 //Socket错误代码
-extern int  Box_socket_errno();
-extern const char* Box_socket_strerror(int);//格式化错误
+extern BOXAPI int  Box_socket_errno();
+extern BOXAPI const char* Box_socket_strerror(int);//格式化错误
 //连接
-extern int  Box_connect(Box_socket_t sock,const void *addr,Box_socklen_t len);
+extern BOXAPI int  Box_connect(Box_socket_t sock,const void *addr,Box_socklen_t len);
 //绑定
-extern int  Box_bind(Box_socket_t sock,const void *addr,Box_socklen_t len);
+extern BOXAPI int  Box_bind(Box_socket_t sock,const void *addr,Box_socklen_t len);
 //接收连接
-extern Box_socket_t Box_accept(Box_socket_t sock,void *addr,Box_socklen_t *len);
+extern BOXAPI Box_socket_t Box_accept(Box_socket_t sock,void *addr,Box_socklen_t *len);
 
-extern Box_ssize_t Box_send(Box_socket_t sock,const void *buf,size_t bufsize,int flags);
-extern Box_ssize_t Box_recv(Box_socket_t sock,void *buf,size_t bufsize,int flags);
+extern BOXAPI Box_ssize_t Box_send(Box_socket_t sock,const void *buf,size_t bufsize,int flags);
+extern BOXAPI Box_ssize_t Box_recv(Box_socket_t sock,void *buf,size_t bufsize,int flags);
 //地址转换
 //IP到地址
-extern int Box_inet_pton(int type,const char *str,void *addr);
+extern BOXAPI int Box_inet_pton(int type,const char *str,void *addr);
 //地址到IP
-extern const char *Box_inet_ntop(int type,const void *addr,char *buf,size_t buflen);
+extern BOXAPI const char *Box_inet_ntop(int type,const void *addr,char *buf,size_t buflen);
 #ifdef __cplusplus
 }
 namespace Box{

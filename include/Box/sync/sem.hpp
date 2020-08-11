@@ -3,9 +3,10 @@
 #include <mutex>
 #include <chrono>
 #include <condition_variable>
+#include "../libc/attr.h"
 namespace Box{
 	namespace Sync{
-		class Semaphore{
+		class BOXAPI Semaphore{
 			//信号量
 			public:
 				Semaphore(unsigned int value);//初始数值
@@ -28,7 +29,7 @@ namespace Box{
 				unsigned int sem_value;//数值
 				mutable std::mutex val_mutex;//对数值的锁
 		};
-		class Event{
+		class BOXAPI Event{
 			//事件
 			public:
 				template<class T = Event>
