@@ -9,9 +9,9 @@ OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net/easy.o net/factory.o net/hea
 	exception.o iconv.o sync/sem.o base64.o socket.o string.o dns.o filesystem.o net/multi.o\
 	xml.o xpath.o sax.o timer.o os.o backtrace.o net/share.o\
 	dylib.o logger.o subprocess.o buffer.o table.o\
-	assert.o threadpool.o fmt.o net/url.o\
+	assert.o threadpool.o fmt.o net/url.o net/poll.o\
 	co/context.o co/ucontext.o\
-	os/handle.o os/exception.o
+	os/handle.o os/exception.o os/proc.o
 LIBC_OBJ=libc/mem.o libc/inet.o libc/atexit.o libc/io.o
 
 OBJ+=$(LIBC_OBJ)
@@ -52,6 +52,7 @@ net/exception.o:net/exception.cpp $(INCLUDE)net/exception.hpp
 net/easy.o:net/easy.cpp $(INCLUDE)net/easy.hpp
 net/multi.o:net/multi.cpp $(INCLUDE)net/multi.hpp
 net/share.o:net/share.cpp $(INCLUDE)net/share.hpp
+net/poll.o:net/poll.cpp $(INCLUDE)net/poll.hpp
 net/url.o:net/url.cpp $(INCLUDE)net/url.hpp
 #异常
 excepton.o:exception.cpp $(INCLUDE)exception.hpp
@@ -108,6 +109,7 @@ libc/io.o:libc/io.c $(INCLUDE)libc/io.h
 co/context.o:co/context.cpp $(INCLUDE)co/context.hpp
 co/ucontext.o:co/ucontext.cpp $(INCLUDE)co/ucontext.h
 #操作系统api的文件
+os/proc.o:os/proc.cpp $(INCLUDE)os/proc.hpp
 os/handle.o:os/handle.cpp $(INCLUDE)os/handle.hpp
 os/exception.o:os/exception.cpp $(INCLUDE)os/exception.hpp
 clean:

@@ -9,6 +9,12 @@
     #include <windows.h>
     #include "fmt.hpp"
 #endif
+extern "C"{
+    //C的API
+    BOX_NORETURN BOXAPI void _BoxAssertFail(const char *file,int line,const char *func,const char *exp){
+        Box::AssertFail(file,line,func,exp);
+    };
+}
 namespace Box{
     //断言失败后
     void AssertFail(const char *file,int line,const char *func,const char *exp){

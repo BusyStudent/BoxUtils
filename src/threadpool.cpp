@@ -205,3 +205,15 @@ namespace Box{
         return std::thread(fn,arg);
     };
 };
+//包装函数
+extern "C"{
+    void _BoxStartThread(void(*start_fn)(void*),void *data,void *std_thread_ptr){
+        if(std_thread_ptr == nullptr){
+            Box::StartThread(start_fn,data).detach();
+        }
+        else{
+            std::thread *th = static_cast<std::thread*>(std_thread_ptr);
+            *th = Box::StartThread(start_fn,data);
+        }
+    }
+}

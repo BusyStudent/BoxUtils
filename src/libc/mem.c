@@ -19,10 +19,12 @@
 #endif
 LIBC_BEGIN
 //内存
+#ifndef _WIN32
 typedef struct MapedMemory{
     size_t size;
     char memory[];
 }MapedMemory;
+#endif
 BOXAPI void *Box_kmalloc(size_t n){
     #ifdef _WIN32
     //没实现

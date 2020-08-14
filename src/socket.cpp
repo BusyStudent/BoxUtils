@@ -16,14 +16,6 @@
 #include "libc/atexit.h"
 using namespace Box::Net;
 using namespace Box;
-#ifdef _WIN32
-	#include <windows.h>
-	#define BOX_POLL WSAPoll
-	#define BOX_H_ERRNO WSAGetLastError()
-#else
-	#define BOX_POLL poll
-	#define BOX_H_ERRNO h_errno
-#endif
 namespace{
 	//得到主机的信息通过Addr
 	inline hostent *os_gethostbyaddr(const AddrV4 *addr){
@@ -480,98 +472,7 @@ void SockSet::add(Socket &sock){
 bool SockSet::is_set(Socket &sock){
 	return FD_ISSET(sock.fd,this);
 }
-//Pollfds
-Pollfds::Pollfds(){
-	//一个也没有
-	pfds = nullptr;
-	n = 0;
-}
-Pollfds::~Pollfds(){
-	libc::free(pfds);
-}
-//添加一个fd
-void Pollfds::add(const Pollfd &f){
-	Pollfd *fds = libc::realloc(pfds,n + 1);
-	if(fds == nullptr){
-		//内存申请失败
-		throwBadAlloc();
-	}
-	pfds = fds;
-	//复制到原来空闲的地方
-	pfds[n] = f;
-	n += 1;
-}
-void Pollfds::add(Socket & sock,short events){
-	Pollfd pfd;
-	pfd.fd = sock.get_fd();
-	pfd.events = events;
-	pfd.revents = 0;
-	Pollfds::add(pfd);
-}
-void Pollfds::add(NativeSocket sock,short events){
-	Pollfd pfd;
-	pfd.fd = sock;
-	pfd.events = events;
-	pfd.revents = 0;
-	Pollfds::add(pfd);
-}
-//移除
-Pollfds::iterator Pollfds::erase(const iterator &iter){
-	if(iter.current < pfds or iter.current > pfds + n){
-		//无效的
-		return end();
-	}
-	size_t offset = (pfds + n - iter.current) / sizeof(Pollfd);
-	//得到与后面又多少
-	memmove(iter.current,iter.current + 1,offset - 1);
-	//把后面移动到前面
-	Pollfd *fds = libc::realloc(pfds,n - 1);
-	//向后偏移
-	if(fds == nullptr){
-		throwBadAlloc();
-	}
-	n -= 1;
-	return iterator{
-		iter.current + 1
-	};
-}
-//查找
-Pollfds::iterator Pollfds::find(NativeSocket sock) noexcept{
-	iterator iter = begin();
-	while(iter != end()){
-		if(iter->fd == sock){
-			return iter;
-		}
-		++iter;
-	}
-	return end();
-}
-Pollfds::iterator Pollfds::find(const Socket &sock) noexcept{
-	return Pollfds::find(sock.get_fd());
-}
-//移除Socket
-bool Pollfds::remove(NativeSocket sock){
-	iterator iter = find(sock);
-	if(iter == end()){
-		return false;
-	}
-	erase(iter);
-	return true;
-}
-bool Pollfds::remove(Socket &sock){
-	iterator iter = find(sock);
-	if(iter == end()){
-		return false;
-	}
-	erase(iter);
-	return true;
-}
-//轮询
-int Pollfds::poll(int timeout) noexcept{
-	return BOX_POLL(pfds,n,timeout);
-}
-//Poll
-int Socket::Poll(Pollfd fds[],size_t n,int timeout) noexcept{
+int Socket::Poll(NativePollfd fds[],size_t n,int timeout) noexcept{
 	return BOX_POLL(fds,n,timeout);
 }
 //Select

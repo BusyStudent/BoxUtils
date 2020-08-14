@@ -2,6 +2,7 @@
 #include <map>
 #include <list>
 #include <string>
+#include <cstring>
 #include <typeinfo>
 #include <initializer_list>
 #include "libc/attr.h"
@@ -147,7 +148,10 @@ namespace Box{
             //一些于AnyTable AnyList一样接口 免的cast了
             void insert(const std::string &key,AnyObject &&);//插入键值
             void insert(const std::string &key,AnyObject *);//插入键值
-             //查找键值
+            //列表
+            void push_back(AnyObject &&);
+            void push_front(AnyObject &&);
+            //查找键值
             const AnyObject &operator [](const std::string &key) const;
                   AnyObject &operator [](const std::string &key);
             //查找列表
@@ -192,6 +196,12 @@ namespace Box{
     //一个容纳任意类型的表
     class BOXAPI AnyList{
         public:
+            typedef std::list<AnyObject*>::iterator ListIter;//基础列表迭代器
+            typedef std::list<AnyObject*>::const_iterator ListConstIter;//基础列表迭代器
+            //迭代器
+            struct iterator;
+            struct const_iterator;
+        public:
             AnyList();
             AnyList(const AnyList &) = delete;
             AnyList(AnyList &&);
@@ -199,15 +209,102 @@ namespace Box{
             AnyList(std::initializer_list<AnyObject> &&vlist);
             ~AnyList();
             //STL的操作
+            AnyObject *pop(int index) noexcept;//弹出一个数值
             void push_back(AnyObject &&);
             void push_front(AnyObject &&);
+            bool remove(int index) noexcept;//删除某个数值
+            size_t size() const;//大小
             const AnyObject &operator [](int index) const;
                   AnyObject &operator [](int index);
+        public:
             //得到开始和结束
-            //AnyListIterator begin();
-            //AnyListIterator   end();
+            iterator begin(){
+                return list.begin();
+            };
+            iterator   end(){
+                return list.end();
+            };
+            const_iterator begin() const{
+                return list.begin();
+            };
+            const_iterator   end()const{
+                return list.end();
+            };
+            //移除
+            iterator erase(const iterator &iter){
+                return list.erase(iter);
+            };
+            //查找 得到迭代器
+            const_iterator index(int index) const;
+                  iterator index(int index);
+        public:
+            //得到列表
+            std::list<AnyObject*> &get(){
+                return list;
+            }
         private:
             std::list<AnyObject*> list;
+        public:
+            //可读可写迭代器
+            struct iterator:public ListIter{
+                //读元素
+                #if __GLIBCXX__ || defined(__GLIBCPP__)
+                //LIBSTDC++
+                iterator(){};
+                iterator(const ListIter & iter){
+                    //复制节点
+                    _M_node = iter._M_node;
+                }
+                //#elif defined(_LIBCPP_VERSION)
+                #else
+                //直接用memcpy方法
+                iterator(){};//啥都没有
+                iterator(const ListIter &iter){
+                    //复制过来
+                    memcpy(this,&iter,sizeof(ListIter));
+                };
+                #endif
+                AnyObject &operator *() noexcept{
+                    return *ListIter::operator*();
+                }
+                AnyObject *operator ->() noexcept{
+                    return ListIter::operator *();
+                }
+                //转换类型
+                template<class T>
+                T cast(){
+                    return operator*().cast<T>();
+                }
+            };
+            struct const_iterator:public ListConstIter{
+                #if __GLIBCXX__ || defined(__GLIBCPP__)
+                //LIBSTDC++
+                const_iterator(){};
+                const_iterator(const ListConstIter & iter){
+                    //复制节点
+                    _M_node = iter._M_node;
+                }
+                //#elif defined(_LIBCPP_VERSION)
+                #else
+                //直接用memcpy方法
+                iterator(){};//啥都没有
+                iterator(const ListConstIter &iter){
+                    //复制过来
+                    memcpy(this,&iter,sizeof(ListIter));
+                };
+                #endif
+                const AnyObject &operator *() noexcept{
+                    return *ListConstIter::operator*();
+                }
+                const AnyObject *operator ->() noexcept{
+                    return ListConstIter::operator *();
+                }
+                //转换类型
+                template<class T>
+                T cast(){
+                    return operator*().cast<T>();
+                }
+            };
     };
     
 };

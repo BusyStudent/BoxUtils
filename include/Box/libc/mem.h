@@ -80,6 +80,13 @@ namespace Box{
         T*    realloc0(T *ptr,size_t old_n,size_t new_n){
             return static_cast<T*>(::Box_realloc0(ptr,old_n,new_n));
         }
+        inline void *kmalloc(size_t size){
+            //设置大小
+            return Box_kmalloc(size);
+        }
+        inline void  kfree(void *ptr){
+            return Box_kfree(ptr);
+        }
         inline void *aligned_alloc(size_t aligned,size_t size){
             return Box_aligned_alloc(aligned,size);
         }

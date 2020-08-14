@@ -4,9 +4,14 @@
 #ifdef _WIN32
 	#include <winsock2.h>
 	#include <ws2ipdef.h>
+	#define BOX_POLL ::WSAPoll
+	#define BOX_H_ERRNO ::WSAGetLastError()
 #else
 	#include <netinet/in.h> 
+	#include <poll.h>
 	#include <cerrno>
+	#define BOX_POLL ::poll
+	#define BOX_H_ERRNO h_errno
 #endif
 #include <ctime>
 #include <string>
@@ -102,99 +107,6 @@ namespace Box{
 			NativeSocket max_fd;
 			#endif
 		};
-		//要进行Poll的fd 
-		struct Pollfd:public NativePollfd{
-			bool bad() const noexcept{
-				//检查是否出错
-				return (revents & POLLERR) == POLLERR;
-			}
-			//可写
-			bool could_write() const noexcept{
-				return (revents & POLLOUT) == POLLOUT;
-			}
-			bool could_read() const noexcept{
-				return (revents & POLLIN) == POLLIN;
-			}
-		};
-		//集合
-		class BOXAPI Pollfds{
-			public:
-				Pollfds();
-				Pollfds(const Pollfds &) = delete;
-				~Pollfds();
-				void add(const Pollfd &);
-				void add(Socket &,short event);
-				void add(NativeSocket,short event);//添加一个
-				//移除一个
-				bool remove(Socket &);
-				bool remove(NativeSocket);
-				int poll(int timeout = -1) noexcept;//查询 默认无限等待
-			public:
-				struct iterator{
-					//迭代器
-					//当前内容
-					Pollfd *current;
-					//前进一格
-					iterator operator ++() noexcept{
-						iterator now = {
-							.current = current
-						};
-						current ++;
-						return now;
-					}
-					//减去一格
-					iterator operator --() noexcept{
-						iterator now = {
-							.current = current
-						};
-						current --;
-						return now;
-					}
-					//前进一格
-					iterator &operator ++(int) noexcept{
-						current ++;
-						return *this;
-					}
-					//减去一格
-					iterator &operator --(int){
-						current --;
-						return *this;
-					}
-					bool operator ==(const iterator &iter) const noexcept{
-						return current == iter.current;
-					}
-					bool operator !=(const iterator &iter) const noexcept{
-						return current == iter.current;
-					}
-					//解除引用
-					Pollfd &operator *() const noexcept{
-						return *current;
-					}
-					Pollfd *operator ->() const noexcept{
-						return current;
-					}
-				};
-				//begin and end
-				iterator begin(){
-					return {
-						.current = pfds
-					};
-				}
-				iterator end(){
-					//最后一个元素后面
-					return {
-						.current = pfds + n
-					};
-				}
-				//迭代器的移除
-				iterator erase(const iterator &iter);
-				//查找
-				iterator find(const Socket &) noexcept;
-				iterator find(NativeSocket) noexcept;
-			private:
-				Pollfd *pfds;
-				size_t  n;//多少个
-		};
 		class BOXAPI Socket{
 			public:
 				#ifdef _WIN32
@@ -264,7 +176,7 @@ namespace Box{
 					return fd;
 				}
 				//得到错误和select poll
-				static int Poll(Pollfd [],size_t n,int timeout) noexcept;
+				static int Poll(NativePollfd [],size_t n,int timeout) noexcept;
 				static int Select(SockSet *r_set,SockSet *w_set,SockSet *e_set,const timeval *t = nullptr) noexcept;
 				static int GetErrorCode();//得到错误代码
 				static std::string GetError();//得到错误
@@ -275,6 +187,7 @@ namespace Box{
 			protected:
 				NativeSocket fd;//文件描述符号
 			friend struct SockSet;
+			friend class Epollfds;
 			friend class Pollfds;
 			friend class TCP;
 			friend class UDP;

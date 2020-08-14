@@ -143,10 +143,18 @@ namespace OS{
         }
         if(val){
             //可以
-            flags |= O_CLOEXEC;
+            if(not BOX_HASBIT(flags,O_CLOEXEC)){
+                //没有这个flags
+                return;
+            }
+            flags ^= O_CLOEXEC;
         }
         else{
-            flags ^= O_CLOEXEC;
+            if(BOX_HASBIT(flags,O_CLOEXEC)){
+                //有这个 直接返回
+                return;
+            }
+            flags |= O_CLOEXEC;
         }
         if(fcntl(handle,F_SETFL,flags) < 0){
             throwError();

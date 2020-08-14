@@ -139,6 +139,13 @@ namespace Box{
     void AnyObject::insert(const std::string &key,AnyObject * obj){
         cast<AnyTable&>().insert(key,obj);
     }
+    //压入
+    void AnyObject::push_back(AnyObject &&obj){
+        cast<AnyList&>().push_back(std::forward<AnyObject&&>(obj));
+    }
+    void AnyObject::push_front(AnyObject &&obj){
+        cast<AnyList&>().push_front(std::forward<AnyObject&&>(obj));
+    }
     //查找键
     const AnyObject &AnyObject::operator [](const std::string &key) const{
         return cast<const AnyTable&>()[key];
@@ -262,27 +269,67 @@ namespace Box{
             delete obj;
         }
     }
+    AnyObject *AnyList::pop(int index) noexcept{
+        std::list<AnyObject*>::iterator iter = AnyList::index(index);
+        //找到
+        if(iter == list.end()){
+            return nullptr;
+        }
+        AnyObject *obj = *iter;
+        list.erase(iter);
+        return obj;
+    }
     void AnyList::push_back(AnyObject &&obj){
         list.push_back(new AnyObject(std::move(obj)));
     }
     void AnyList::push_front(AnyObject &&obj){
         list.push_back(new AnyObject(std::move(obj)));
     }
+    //删除某个数值
+    bool AnyList::remove(int index) noexcept{
+        std::list<AnyObject*>::iterator iter = AnyList::index(index);
+        if(iter == list.end()){
+            return false;
+        }
+        //删除数值
+        delete *iter;
+        list.erase(iter);
+        return true;
+    }
+    size_t AnyList::size() const{
+        return list.size();
+    }
     //查列表
     //const 版本
     const AnyObject &AnyList::operator [](int index) const{
+        const_iterator iter = AnyList::index(index);
+        if(iter == list.end()){
+            throw IndexError(index);
+        }
+        return *iter;
+    }
+    //非const版本
+    AnyObject &AnyList::operator [](int index){
+        iterator iter = AnyList::index(index);
+        if(iter == list.end()){
+            throw IndexError(index);
+        }
+        return *iter;
+    }
+    //查找迭代器
+    AnyList::const_iterator AnyList::index(int index) const{
         if(index < 0){
             //反向查找
             if( ((-index) - 1) >= (int)list.size()){
                 //越界
-                throw IndexError(index);
+                return list.end();
             }
             std::list<AnyObject*> ::const_reverse_iterator iter = list.rbegin();
             for(int i = -1; i >  index; i --){
                 ++iter;
             }
             //找到了
-            return **iter;
+            return (++iter).base();
         }
         else{
             if(index >= (int)list.size()){
@@ -292,23 +339,22 @@ namespace Box{
             for(int i = 0;i < index; i ++){
                 ++iter;
             }
-            return **iter;
+            return iter;
         }
     }
-    //非const版本
-    AnyObject &AnyList::operator [](int index){
+    AnyList::iterator AnyList::index(int index){
         if(index < 0){
             //反向查找
             if( ((-index) - 1) >= (int)list.size()){
                 //越界
-                throw IndexError(index);
+                return list.end();
             }
             std::list<AnyObject*> ::reverse_iterator iter = list.rbegin();
             for(int i = -1; i >  index; i --){
                 ++iter;
             }
             //找到了
-            return **iter;
+            return (++iter).base();//转换到正向迭代器
         }
         else{
             if(index >= (int)list.size()){
@@ -318,7 +364,7 @@ namespace Box{
             for(int i = 0;i < index; i ++){
                 ++iter;
             }
-            return **iter;
+            return iter;
         }
     }
 }

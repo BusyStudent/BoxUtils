@@ -2,6 +2,7 @@
 #if defined(_WIN32)
     #include <windows.h>
     #include <io.h>
+#else
     #include <unistd.h>
     #include <fcntl.h>
 #endif // _WIN32
@@ -77,10 +78,10 @@ namespace OS{
             os_flags = O_RDONLY;
         }
         else if(BOX_HASBIT(flags,Flags::RDWR)){
-            os_flags = O_RDWR；
+            os_flags = O_RDWR;
         }
         else if(BOX_HASBIT(flags,Flags::APPEND)){
-            os_flags = O_APPEND；
+            os_flags = O_APPEND;
         }
         fd = open(filename,os_flags);
         if(fd < 0 and throw_err){

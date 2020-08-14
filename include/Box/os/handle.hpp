@@ -52,6 +52,7 @@ namespace Box{
             private:
                 //基本的句柄
                 NativeHandle handle;
+            friend void Pipe(Handle &,Handle &);
         };
 
         BOXAPI Handle Stdin();//得到stdin的句柄
