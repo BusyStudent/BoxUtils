@@ -1,13 +1,17 @@
 #ifdef _WIN32
     #include <windows.h>
+    #include <fcntl.h>
     #include <io.h>
     #include <process.h>
     #define HANDLE_INVAID INVALID_HANDLE_VALUE
+    #define BOX_DUP2 _dup2
 #else
+    #include <sys/stat.h>
     #include <unistd.h>
     #include <fcntl.h>
     //非法句柄
     #define HANDLE_INVAID -1
+    #define BOX_DUP2 dup2
 #endif
 #include <cstdio>
 #include "common/def.hpp"
@@ -179,6 +183,37 @@ namespace OS{
         return (flags & O_CLOEXEC) != O_CLOEXEC;
         #endif
     }
+    size_t Handle::size() const{
+        #ifdef _WIN32
+
+        #else
+        struct stat buf;
+        if(fstat(handle,&buf) != 0){
+            //Error
+            throwError();
+        }
+        else{
+            //得到大小
+            return buf.st_size;
+        }
+        #endif
+    }
+    //转换为文件描述符
+    int Handle::to_fd(){
+        #ifdef _WIN32
+        HANDLE hd = Handle::detach();
+        int fd = _open_osfhandle(hd,0);
+        if(fd == -1){
+            //失败
+            handle = hd;
+            throwError();
+        }
+        return fd;
+        #else
+        //Linux
+        return Handle::detach();
+        #endif
+    }
     Handle::operator NativeHandle() const noexcept{
         return handle;
     }
@@ -188,8 +223,14 @@ namespace OS{
     bool Handle::operator !=(const Handle &h) const noexcept{
         return handle != h.handle;
     }
-    //标砖输入输出的曲柄
+    //重新定向文件描述符
+    #define SET_FD_TO(FD,TARGET) \
+        if(BOX_DUP2(FD,TARGET) < 0){\
+            throwError();\
+        }
+    //重定向句柄 在Linux上就是fd
     #ifdef _WIN32
+        //在WINDOWS上真麻烦
         #define BOX_OS_STDIN STD_INPUT_HANDLE
         #define BOX_OS_STDOUT STD_OUTPUT_HANDLE 
         #define BOX_OS_STDERR STD_ERROR_HANDLE
@@ -212,14 +253,21 @@ namespace OS{
             }\
             return Handle(handle);
         //设置句柄的宏
-        #define SET_HANDLE_TO(H,NAME) \
+        #define SET_HANDLE_TO(H,NAME,CRT_NAME) \
+            HANDLE hd = H.dup().detach();
             if(SetStdHandle(NAME,H.detach()) == FALSE){\
                 throwError();\
             }
+            //Crt重新定向
+            SET_FD_TO(_open_osfhandle(hd,0),CRT_NAME);
     #else
         #define BOX_OS_STDIN STDIN_FILENO
         #define BOX_OS_STDOUT STDOUT_FILENO
         #define BOX_OS_STDERR STDERR_FILENO
+
+        #define BOX_CRT_STDIN STDIN_FILENO
+        #define BOX_CRT_STDOUT STDOUT_FILENO
+        #define BOX_CRT_STDERR STDERR_FILENO
         //得到fd
         #define GET_HANDLE_FROM(NAME) \
             int fd = dup(NAME);\
@@ -228,10 +276,8 @@ namespace OS{
             }\
             return fd;
         //设置fd
-        #define SET_HANDLE_TO(H,NAME) \
-            if(dup2(H.detach(),NAME) != 0){\
-                throwError();\
-            }
+        #define SET_HANDLE_TO(H,NAME,CRT_NAME) \
+            SET_FD_TO(H.detach(),NAME)
     #endif
     //得到下面三个句柄
     Handle Stdin(){
@@ -243,15 +289,15 @@ namespace OS{
     Handle Stderr(){
         GET_HANDLE_FROM(BOX_OS_STDERR);
     }
-    //设置句柄
+    //设置句柄 在Linux上最后一个参数被忽略
     void SetStdin(Handle &&handle){
-        SET_HANDLE_TO(handle,BOX_OS_STDIN);
+        SET_HANDLE_TO(handle,BOX_OS_STDIN,BOX_CRT_STDIN);
     }
     void SetStdout(Handle &&handle){
-        SET_HANDLE_TO(handle,BOX_OS_STDOUT);
+        SET_HANDLE_TO(handle,BOX_OS_STDOUT,BOX_CRT_STDOUT);
     }
     void SetStderr(Handle &&handle){
-        SET_HANDLE_TO(handle,BOX_OS_STDERR);
+        SET_HANDLE_TO(handle,BOX_OS_STDERR,BOX_CRT_STDERR);
     }
 };
 };

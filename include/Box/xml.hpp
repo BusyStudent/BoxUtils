@@ -148,6 +148,15 @@ namespace Box{
 		extern void *Malloc(size_t byte);
 		extern void  Free(void *mem);
 	};
+	namespace Fmt{
+		//两个格式化的东西
+		inline std::string ToString(const LXml::Xml &xml){
+			return xml.to_string();
+		}
+		inline std::string ToString(const LXml::Node &node){
+			return node.to_string();
+		}
+	};
 	typedef LXml::Xml Xml;
 	typedef LXml::Html Html;
 };

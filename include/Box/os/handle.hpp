@@ -41,6 +41,14 @@ namespace Box{
                 //设置是否可以继承
                 void set_inherit(bool val = true);
                 bool  is_inherit() const;//是否可继承
+                //得到大小 一般是文件
+                size_t size() const;
+                //转换到文件描述符号
+                /*
+                这个在Linux上直接detach 
+                在windows上就detach +  _open_osfhandle
+                */
+                int to_fd();
                 //操作符号
                 
                 explicit operator NativeHandle() const noexcept;
@@ -54,7 +62,6 @@ namespace Box{
                 NativeHandle handle;
             friend void Pipe(Handle &,Handle &);
         };
-
         BOXAPI Handle Stdin();//得到stdin的句柄
         BOXAPI Handle Stdout();//得到stdout
         BOXAPI Handle Stderr();

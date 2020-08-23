@@ -29,4 +29,11 @@ extern "C"{
     #endif
 #endif
 #define BOX_HASBIT(INPUT,BIT) ((INPUT & BIT) == BIT)
+namespace Box{
+    //C的转型
+    template<class T,class Input>
+    T c_cast(Input &&input){
+        return (T)input;
+    }
+}
 #endif

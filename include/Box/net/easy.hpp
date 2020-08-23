@@ -96,13 +96,13 @@ namespace Box{
 		};
 		struct MimePart{
 			//表单的一部分
-			void set_headers();//清空
-			void set_headers(const Headers &,bool copy = true);//设置头部的数值 默认复制一下
-			void set_encoder(const char *encoder);//设置
-			void set_name(const char *name);//设置名字
-			void set_data(const void *data,size_t datasize);//设置数据从内存中
-			void set_type(const char *type);//设置类型
-			void set_filedata(const char *filename);//设置数据从文件中
+			MimePart set_headers();//清空
+			MimePart set_headers(const Headers &,bool copy = true);//设置头部的数值 默认复制一下
+			MimePart set_encoder(const char *encoder);//设置
+			MimePart set_name(const char *name);//设置名字
+			MimePart set_data(const void *data,size_t datasize);//设置数据从内存中
+			MimePart set_type(const char *type);//设置类型
+			MimePart set_filedata(const char *filename);//设置数据从文件中
 			curl_mimepart *part;
 		};
 		class Mime{

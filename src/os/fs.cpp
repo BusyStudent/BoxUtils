@@ -7,12 +7,13 @@
     #include <fcntl.h>
 #endif // _WIN32
 #include "common/def.hpp"
+#include "raii/scope.hpp"
 #include "os/exception.hpp"
 #include "os/handle.hpp"
 #include "os/fs.hpp"
 namespace Box{
 namespace OS{
-    Handle Fopen(const char *filename,int flags,bool throw_err){
+    Handle Fopen(std::string_view filename,int flags,bool throw_err){
         #ifdef _WIN32
         //使用Flags
         HANDLE handle;
@@ -35,7 +36,7 @@ namespace OS{
         if(BOX_HASBIT(flags,Flags::APPEND)){
             //添加内容
             //检查是否存在·
-            if(_access(filename,F_OK) != 0){
+            if(_access(filename.data(),F_OK) != 0){
                 //不存在
                 create_flags = CREATE_ALWAYS;
             }
@@ -53,7 +54,7 @@ namespace OS{
             create_flags = OPEN_EXISTING;
         }
         handle = CreateFileA(
-            filename,
+            filename.data(),
             os_flags,
             0,
             nullptr,
@@ -83,19 +84,46 @@ namespace OS{
         else if(BOX_HASBIT(flags,Flags::APPEND)){
             os_flags = O_APPEND;
         }
-        fd = open(filename,os_flags);
+        fd = open(filename.data(),os_flags);
         if(fd < 0 and throw_err){
             throwError();
         }
         return fd;
         #endif
     }
-    bool Exists(const char *filename){
+    bool Exists(std::string_view filename){
         #ifdef _WIN32
-        return _access(filename,F_OK) == 0;
+        return _access(filename.data(),F_OK) == 0;
         #else
-        return access(filename,F_OK) == 0;
+        return access(filename.data(),F_OK) == 0;
         #endif
+    }
+    bool Truncate(std::string_view filename,size_t fsize){
+        #ifdef _WIN32
+
+        #else
+        return truncate(filename.data(),fsize) == 0;
+        #endif
+    }
+    //设置工作目录
+    bool SetWorkDir(std::string_view filename){
+        #ifdef _WIN32
+        return _chdir(filename.data()) == 0;
+        #else
+        return chdir(filename.data()) == 0;
+        #endif
+    }
+    //得到工作目录
+    std::string GetWorkDir(){
+        //return std::string(std::filesystem::current_path());
+        char *workdir = getcwd(nullptr,0);
+        if(workdir == nullptr){
+            throwError();
+        }
+        Box_defer{
+            free(workdir);
+        };
+        return workdir;
     }
 }
 }

@@ -36,5 +36,12 @@
         puts(strerror(errno));\
         abort();\
     }
-
+//Thread local
+#ifdef __gnu_linux__
+    #include <threads.h>
+    #define LIBC_TLS _Thread_local
+#elif defined(__GUNC__)
+    //GCC
+    #define LIBC_TLS __thread
+#endif
 #endif

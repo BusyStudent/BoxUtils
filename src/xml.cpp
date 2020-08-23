@@ -14,9 +14,6 @@
 #include "exception.hpp"
 namespace Box{
 namespace LXml{
-	inline const char *CastString(const xmlChar *str){
-		return (const char*)str;
-	}
 	XmlHolder::~XmlHolder(){
 		if(not ref){
 			//如果不是引用
@@ -99,18 +96,18 @@ namespace LXml{
 	}
 	std::string Xml::version() const{
 		//得到版本
-		return CastString(holder->xml->version);
+		return c_cast<char*>(holder->xml->version);
 	}
 	std::string Xml::encoding() const{
 		//得到编码方式
-		return CastString(holder->xml->encoding);
+		return c_cast<char*>(holder->xml->encoding);
 	}
 	//转换为字符串
 	std::string Xml::to_string() const{
 		xmlChar *mem = nullptr;
 		int len;
 		xmlDocDumpFormatMemoryEnc(holder->xml,&mem,&len,DefaultEncoding,1);
-		std::string str(CastString(mem),len);
+		std::string str(c_cast<char*>(mem),len);
 		//到字符串
 		xmlFree(mem);
 		return str;
@@ -187,7 +184,7 @@ namespace LXml{
 		xmlChar *mem = nullptr;
 		int len;
 		xmlDocDumpFormatMemoryEnc(xml.holder->xml,&mem,&len,DefaultEncoding,1);
-		ostr.write(CastString(mem),len);
+		ostr.write(c_cast<char*>(mem),len);
 		//到字符串
 		xmlFree(mem);
 		return ostr;
@@ -260,21 +257,21 @@ namespace LXml{
 			//得到内容失败
 			throw NullPtrException();
 		}
-		return std::string(CastString(mem));
+		return std::string(c_cast<char*>(mem));
 	}
 	//提取出名字
 	std::string Node::name() const{
 		if(holder->node->name == nullptr){
 			throw NullPtrException();
 		}
-		return std::string(CastString(holder->node->name));
+		return std::string(c_cast<char*>(holder->node->name));
 	}
 	//到字符串
 	std::string Node::to_string() const{
 		xmlBufferPtr buf = xmlBufferCreate();
 		//创建缓冲区
 		xmlNodeDump(buf,holder->node->doc,holder->node,1,1);
-		std::string str(CastString(buf->content));
+		std::string str(c_cast<char*>(buf->content));
 		xmlBufferFree(buf);
 		return str;
 	}
@@ -284,7 +281,7 @@ namespace LXml{
 		if(attr == nullptr){
 			throw KeyError(name);
 		}
-		return CastString(XML_GET_CONTENT(attr->children));
+		return c_cast<char*>(XML_GET_CONTENT(attr->children));
 	}
 	std::string Node::operator[](const std::string &name) const{
 		return operator[](name.c_str());
@@ -344,7 +341,7 @@ namespace LXml{
 		xmlBufferPtr buf = xmlBufferCreate();
 		//创建缓冲区
 		xmlNodeDump(buf,node.holder->node->doc,node.holder->node,1,1);
-		ostr.write((CastString(buf->content)),buf->use);
+		ostr.write((c_cast<char*>(buf->content)),buf->use);
 		xmlBufferFree(buf);
 		return ostr;
 	}
@@ -371,7 +368,7 @@ namespace LXml{
 		xmlChar *mem;
 		int size;
 		htmlDocDumpMemoryFormat(holder->xml,&mem,&size,1);
-		std::string str(CastString(mem),size);
+		std::string str(c_cast<char*>(mem),size);
 		xmlFree(mem);
 		return str;
 	}
@@ -391,7 +388,7 @@ namespace LXml{
 		xmlChar *mem;
 		int size;
 		htmlDocDumpMemoryFormat(html.holder->xml,&mem,&size,1);
-		ostr.write(CastString(mem),size);
+		ostr.write(c_cast<char*>(mem),size);
 		xmlFree(mem);
 		return ostr;
 	}

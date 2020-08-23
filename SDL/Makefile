@@ -14,3 +14,7 @@ window.o:window.cpp
 	$(CXX) $(CXXFLAGS) window.cpp -c
 render.o:render.cpp
 exception.o:exception.cpp
+
+clean:
+	-rm $(OBJ)
+	-rm libbox_sdl.so

@@ -342,11 +342,12 @@ namespace Net{
 		};
 	}
 	//表单的部分
-	void MimePart::set_headers(){
+	MimePart MimePart::set_headers(){
 		//清空
 		CURL_ASSERT(curl_mime_headers(part,nullptr,0));
+		return *this;
 	}
-	void MimePart::set_headers(const Headers &headers,bool copy){
+	MimePart MimePart::set_headers(const Headers &headers,bool copy){
 		//设置请求头
 		CURLcode code;
 		if(copy){
@@ -357,26 +358,32 @@ namespace Net{
 			code = curl_mime_headers(part,headers.slist,0);
 		}
 		CURL_ASSERT(code);
+		return *this;
 	}
-	void MimePart::set_encoder(const char *encoder){
+	MimePart MimePart::set_encoder(const char *encoder){
 		//更改编码器
 		CURL_ASSERT(curl_mime_name(part,encoder));
+		return *this;
 	}
-	void MimePart::set_name(const char *name){
+	MimePart MimePart::set_name(const char *name){
 		//设置名字
 		CURL_ASSERT(curl_mime_name(part,name));
+		return *this;
 	}
-	void MimePart::set_data(const void *data,size_t datasize){
+	MimePart MimePart::set_data(const void *data,size_t datasize){
 		//设置数据从内存中
 		CURL_ASSERT(curl_mime_data(part,(const char*)data,datasize));
+		return *this;
 	}
-	void MimePart::set_filedata(const char *filename){
+	MimePart MimePart::set_filedata(const char *filename){
 		//设置数据从文件中
 		CURL_ASSERT(curl_mime_filedata(part,filename));
+		return *this;
 	}
-	void MimePart::set_type(const char *type){
+	MimePart MimePart::set_type(const char *type){
 		//设置类型
 		CURL_ASSERT(curl_mime_type(part,type));
+		return *this;
 	}
 }
 }

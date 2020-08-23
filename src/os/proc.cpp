@@ -121,14 +121,14 @@ namespace OS{
         return daemon(1,0) == 0;
         #endif
     }
-    Proc Popen(const char *cmd,Handle *in,Handle *out,Handle *err){
+    Proc Popen(std::string_view cmd,Handle *in,Handle *out,Handle *err){
         #ifdef _WIN32
         abort();
         #else
         //解析命令行
         using Posix::CmdInfo;
         using Posix::ParseCommand;
-        std::unique_ptr<CmdInfo> info(ParseCommand(cmd));
+        std::unique_ptr<CmdInfo> info(ParseCommand(cmd.data()));
         if(info == nullptr){
             //解析失败 非法参数
             throwError(EINVAL);
@@ -204,6 +204,14 @@ namespace OS{
 
         #else
         return kill(pid,SIGTERM) == 0;
+        #endif
+    }
+    //是否存活
+    bool Proc::alive(){
+        #ifdef _WIN32
+
+        #else
+        return ::kill(pid,0) == 0;
         #endif
     }
     int  Proc::wait(){

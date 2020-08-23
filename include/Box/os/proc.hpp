@@ -6,6 +6,7 @@
 #else
     #include <sys/types.h>
 #endif
+#include <string_view>
 #include "../libc/attr.h"
 namespace Box{
     namespace OS{
@@ -18,6 +19,7 @@ namespace Box{
         struct BOXAPI Proc{
             ProcID pid;//进程ID
             bool terminate();//终止
+            bool alive();//是否存活
             int  wait();//等待结束
             //转换
             operator ProcID() const noexcept{
@@ -28,7 +30,7 @@ namespace Box{
         BOXAPI bool Daemon() noexcept;
         //打开进程
         BOXAPI Proc Popen(
-            const char *cmd,
+            std::string_view cmd,
             Handle *in = nullptr,
             Handle *out = nullptr,
             Handle *err = nullptr

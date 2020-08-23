@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstdarg>
 #include "common/def.hpp"
+#include "raii/scope.hpp"
 #include "net/exception.hpp"
 #include "net/socket.hpp"
 #include "backtrace.hpp"
@@ -50,6 +51,12 @@ void Socket::close(){
 	//关掉
 	if(not BOX_SOCKET_INVAID(fd)){
 		libc::closesocket(fd);
+		//设置会非法套接子
+		#ifdef _WIN32
+		fd = INVALID_SOCKET;
+		#else
+		fd = -1;
+		#endif
 	}
 }
 //读写
@@ -72,13 +79,13 @@ void Socket::set_nonblock(bool val){
 	}
 	if(ioctlsocket(fd,FIONBIO,&arg) !=0){
 		//失败
-		SocketError::Throw(Socket::GetErrorCode());
+		throwSocketError();
 	}
 	#else
 	//得到flags
 	int flags = fcntl(fd, F_GETFL, 0);
 	if(flags < 0){
-		SocketError::Throw(Socket::GetErrorCode());
+		throwSocketError();
 	}
 	if(val == true){
 		//不堵塞
@@ -88,26 +95,66 @@ void Socket::set_nonblock(bool val){
 		flags = flags ^ O_NONBLOCK;
 	}
 	if(fcntl(fd,F_SETFL,flags) < 0){
-		SocketError::Throw(Socket::GetErrorCode());//失败
+		throwSocketError();//失败
 	}
+	#endif
+}
+//设置可以继承
+void Socket::set_inherit(bool val){
+	#ifdef _WIN32
+
+	#else
+	int flags = fcntl(fd,F_GETFL,0);
+	if(flags < 0){
+		throwSocketError();
+	}
+	if(val){
+		if(not BOX_HASBIT(flags,O_CLOEXEC)){
+			//已经设置过了
+			return;
+		}
+		flags ^= O_CLOEXEC;
+	}
+	else{
+		if(BOX_HASBIT(flags,O_CLOEXEC)){
+			return;
+		}
+		flags |= O_CLOEXEC;
+	}
+	//设置flags
+	if(fcntl(F_SETFL,flags) < 0){
+		throwSocketError();
+	}
+	#endif
+}
+//是否可继承
+bool Socket::is_inherit() const{
+	#ifdef _WIN32
+
+	#else
+	int flags = fcntl(fd,F_GETFL,0);
+	if(flags < 0){
+		throwSocketError();
+	}
+	return not BOX_HASBIT(flags,O_CLOEXEC);
 	#endif
 }
 //绑定地址
 void Socket::bind(const AddrV4 &addr){
 	if(libc::bind(fd,&addr,sizeof(sockaddr_in)) != 0){
-		SocketError::Throw(Socket::GetErrorCode());
+		throwSocketError();
 	}
 }
 //IPV6
 void Socket::bind(const AddrV6 &addr){
 	if(libc::bind(fd,&addr,sizeof(sockaddr_in6)) != 0){
-		SocketError::Throw(Socket::GetErrorCode());
+		throwSocketError();
 	}
 }
 //OS
 void Socket::bind(const void *addr,size_t addrsize){
 	if(libc::bind(fd,addr,addrsize) != 0){
-		SocketError::Throw(Socket::GetErrorCode());
+		throwSocketError();
 	}
 }
 //听
@@ -115,25 +162,25 @@ void Socket::listen(int backlog){
 	int ret = ::listen(fd,backlog);
 	if(ret != 0){
 		//失败
-		SocketError::Throw(Socket::GetErrorCode());
+		throwSocketError();
 	}
 }
 //连接
 void Socket::connect(const AddrV4 &addr){
 	if(libc::connect(fd,&addr,sizeof(sockaddr_in)) != 0){
-		SocketError::Throw(Socket::GetErrorCode());
+		throwSocketError();
 	}
 }
 //IPV6的连接
 void Socket::connect(const AddrV6 &addr){
 	if(libc::connect(fd,&addr,sizeof(sockaddr_in6)) != 0){
-		SocketError::Throw(Socket::GetErrorCode());
+		throwSocketError();
 	}
 }
 //原始连接
 void Socket::connect(const void *addr,size_t addrsize){
 	if(libc::connect(fd,addr,addrsize) != 0){
-		SocketError::Throw(Socket::GetErrorCode());
+		throwSocketError();
 	}
 }
 //得到Socketd的地址
@@ -158,7 +205,7 @@ void Socket::get_name(AddrV4 &addr)const{
 	#endif
 	if(code != 0){
 		//失败
-		SocketError::Throw(BOX_H_ERRNO);
+		throwSocketError(BOX_H_ERRNO);
 	}
 }
 //IPV6版本
@@ -172,7 +219,7 @@ void Socket::get_name(AddrV6 &addr)const{
 	#endif
 	if(code != 0){
 		//失败
-		SocketError::Throw(BOX_H_ERRNO);
+		throwSocketError(BOX_H_ERRNO);
 	}
 }
 //通过地址大小的到
@@ -186,7 +233,7 @@ void Socket::get_name(void *addr,size_t addrsize) const{
 	#endif
 	if(code != 0){
 		//失败
-		SocketError::Throw(BOX_H_ERRNO);
+		throwSocketError(BOX_H_ERRNO);
 	}
 }
 //得到与他相连的Socket名字
@@ -200,7 +247,7 @@ void Socket::get_peer_name(AddrV4 &addr)const{
 	#endif
 	if(code != 0){
 		//失败
-		SocketError::Throw(BOX_H_ERRNO);
+		throwSocketError(BOX_H_ERRNO);
 	}
 }
 //IPV6
@@ -214,7 +261,7 @@ void Socket::get_peer_name(AddrV6 &addr)const{
 	#endif
 	if(code != 0){
 		//失败
-		SocketError::Throw(BOX_H_ERRNO);
+		throwSocketError(BOX_H_ERRNO);
 	}
 }
 //原始的接口
@@ -228,7 +275,7 @@ void Socket::get_peer_name(void *addr,size_t addrsize) const{
 	#endif
 	if(code != 0){
 		//失败
-		SocketError::Throw(BOX_H_ERRNO);
+		throwSocketError(BOX_H_ERRNO);
 	}
 }
 //OS API 接受数据和发送数据
@@ -283,6 +330,10 @@ Socket Socket::dup(){
 }
 //创建Socket
 NativeSocket Socket::Create(int domain,int type,int prot){
+	#ifndef _WIN32
+	//不给继承
+	type |= SOCK_CLOEXEC;
+	#endif
 	NativeSocket sock = socket(domain,type,prot);
 	//创建一下
 	if(BOX_SOCKET_INVAID(sock)){
@@ -308,7 +359,6 @@ NativeSocket Socket::Create(int domain,int type,int prot){
 	}
 	return sock;
 }
-
 //地址
 AddrV4::AddrV4(){
 	//清空自己
@@ -331,7 +381,7 @@ AddrV4 AddrV4::FromHost(const std::string &host,uint16_t port){
 	hostent *ent = ::gethostbyname(host.c_str());
 	if(ent == nullptr){
 		//失败
-		SocketError::Throw(Socket::GetErrorCode());
+		throwSocketError(BOX_H_ERRNO);
 	}
 	//复制地址
 	memcpy(&(addr.sin_addr),(struct in_addr*)ent->h_addr_list[0],sizeof(in_addr));
@@ -359,7 +409,7 @@ std::string AddrV4::get_host() const{
 	//得到主机名字
 	if(ent == nullptr){
 		//错误
-		SocketError::Throw(Socket::GetErrorCode());
+		throwSocketError(BOX_H_ERRNO);
 	}
 	return std::string(ent->h_name);
 }
@@ -409,7 +459,7 @@ std::string AddrV6::get_host() const{
 	//得到主机名字
 	if(ent == nullptr){
 		//错误
-		SocketError::Throw(Socket::GetErrorCode());
+		throwSocketError(BOX_H_ERRNO);
 	}
 	return std::string(ent->h_name);
 }
@@ -547,28 +597,27 @@ void Socket::Pair(Socket *socks[2] ){
 	//Window是自己的实现
 	socks[0] = nullptr;
 	socks[1] = nullptr;
-	try{
-		Tcp tcp(SockFamily::IPV4);
-		socks[1] = new Tcp(SockFamily::IPV4);//初始化第二个Socket
-		tcp.listen(1);
-		AddrV4 addr;
-		tcp.get_name(addr);
-		//得到主机地址
-		socks[1]->connect(addr);//连接
-		socks[0] = tcp.accept();//结束
-		return;
-	}
-	catch(SockError &){
-		//回收资源
+	ScopeGuard guard([&](){
+		//抛出异常时候删除这几个
 		delete socks[0];
 		delete socks[1];
-		throw;//再抛出
-	}
+	});
+	Tcp tcp(SockFamily::IPV4);
+	socks[1] = new Tcp(SockFamily::IPV4);//初始化第二个Socket
+	tcp.listen(1);
+	AddrV4 addr;
+	tcp.get_name(addr);
+	//得到主机地址
+	socks[1]->connect(addr);//连接
+	socks[0] = tcp.accept();//结束
+	//释放guard
+	guard.release();
+	return;
 	#else
 	NativeSocket fds[2];
 	if(socketpair(AF_UNIX,SOCK_STREAM,0,fds) != 0){
 		//失败
-		SocketError::Throw(Socket::GetErrorCode());
+		throwSocketError();
 	}
 	socks[0] = new Socket(fds[0]);
 	socks[1] = new Socket(fds[1]);
@@ -613,17 +662,43 @@ namespace Net{
 	const char *SocketError::what() const noexcept{
 		return msg.c_str();
 	}
-	[[noreturn]] void SocketError::Throw(int code){
-		throw SocketError(code);
-	}
 	BOXAPI [[noreturn]] void throwSocketError(int code){
 		throw SocketError(code);
 	}
 };
 };
-//Net Socket版本
+//OS Socket版本
 namespace Box{
-namespace Net{
-	
+namespace OS{
+	bool Socket::close() noexcept{
+		if(not bad()){
+			return libc::closesocket(fd);
+		}
+		else{
+			return false;
+		}
+	}
+	Socket Socket::accept(void *addr,size_t *addrsize) noexcept{
+		if(addr == nullptr){
+			return {::accept(fd,nullptr,nullptr)};
+		}
+		else{
+			NativeSocket sock;
+			libc::socklen_t len;
+			sock = ::accept(fd,static_cast<struct sockaddr*>(addr),&len);
+			if(addrsize != nullptr){
+				*addrsize = len;
+			}
+			return {sock};
+		}
+	}
+	//写
+	ssize_t Socket::send(const void *buf,size_t bufsize,int flags) noexcept{
+		return libc::send(fd,buf,bufsize,flags);
+	}
+	//读
+	ssize_t Socket::recv(void *buf,size_t bufsize,int flags) noexcept{
+		return libc::recv(fd,buf,bufsize,flags);
+	}
 }
 };

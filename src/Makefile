@@ -11,7 +11,7 @@ OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net/easy.o net/factory.o net/hea
 	dylib.o logger.o subprocess.o buffer.o table.o\
 	assert.o threadpool.o fmt.o net/url.o net/poll.o\
 	co/context.o co/ucontext.o\
-	os/handle.o os/exception.o os/proc.o
+	os/handle.o os/exception.o os/proc.o os/fs.o
 LIBC_OBJ=libc/mem.o libc/inet.o libc/atexit.o libc/io.o
 
 OBJ+=$(LIBC_OBJ)
@@ -109,6 +109,7 @@ libc/io.o:libc/io.c $(INCLUDE)libc/io.h
 co/context.o:co/context.cpp $(INCLUDE)co/context.hpp
 co/ucontext.o:co/ucontext.cpp $(INCLUDE)co/ucontext.h
 #操作系统api的文件
+os/fs.o:os/fs.cpp $(INCLUDE)os/fs.hpp
 os/proc.o:os/proc.cpp $(INCLUDE)os/proc.hpp
 os/handle.o:os/handle.cpp $(INCLUDE)os/handle.hpp
 os/exception.o:os/exception.cpp $(INCLUDE)os/exception.hpp

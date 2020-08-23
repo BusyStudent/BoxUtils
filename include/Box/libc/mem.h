@@ -11,6 +11,10 @@ extern "C"{
 //C的函数
 typedef void*(*Box_allocator_t)(size_t);
 //内存申请函数
+//标准C内存申请函数 应为在MSVC上好像是__stdcall
+extern BOXAPI void *Box_malloc(size_t n);
+extern BOXAPI void  Box_free(void *ptr);
+
 extern BOXAPI void *Box_kmalloc(size_t n);//系统API申请内存
 extern BOXAPI void  Box_kfree(void *ptr);//释放内存
 extern BOXAPI void *Box_malloc0(size_t n);//申请一块内存 初始化为0
@@ -31,6 +35,8 @@ extern BOXAPI char *Box_strdupfrom(const char *str_begin,const char *str_end,Box
 //字符串比较
 extern BOXAPI int   Box_strcasecmp(const char *s1,const char *s2);
 extern BOXAPI int   Box_strncasecmp(const char *s1,const char *s2,size_t n);
+//得到分页大小
+extern BOXAPI long Box_getpagesize();
 #ifdef __cplusplus
 }
 //C++的包装
@@ -119,6 +125,10 @@ namespace Box{
         };
         inline int  strncasecmp(const char *s1,const char *s2,size_t n){
             return Box_strncasecmp(s1,s2,n);
+        };
+        //得到分页大小
+        inline long getpagesize(){
+            return Box_getpagesize();
         };
     };
 };

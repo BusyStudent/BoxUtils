@@ -25,6 +25,14 @@ typedef struct MapedMemory{
     char memory[];
 }MapedMemory;
 #endif
+
+BOXAPI void *Box_malloc(size_t n){
+    return malloc(n);
+}
+BOXAPI void  Box_free(void *ptr){
+    free(ptr);
+}
+
 BOXAPI void *Box_kmalloc(size_t n){
     #ifdef _WIN32
     //没实现
@@ -215,6 +223,16 @@ BOXAPI int  Box_strncasecmp(const char *s1, const char *s2, size_t n){
         }
     }
     return 0;
+}
+//得到分页大小
+BOXAPI long Box_getpagesize(){
+    #ifdef _WIN32
+    SYSTEM_INFO info;
+    GetSystemInfo(&info);
+    return info.dwPageSize;
+    #else
+    return sysconf(_SC_PAGE_SIZE);
+    #endif
 }
 //随机填充内存
 BOXAPI void *Box_memrand(void *mem,size_t n){

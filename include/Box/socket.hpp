@@ -20,7 +20,7 @@
 namespace Box{
 	class OSError;//定义在exception.hpp 
 	//基本的Socket
-	namespace Net{
+	namespace OS{
 		#ifdef _WIN32
 			typedef SOCKET NativeSocket;
 			typedef WSAPOLLFD NativePollfd;
@@ -28,6 +28,35 @@ namespace Box{
 			typedef int NativeSocket;//本地的Socket
 			typedef pollfd NativePollfd;
 		#endif
+		//OS::Socket 你要自己手动close
+		struct BOXAPI Socket{
+			#ifdef _WIN32
+				using ssize_t = SSIZE_T;
+			#else
+				using ssize_t = ::ssize_t;//使用ssize_t
+			#endif
+			NativeSocket fd;
+			operator NativeSocket() const noexcept{
+				return fd;
+			}
+			bool bad() const noexcept{
+				//是否无效
+				#ifdef _WIN32
+				return fd == INVAID_SOCKET;
+				#else
+				return fd < 0;
+				#endif
+			}
+			//方法 都没有异常
+			bool close() noexcept;//关闭
+			ssize_t recv(      void *buf,size_t bufsize,int flags = 0) noexcept;
+			ssize_t send(const void *buf,size_t bufsize,int flags = 0) noexcept;
+			Socket accept(void *addr = nullptr,size_t *addrsize = nullptr) noexcept;
+		};
+	};
+	namespace Net{
+		using OS::NativeSocket;
+		using OS::NativePollfd;
 		enum class SockError{
 			//错误代码
 			#ifdef _WIN32
@@ -49,7 +78,7 @@ namespace Box{
 					return errcode; 
 				};//错误代码
 				const char *what() const noexcept;
-				[[noreturn]] static void Throw(int code);
+				//[[noreturn]] static void Throw(int code);
 			private:
 				int errcode;
 				std::string msg;//信息
@@ -119,7 +148,10 @@ namespace Box{
 				Socket(NativeSocket fd);
 				Socket(int family,int type,int protocol = 0);
 				~Socket();
-				void set_nonblock(bool var);//设置不堵塞
+				bool  is_inherit() const;//是否可继承
+				//设置是否可以继承 在子进程
+                void set_inherit(bool val = true);
+				void set_nonblock(bool var = true);//设置不堵塞
 				void close();//关闭流
 				void listen(int backlog);//监听
 				void bind(const AddrV6 &addr);//绑定IPV6地址

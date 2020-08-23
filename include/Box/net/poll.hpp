@@ -2,6 +2,7 @@
 #define _BOX_NET_POLL_HPP_
 //进行SocketPoll的东西
 #include <vector>
+#include <chrono>
 #include "../libc/atexit.h"
 #include "socket.hpp"
 #if defined(__linux) || defined(__ANDROID__)
@@ -25,6 +26,10 @@ namespace Box{
             bool could_read() const noexcept{
                 return (revents & POLLIN) == POLLIN;
             }
+            //得到文件描述符
+            OS::Socket sockfd() const noexcept{
+                return {fd};
+            }
         };
         class BOXAPI Pollfds{
             public:
@@ -44,6 +49,10 @@ namespace Box{
                 bool remove(Socket &);
                 bool remove(NativeSocket);
                 int poll(int timeout = -1) noexcept;//查询 默认无限等待
+                template<class T>
+                int poll(T &&timeout) noexcept{
+                    return poll(std::chrono::milliseconds(timeout).count());
+                };
                 //迭代器
                 typedef std::vector<Pollfd>::iterator iterator;
                 typedef std::vector<Pollfd>::const_iterator const_iterator;
@@ -85,7 +94,15 @@ namespace Box{
             T *userdata() const noexcept{
                 return static_cast<T*>(data.ptr);
             }
+            OS::Socket sockfd() const noexcept{
+                return {data.fd};
+            }
         };
+        /*
+            README
+            当Epollfds里面没有fds时候
+            vector.data() == NULL时候会直接返回
+        */
         class BOXAPI Epollfds{
             public:
                 //函数
@@ -94,12 +111,69 @@ namespace Box{
                 Epollfds(const Epollfds &) = delete;
                 Epollfds(Epollfds &&);
                 ~Epollfds();
+                //添加(重复会失败)
+                typedef decltype(EpollEvent::events) EventsType;//事件类型
+                //添加一个Socket 可以加用户数据
+                bool add(int fd,EventsType events,void *userdata = nullptr);
+                bool add(Socket &,EventsType events,void *userdata = nullptr);
+                //移除
+                bool remove(int fd);
+                bool remove(Socket &sock);
+                //重新设置
+                bool set(int fd,EventsType events,void *userdata = nullptr);
+                bool set(Socket &sock,EventsType events,void *userdata = nullptr);
+                //进行poll
+                int wait(int timeout = -1) noexcept;
+                int poll(int timeout = -1) noexcept;
+                //用了chrono
+                template<class T>
+                int wait(T &&time){
+                    return wait(std::chrono::milliseconds(time).count());
+                }
+                template<class T>
+                int poll(T &&time){
+                    return poll(std::chrono::milliseconds(time).count());
+                }
+                //迭代器
+                typedef std::vector<EpollEvent>::const_iterator const_iterator;
+                typedef std::vector<EpollEvent>::iterator iterator;
+                //移除一个
+                iterator erase(iterator pos);
+                //查找vector
+                const EpollEvent &operator [](size_t t) const{
+                    return events[t];
+                }
+                EpollEvent &operator [](size_t t){
+                    return events[t];
+                }
+
+                const std::vector<EpollEvent> &vec() const{
+                    return events;
+                }
+                std::vector<EpollEvent> &vec(){
+                    return events;
+                }
+                //得到fd
+                int fd(){
+                    return epfd;
+                }
             private:
                 std::vector<EpollEvent> events;//事件们
+                int nfds;//fd的多少
                 int epfd;//epoll的fd
         };
         #endif
         
     };
+    #ifndef _WIN32
+    namespace OS{
+        //EPoll和Poll在POSIX上
+        using Net::Pollfd;
+        using Net::Pollfds;
+        #ifdef BOX_NET_EPOLL
+        using Net::Epollfds;
+        #endif
+    };
+    #endif
 };
 #endif // _BOX_NET_POLL_HPP_
