@@ -16,9 +16,9 @@ elseif is_plat("macosx") then
 	add_requires("libiconv")
 end
 add_requires("libxml-2.0","libcurl")
+add_cxxflags("-std=c++17")
 -- 库
 target("box_utils")
-	add_cxxflags("-std=c++17")
 	--add_links("curl","xml2")
 	add_includedirs("./include")
 	add_includedirs("./include/Box")

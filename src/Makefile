@@ -1,8 +1,8 @@
 AR=ar
 CC=gcc
 CFLAGS=-g -fPIC -Wall -Wextra
-CXX=g++ -std=c++17
-CXXFLAGS=-g -fPIC -Wall -Wextra
+CXX=g++
+CXXFLAGS=-g -std=c++17 -fPIC -Wall -Wextra
 INCLUDE=../include/Box/
 #主要的对象
 OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net/easy.o net/factory.o net/headers.o net/exception.o\

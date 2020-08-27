@@ -4,6 +4,7 @@
 #include <exception>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include "libc/attr.h"
 namespace Box{
 	class Json;
@@ -17,34 +18,41 @@ namespace Box{
 			int index;
 			std::string reason;
 	};
-	class KeyError:public std::exception{
+	class NotFoundError:public std::exception{
+		//没有找到东西
+		public:
+			NotFoundError(std::string_view what);
+			NotFoundError(const NotFoundError &);
+			~NotFoundError();
+			const char *what()const noexcept;
+		private:
+			std::string data;//没有找到的东西
+	};
+	class KeyError:public NotFoundError{
 		//没找到键
 		public:
-			KeyError(const char *key);
+			KeyError(std::string_view key);
 			KeyError(const KeyError&);
 			~KeyError();
-			const char *what()const noexcept;
-			const std::string &value() const noexcept{
-				return key;
-			}
-		private:
-			std::string key;
 	};
 	class TypeError:public std::exception{
 		public:
-			TypeError(const char *excepted,const char *gived);
+			TypeError(std::string_view expected,std::string_view gived);
 			const char *what()const throw();
+			std::string expected;
 			std::string gived;
-			std::string excepted;
 			std::string reason;
 	};
 	class NullPtrException:public std::exception{
 		//空指针错误
 		public:
 			NullPtrException();
+			NullPtrException(std::string_view str);
 			NullPtrException(const NullPtrException &);
 			~NullPtrException();
 			const char *what() const throw();
+		private:
+			std::string msg;
 	};
 	class OSError:public std::exception{
 		//操作系统的错误
@@ -79,7 +87,11 @@ namespace Box{
 	};
 	BOXAPI void Panic(const char *fmt,...);//退出
 	BOXAPI [[noreturn]] void throwNullPtrException();
-	BOXAPI [[noreturn]] void throwKeyError(const char *key);
+	BOXAPI [[noreturn]] void throwNullPtrException(std::string_view info);
+	BOXAPI [[noreturn]] void throwNotFoundError(std::string_view info);
+	BOXAPI [[noreturn]] void throwKeyError(std::string_view key);
+	BOXAPI [[noreturn]] void throwIndexError(int index);
 	BOXAPI [[noreturn]] void throwBadAlloc();
+	BOXAPI [[noreturn]] void throwTypeError(std::string_view excepted,std::string_view gived);
 };
 #endif

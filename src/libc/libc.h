@@ -43,5 +43,7 @@
 #elif defined(__GUNC__)
     //GCC
     #define LIBC_TLS __thread
+#elif defined(_MSC_VER)
+    #define LIBC_TLS __declspec(thread)
 #endif
 #endif

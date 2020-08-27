@@ -66,6 +66,19 @@ namespace Box{
 			#else
 			AGAIN = EAGAIN,//再试一遍
 			WOULDBLOCK = EWOULDBLOCK,
+			NOTSOCK = ENOTSOCK
+			#endif
+		};
+		//关闭的地方
+		enum class Shut{
+			#ifdef _WIN32
+			RD = SD_RECEIVE,
+			WR = SD_SEND,
+			RDWR = SD_BOTH
+			#else
+			RD = SHUT_RD,//写
+			WR = SHUT_WR,//读
+			RDWR = SHUT_RDWR//读和写
 			#endif
 		};
 		//Socket的错误
@@ -160,6 +173,7 @@ namespace Box{
 				void connect(const AddrV4 &addr);//连接
 				void connect(const AddrV6 &addr);//连接IPV6
 				void connect(const void *addr,size_t addrsize);//连接API
+				void shutdown(Shut how = Shut::RDWR);//关闭Socket
 				//操作系统直接的API 不经过标准缓冲区
 				//OS API
 				ssize_t send(const void *buf,size_t buflen,int flags = 0) noexcept;//发送

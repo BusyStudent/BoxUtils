@@ -7,6 +7,7 @@
 #include <cstdarg>
 #include <cstring>
 #include <exception>
+#include <string_view>
 #include "libc/attr.h"
 namespace Box{
     namespace FmtImpl{
@@ -29,20 +30,35 @@ namespace Box{
         std::string ToString(const T &val){
             return std::to_string(val);
         };
+        //格式化指针
+        template<class T>
+        std::string ToString(T *ptr){
+            char buf[20] = {'\0'};//这个指针字符串长度
+            sprintf(buf,"%p",ptr);
+            return buf;
+        };
         //字符串的包装器
         template<>
         inline std::string ToString<std::string>(const std::string &str){
             return str;
+        };
+        template<>
+        inline std::string ToString<std::string_view>(const std::string_view &str){
+            return std::string(str);
         };
         //异常格式化
         template<>
         inline std::string ToString<std::exception>(const std::exception &exp){
             return exp.what();
         };
-        inline std::string ToString(const void *ptr){
-            char buf[20] = {'\0'};//这个指针字符串长度
-            sprintf(buf,"%p",ptr);
-            return buf;
+        template<>
+        inline std::string ToString<bool>(const bool &val){
+            if(val){
+                return "true";
+            }
+            else{
+                return "false";
+            }
         };
         inline std::string ToString(const char *str){
             return str;
@@ -62,8 +78,24 @@ namespace Box{
         };
         //Print
         template<class ...Args>
+        void Printf(FILE *fptr,const char *fmt,const Args &...args){
+            return FmtImpl::FPrintf(fptr,fmt,ToString(args).c_str()...);
+        };
+        template<class ...Args>
         void Printf(const char *fmt,const Args &...args){
             return FmtImpl::Printf(fmt,ToString(args).c_str()...);
+        };
+        //Printfln
+        template<class ...Args>
+        void Printfln(FILE *fptr,const char *fmt,const Args &...args){
+            FmtImpl::FPrintf(fptr,fmt,ToString(args).c_str()...);
+            fputc('\n',fptr);
+        };
+        template<class ...Args>
+        void Printfln(const char *fmt,const Args &...args){
+            FmtImpl::Printf(fmt,ToString(args).c_str()...);
+            putchar('\n');
+            fflush(stdout);
         };
     } // namespace Fmt
     //在C++20之前勉强用用的format
@@ -72,6 +104,7 @@ namespace Box{
         return Fmt::Format(fmt,args...);
     };
     using Fmt::Printf;
+    using Fmt::Printfln;
 } // namespace Box
 
 #endif

@@ -36,6 +36,15 @@
     #warning do not support it
 #endif
 
+//Thread local storage
+#ifdef __cplusplus
+    #define BOX_TLS thread_local
+#elif defined(__GNUC__)
+    #define BOX_TLS __thread
+#elif defined(_MSC_VER)
+    #define BOX_TLS __declspec(thread)
+#endif
+
 #ifdef _BOX_SOURCE
     //是源代码文件
     #define BOXAPI BOX_EXPORT

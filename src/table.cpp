@@ -78,9 +78,9 @@ namespace Box{
             return ptr;
         }
         //类型不符合
-        throw TypeError(
-            Backtrace::Demangle(info.name()).c_str(),
-            Backtrace::Demangle(typeinfo->name()).c_str()
+        throwTypeError(
+            Backtrace::Demangle(info.name()),
+            Backtrace::Demangle(typeinfo->name())
         );
     }
     void *AnyObject::load_ptr(const std::type_info &info){
@@ -93,9 +93,9 @@ namespace Box{
             return ptr;
         }
         //类型不符合
-        throw TypeError(
-            Backtrace::Demangle(info.name()).c_str(),
-            Backtrace::Demangle(typeinfo->name()).c_str()
+        throwTypeError(
+            Backtrace::Demangle(info.name()),
+            Backtrace::Demangle(typeinfo->name())
         );
     }
 

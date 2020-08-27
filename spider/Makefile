@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-g -fPIC
+CXXFLAGS=-g -std=c++17 -fPIC
 INCLUDE=../include/Box/
 
 OBJ=pixiv.o

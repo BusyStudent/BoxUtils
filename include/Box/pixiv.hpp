@@ -1,6 +1,8 @@
 #ifndef _BOX_PIXIV_HPP_
 #define _BOX_PIXIV_HPP_
+#include <cstdint>
 #include <string>
+#include <optional>
 #include "json.hpp"
 namespace Box{
     namespace Net{
@@ -10,6 +12,7 @@ namespace Box{
     namespace Pixiv{
         //实现
         using namespace Net;
+        struct Item;
         class Interface{
             //接口
             public:
@@ -24,6 +27,7 @@ namespace Box{
                 EasyFactory &factory() const noexcept{
                     return *factory_s.factory;
                 };
+                Item get_byid(uint64_t id);//得到通过ID
             private:
                 struct{
                     Share *share;
@@ -37,6 +41,21 @@ namespace Box{
         };
         //插画
         struct Illust{
+            JsonRef ref;
+        };
+        //插画的集合 页面
+        struct Item{
+            ~Item();
+            //得到页面url
+            std::string url() const;
+            std::string title() const;
+
+            Illust operator [](int index) const;
+
+            std::optional<Json> info;//内容
+            uint64_t id;
+        };
+        struct SearchResult{
 
         };
     };

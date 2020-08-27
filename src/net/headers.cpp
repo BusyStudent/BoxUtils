@@ -137,7 +137,7 @@ namespace Net{
 			}
 			key.clear();//清空一下
 			key.append(next->data,(splist_mark - (next->data))/sizeof(char));
-			json.add_string(key.c_str(),  splist_mark + 1);
+			json.insert(key.c_str(),  splist_mark + 1);
 			next = next->next;
 		}
 		return json;

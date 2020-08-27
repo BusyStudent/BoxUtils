@@ -59,6 +59,11 @@ void Socket::close(){
 		#endif
 	}
 }
+void Socket::shutdown(Shut how){
+	if(::shutdown(fd,static_cast<int>(how)) == -1){
+		throwSocketError();
+	}
+}
 //读写
 ssize_t Socket::recv(void *buf,size_t buflen,int flags) noexcept{
 	return libc::recv(fd,buf,buflen,flags);

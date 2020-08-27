@@ -67,18 +67,18 @@
 #undef false
 #endif
 #define false ((cJSON_bool)0)
-#if !defined(__STDC_NO_THREADS__) && !defined(_WIN32) && !defined(__ANDROID__)
-    //no std threads
-    #include <threads.h>
+#ifdef __GNUC__
+    #define CJSON_TLS __thread
+#elif defined(_MSC_VER)
+    #define CJSON_TLS __declspec(thread)
 #else
-    #define _Thread_local 
-    //ignore it
+    #define CJSON_TLS 
 #endif
 typedef struct {
     const unsigned char *json;
     size_t position;
 } error;
-static _Thread_local error global_error = { NULL, 0 };
+static CJSON_TLS error global_error = { NULL, 0 };
 
 CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)
 {

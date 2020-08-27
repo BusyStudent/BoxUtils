@@ -1,6 +1,5 @@
 #include <new>
 #include <sstream>
-#include <iostream>
 #include <stdexcept>
 #include <cstdlib>
 #include <cstring>
@@ -10,58 +9,70 @@
 #include "exception.hpp"
 #include "string.hpp"
 #include "backtrace.hpp"
-#ifndef BOX_NBACKTRACE
-//打印BackTrace
-#define SHOW_BACKTRACE() \
-	Box::Backtrace::Show()
+#include "fmt.hpp"
+#ifndef NDEBUG
+	//调试Backtrace
+	#define BOX_DBG_BACKTRACE() do{\
+		fprintf(stderr,"Error at %s\n",__FUNCTION__);\
+		Box::Backtrace::Show();\
+		fflush(stderr);\
+	}\
+	while(0);
 #else
-#define SHOW_BACKTRACE()
+	#define BOX_DBG_BACKTRACE() 
 #endif
 namespace Box{
-	IndexError::IndexError(int index){
-		this->index = index;
-		std::stringstream stream;
-		stream << "IndexError:out of range " << index;
-		this->reason = stream.str();
+	IndexError::IndexError(int index):
+		index(index),
+		reason(Format("IndexError:out of range {}",index)){
+		//格式化一下
 	}
 	const char*IndexError::what()const throw(){
-		SHOW_BACKTRACE();
 		return reason.c_str();
 	}
+	//NotFoundError
+	NotFoundError::NotFoundError(std::string_view str):
+		data(str){
+
+	}
+	NotFoundError::NotFoundError(const NotFoundError &err):
+		data(err.data){
+
+	}
+	NotFoundError::~NotFoundError(){}
+	const char *NotFoundError::what() const noexcept{
+		return data.c_str();
+	}
 	//KeyError
-	KeyError::KeyError(const char *key){
-		this->key = key;
+	KeyError::KeyError(std::string_view key):
+		NotFoundError(key){
+		
 	}
 	KeyError::KeyError(const KeyError &err)
-		:key(err.key){
+		:NotFoundError(err){
 
 	}
 	KeyError::~KeyError(){
 
 	}
-	const char *KeyError::what()const throw(){
-		SHOW_BACKTRACE();
-		return key.c_str();
-	}
-	TypeError::TypeError(const char *excepted,const char *gived){
-		//类型错误
-		this->excepted = excepted;
-		this->gived = gived;
-		std::stringstream stream;
-		stream << "excepted type:" <<"'"<< excepted <<"'"<<" gived type:" <<"'"<<gived<<"'";
-		this->reason = stream.str();
+	TypeError::TypeError(std::string_view expected,std::string_view gived):
+		expected(expected),
+		gived(gived),
+		reason(Format("TypeError:({},{})",expected,gived)){
+
 	}
 	const char *TypeError::what() const throw(){
-		SHOW_BACKTRACE();
 		return reason.c_str();
 	}
 	//空指针错误
 	const char *NullPtrException::what() const throw(){
-		SHOW_BACKTRACE();
-		return "Got nullptr";
+		return msg.c_str();
 	}
 	//构造和其他函数
-	NullPtrException::NullPtrException(){}
+	NullPtrException::NullPtrException(std::string_view str):
+		msg(Format("NullPtrException:{}",str)){
+	}
+	NullPtrException::NullPtrException():msg("Got nullptr"){}
 	NullPtrException::NullPtrException(const NullPtrException&){}
 	NullPtrException::~NullPtrException(){}
 	//OSError
@@ -96,7 +107,6 @@ namespace Box{
 		return str;
 	}
 	const char *OSError::what() const throw(){
-		SHOW_BACKTRACE();
 		return what_msg.c_str();
 	}
 	//Panic异常退出
@@ -110,7 +120,7 @@ namespace Box{
 		//输出错误信息
 		
 		//打印堆栈信息
-		SHOW_BACKTRACE();
+		Backtrace::Show();
 		std::terminate();
 	}
 	//FileNotFoundErrpr
@@ -138,12 +148,31 @@ namespace Box{
 	}
 	//抛出异常函数
 	BOXAPI [[noreturn]] void throwNullPtrException(){
+		BOX_DBG_BACKTRACE();
 		throw NullPtrException();
 	};
-	BOXAPI [[noreturn]] void throwKeyError(const char *key){
+	BOXAPI [[noreturn]] void throwNullPtrException(std::string_view info){
+		BOX_DBG_BACKTRACE();
+		throw NullPtrException(info);
+	};
+	BOXAPI [[noreturn]] void throwNotFoundError(std::string_view info){
+		BOX_DBG_BACKTRACE();
+		throw NotFoundError(info);
+	};
+	BOXAPI [[noreturn]] void throwKeyError(std::string_view key){
+		BOX_DBG_BACKTRACE();
 		throw KeyError(key);
 	};
+	BOXAPI [[noreturn]] void throwTypeError(std::string_view expected,std::string_view gived){
+		BOX_DBG_BACKTRACE();
+		throw TypeError(expected,gived);
+	}
 	BOXAPI [[noreturn]] void throwBadAlloc(){
+		BOX_DBG_BACKTRACE();
 		throw std::bad_alloc();
+	};
+	BOXAPI [[noreturn]] void throwIndexError(int index){
+		BOX_DBG_BACKTRACE();
+		throw IndexError(index);;
 	};
 };
