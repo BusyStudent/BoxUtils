@@ -76,6 +76,11 @@ namespace Box{
 		return value->valuestring;
 	};
 	template<>
+	const char* JsonRef::get_value<const char *>() const{
+		check_is_string();
+		return value->valuestring;
+	};
+	template<>
 	std::string_view JsonRef::get_value<std::string_view>() const{
 		check_is_string();
 		return value->valuestring;
@@ -367,7 +372,7 @@ namespace Box{
 		return cJSON_GetArrayItem(value,index) != nullptr;
 	}
 	bool JsonRef::has(std::string_view key,bool case_sensitive) const{
-		check_is_array();
+		check_is_object();
 		if(case_sensitive){
 			return cJSON_GetObjectItemCaseSensitive(value,key.data());
 		}
@@ -632,6 +637,12 @@ namespace Box{
 };
 //迭代器
 namespace Box{
+	//通过引用初始化
+	JsonIterator::JsonIterator(JsonRef ref):
+		prev(ref.value != nullptr ? ref.value->prev : nullptr),
+		json(ref){
+
+	}
 	std::string_view JsonIterator::key() const{
 		if(json.value == nullptr){
 			throwNullPtrException();

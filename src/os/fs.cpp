@@ -5,14 +5,71 @@
 #else
     #include <unistd.h>
     #include <fcntl.h>
+    #include <sys/mman.h>
 #endif // _WIN32
 #include "common/def.hpp"
 #include "raii/scope.hpp"
 #include "os/exception.hpp"
 #include "os/handle.hpp"
 #include "os/fs.hpp"
+#include "libc/mem.h"
 namespace Box{
 namespace OS{
+    FileMapping::FileMapping(Handle &handle,int prot):
+        FileMapping(handle,prot,handle.size()){
+        //方便一点
+    }
+    FileMapping::FileMapping(Handle &handle,int prot,size_t fsize){
+        #ifdef _WIN32
+
+        #else
+        int os_prot = 0;
+        if(BOX_HASBIT(prot,MemProt::NONE)){
+            os_prot = PROT_NONE;
+        }
+        if(BOX_HASBIT(prot,MemProt::WRTIE)){
+            os_prot |= PROT_WRITE;
+        }
+        if(BOX_HASBIT(prot,MemProt::READ)){
+            os_prot |= PROT_READ;
+        }
+        if(BOX_HASBIT(prot,MemProt::EXEC)){
+            os_prot |= PROT_EXEC;
+        }
+        long pagesize = libc::getpagesize();
+        if(fsize % pagesize != 0){
+            fsize =  fsize + pagesize - (fsize % pagesize);//对齐
+        }
+        ptr = mmap(nullptr,fsize,os_prot,MAP_SHARED,handle.get(),0);
+        if(ptr == MAP_FAILED){
+            //失败
+            throwError();
+        }
+        //设置大小
+        mem_size = fsize;
+        #endif
+    }
+    FileMapping::~FileMapping(){
+        #ifdef _WIN32
+
+        #else
+        if(ptr != MAP_FAILED){
+            //关闭
+            
+            munmap(ptr,mem_size);
+        }
+        #endif
+    }
+    //同步
+    void FileMapping::sync(){
+        #ifdef _WIN32
+
+        #else
+        if(msync(addr(),mem_size,MS_SYNC) == -1){
+            throwError();
+        }
+        #endif
+    }
     Handle Fopen(std::string_view filename,int flags,bool throw_err){
         #ifdef _WIN32
         //使用Flags
@@ -72,14 +129,14 @@ namespace OS{
         #else
         int os_flags = 0;
         int fd;
-        if(BOX_HASBIT(flags,Flags::WRONLY)){
+        if(BOX_HASBIT(flags,Flags::RDWR)){
+            os_flags = O_RDWR;
+        }
+        else if(BOX_HASBIT(flags,Flags::WRONLY)){
             os_flags = O_WRONLY;
         }
         else if(BOX_HASBIT(flags,Flags::RDONLY)){
             os_flags = O_RDONLY;
-        }
-        else if(BOX_HASBIT(flags,Flags::RDWR)){
-            os_flags = O_RDWR;
         }
         else if(BOX_HASBIT(flags,Flags::APPEND)){
             os_flags = O_APPEND;

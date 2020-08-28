@@ -43,13 +43,8 @@ namespace Box{
 		}
 		return new_list;
 	}
-	std::string Net::Get(const std::string &url){
+	std::string Net::Get(std::string_view url){
 		//轻松的Get一下
-		Easy easy;
-		easy.set_url(url);
-		std::string content;
-		easy.set_ostream(content);
-		easy.perform();
-		return content;
+		return Easy(url).content();
 	}
 }

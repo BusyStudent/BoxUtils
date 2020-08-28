@@ -39,5 +39,8 @@ namespace Net{
 		//输出错误
 		return msg.c_str();
 	}
+	BOXAPI [[noreturn]] void  throwEasyException(int curlcode){
+		throw EasyException(curlcode);
+	}
 }
 }

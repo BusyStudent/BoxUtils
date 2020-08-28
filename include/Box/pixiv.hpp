@@ -12,7 +12,7 @@ namespace Box{
     namespace Pixiv{
         //实现
         using namespace Net;
-        struct Item;
+        struct ArtWorks;
         class Interface{
             //接口
             public:
@@ -27,7 +27,9 @@ namespace Box{
                 EasyFactory &factory() const noexcept{
                     return *factory_s.factory;
                 };
-                Item get_byid(uint64_t id);//得到通过ID
+                ArtWorks get_byid(uint64_t id);//得到通过ID
+                //Http Get
+                std::string http_get(std::string_view url);
             private:
                 struct{
                     Share *share;
@@ -39,20 +41,23 @@ namespace Box{
                 }factory_s;//工厂
                 int max_retry;
         };
-        //插画
-        struct Illust{
-            JsonRef ref;
+        //插画们
+        struct Illusts{
+            ~Illusts();
+            int size() const;//有多少张
+            std::optional<Json> info;
         };
         //插画的集合 页面
-        struct Item{
-            ~Item();
+        struct ArtWorks{
+            ~ArtWorks();
             //得到页面url
             std::string url() const;
             std::string title() const;
 
-            Illust operator [](int index) const;
+            Illusts pages();//得到Pages
 
             std::optional<Json> info;//内容
+            Interface &interface;
             uint64_t id;
         };
         struct SearchResult{

@@ -51,50 +51,65 @@ namespace Pixiv{
             share_s.owned = false;
         }
     }
-    Item Interface::get_byid(uint64_t id){
-        std::string target = Format("https://www.pixiv.net/ajax/illust/{}",id);
-        //得到目标网址
+    std::string Interface::http_get(std::string_view url){
+        //HttpGet内容
         int i = 0;
+        auto pak = factory().create(url);
         while(true){
             try{
-                auto pak = factory().create(target);
-                Json json = Json::ParseString(pak.content());
-                if(json["error"] == true){
-                    //出错了
-                    Printfln("Get {} failed\n",target);
-                    Printfln("json -> {}",json);
-                }
-                else{
-                    return Item{
-                        .info = json,
-                        .id = id
-                    };
-                }
+                return pak.content();
             }
-            catch(Net::EasyException &err){
+            catch(...){
                 i ++;
                 if(i == max_retry){
-                    //失败
                     throw;
                 }
-                continue;
             }
         }
     }
-    std::string Item::url() const{
+    ArtWorks Interface::get_byid(uint64_t id){
+        std::string target = Format("https://www.pixiv.net/ajax/illust/{}",id);
+        //得到目标网址
+        int i = 0;
+        Json json = Json::ParseString(http_get(target));
+        if(json["error"] == true){
+            //出错了
+            #ifndef NDEBUG
+            Printfln("Get {} failed\n",target);
+            Printfln("json -> {}",json);
+            #endif
+        }
+        return ArtWorks {
+            .info = json,
+            .interface = *this,
+            .id = id
+        };
+    }
+    std::string ArtWorks::url() const{
         return Format("https://www.pixiv.net/ajax/illust/{}",id);
     }
-    std::string Item::title() const{
+    std::string ArtWorks::title() const{
         //得到标题
         return info.value()["body"]["illustTitle"];
     }
-    Item::~Item(){
+    ArtWorks::~ArtWorks(){
 
     }
-    Illust Item::operator [](int index) const{
+    //插画实现
+    Illusts ArtWorks::pages(){
+        auto content = interface.http_get(
+            Format("https://www.pixiv.net/ajax/illust/{}/pages?lang=zh",id)
+        );
+        Json json = Json::ParseString(content);
         return {
-            info.value()["body"][index]
+            json
         };
+    }
+    int Illusts::size() const{
+        return info.value()["body"].size();
+    }
+    Illusts::~Illusts(){
+        
     }
 };
 };

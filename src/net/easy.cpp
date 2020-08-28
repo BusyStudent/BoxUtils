@@ -1,6 +1,7 @@
 #include <curl/curl.h>
 #include <curl/curlver.h>
 #include <string>
+#include <string_view>
 #include <cstring>
 #include <ostream>
 #include <chrono>
@@ -17,7 +18,7 @@ namespace Net{
 	//检查EASY的返回代码
 	#define CURL_ASSERT(CODE) {CURLcode _code_ = CODE;\
 		if(_code_ != CURLE_OK){\
-		throw Box::Net::EasyException(_code_);\
+			throwEasyException(_code_);\
 	}}
 	Easy::Easy(void *hd){
 		handle = hd;
@@ -38,6 +39,10 @@ namespace Net{
 		#endif
 		//清空本身数据
 		multi_userdata = nullptr;
+	}
+	Easy::Easy(std::string_view url):Easy(){
+		//带一个URL的版本
+		curl_easy_setopt(handle,CURLOPT_URL,url.data());
 	}
 	//移动一下
 	Easy::Easy(Easy &&easy){
@@ -75,21 +80,16 @@ namespace Net{
 		curl_easy_setopt(handle,CURLOPT_COOKIEFILE,"");
 	}
 	//添加cookie
-	void Easy::add_cookie(const char *cookie){
-		curl_easy_setopt(handle,CURLOPT_COOKIELIST,cookie);
+	void Easy::add_cookie(std::string_view cookie){
+		curl_easy_setopt(handle,CURLOPT_COOKIELIST,cookie.data());
 	}
 	//设置cookie
-	void Easy::set_cookie(const char *cookie){
-		curl_easy_setopt(handle,CURLOPT_COOKIE,cookie);
+	void Easy::set_cookie(std::string_view cookie){
+		curl_easy_setopt(handle,CURLOPT_COOKIE,cookie.data());
 	}
-
-	void Easy::set_url(const char *url){
+	void Easy::set_url(std::string_view url){
 		//设置URL
-		curl_easy_setopt(handle,CURLOPT_URL,url);
-	}
-	void Easy::set_url(const std::string &url){
-		//设置URL
-		curl_easy_setopt(handle,CURLOPT_URL,url.c_str());
+		curl_easy_setopt(handle,CURLOPT_URL,url.data());
 	}
 	void Easy::set_method(Method method){
 		//设置方法
@@ -115,16 +115,17 @@ namespace Net{
 	void Easy::set_timeout(const std::chrono::milliseconds &ms){
 		set_timeout(ms.count());
 	}
-	void Easy::set_proxy(const char *proxy){
-		curl_easy_setopt(handle,CURLOPT_PROXY,proxy);
+	void Easy::set_proxy(std::string_view proxy){
+		//这个失败返回错误 当代理服务器字符串不支持的
+		CURL_ASSERT(curl_easy_setopt(handle,CURLOPT_PROXY,proxy.data()));
 	}
-	void Easy::set_useragent(const char *str){
+	void Easy::set_useragent(std::string_view str){
 		//设置User-Agent
-		curl_easy_setopt(handle,CURLOPT_USERAGENT,str);
+		curl_easy_setopt(handle,CURLOPT_USERAGENT,str.data());
 	}
-	void Easy::set_referer(const char *str){
+	void Easy::set_referer(std::string_view str){
 		//设置referer
-		curl_easy_setopt(handle,CURLOPT_REFERER,str);
+		curl_easy_setopt(handle,CURLOPT_REFERER,str.data());
 	}
 	void Easy::set_headers(){
 		//重置会原有的请求头
@@ -197,8 +198,8 @@ namespace Net{
 		}
 	}
 	//Post字符串数据
-	void Easy::set_post(const std::string &str){
-		return set_post(str.c_str(),str.length() * sizeof(char),true);
+	void Easy::set_post(std::string_view str){
+		return set_post(str.data(),str.length() * sizeof(char),true);
 	}
 	//POST表单
 	void Easy::set_post(const Mime &mime){
@@ -213,6 +214,13 @@ namespace Net{
 		curl_easy_setopt(handle,CURLOPT_COOKIELIST,"SESS");
 	}
 
+	//得到内容
+	std::string Easy::content(){
+		std::string content;
+		set_ostream(content);
+		perform();
+		return content;
+	}
 	void *Easy::get_handle() const{
 		//得到CURL的Handle
 		return handle;
@@ -360,29 +368,33 @@ namespace Net{
 		CURL_ASSERT(code);
 		return *this;
 	}
-	MimePart MimePart::set_encoder(const char *encoder){
+	MimePart MimePart::set_encoder(std::string_view encoder){
 		//更改编码器
-		CURL_ASSERT(curl_mime_name(part,encoder));
+		CURL_ASSERT(curl_mime_name(part,encoder.data()));
 		return *this;
 	}
-	MimePart MimePart::set_name(const char *name){
+	MimePart MimePart::set_name(std::string_view name){
 		//设置名字
-		CURL_ASSERT(curl_mime_name(part,name));
+		CURL_ASSERT(curl_mime_name(part,name.data()));
 		return *this;
+	}
+	MimePart MimePart::set_data(std::string_view data){
+		//设置数据
+		return MimePart::set_data(data.data(),data.length() * sizeof(char));
 	}
 	MimePart MimePart::set_data(const void *data,size_t datasize){
 		//设置数据从内存中
 		CURL_ASSERT(curl_mime_data(part,(const char*)data,datasize));
 		return *this;
 	}
-	MimePart MimePart::set_filedata(const char *filename){
+	MimePart MimePart::set_filedata(std::string_view filename){
 		//设置数据从文件中
-		CURL_ASSERT(curl_mime_filedata(part,filename));
+		CURL_ASSERT(curl_mime_filedata(part,filename.data()));
 		return *this;
 	}
-	MimePart MimePart::set_type(const char *type){
+	MimePart MimePart::set_type(std::string_view type){
 		//设置类型
-		CURL_ASSERT(curl_mime_type(part,type));
+		CURL_ASSERT(curl_mime_type(part,type.data()));
 		return *this;
 	}
 }

@@ -47,26 +47,18 @@ namespace Net{
 		return content;
 	}
 	//Factory
-	EasyPackage EasyFactory::create(const char *url){
+	EasyPackage EasyFactory::create(std::string_view url){
 		//克隆一个模板
 		auto e = _easy.clone();
 		e->set_url(url);//设置URL
 		return EasyPackage(e,_headers);
 	}
-	EasyPackage EasyFactory::create(const std::string &url){
-		return this->create(url.c_str());
-	}
-
-	EasyPackage *EasyFactory::allocate(const char *url){
+	EasyPackage *EasyFactory::allocate(std::string_view url){
 		//在栈上
 		auto e = _easy.clone();
 		e->set_url(url);//设置URL
 		return new EasyPackage(e,_headers);
 	}
-	EasyPackage *EasyFactory::allocate(const std::string &url){
-		return this->allocate(url.c_str());
-	}
-
 	Headers &EasyFactory::headers(){
 		return _headers;
 	}

@@ -126,6 +126,9 @@ namespace Box{
 			bool operator ==(std::nullptr_t) const noexcept;
 			bool operator ==(std::string_view) const noexcept;
 			bool operator ==(const Json & json) const noexcept;
+			bool operator ==(const char * str) const noexcept{
+				return JsonRef::operator ==(std::string_view(str));
+			}
 			//反向比较
 			template<class T>
 			bool operator !=(const T &data) const noexcept{
@@ -217,6 +220,7 @@ namespace Box{
 		public:
 			//初始化迭代器
 			JsonIterator():prev(nullptr),json(nullptr){};
+			JsonIterator(JsonRef ref);
 			JsonIterator(cJSON *cjson,cJSON *prev = nullptr)
 				:prev(prev),json(cjson){};
 			//一些解操作
@@ -280,6 +284,9 @@ namespace Box{
 	//转换到string_view
 	template<>
 	std::string_view JsonRef::get_value<std::string_view>() const;
+	//转换到const char *
+	template<>
+	const char *JsonRef::get_value<const char*>() const;
 	//得到cjson
 	template<>
 	inline cJSON *JsonRef::get_value<cJSON*>() const{

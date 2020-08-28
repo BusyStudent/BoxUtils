@@ -2,6 +2,7 @@
 #define _BOXNET_EXCEPTION_HPP_
 #include <exception>
 #include <string>
+#include "../libc/attr.h"
 namespace Box{
 	namespace Net{
 		class EasyException:public std::exception{
@@ -39,6 +40,7 @@ namespace Box{
 				int code;
 				std::string msg;
 		};
+		BOXAPI [[noreturn]] void  throwEasyException(int curlcode);
 	};
 };
 #endif

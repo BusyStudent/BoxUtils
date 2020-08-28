@@ -2,6 +2,7 @@
 #define _BOXNET_FACTORY_HPP_
 //工厂
 #include <functional>
+#include <string_view>
 #include "easy.hpp"
 #include "headers.hpp"
 namespace Box{
@@ -45,11 +46,8 @@ namespace Box{
 				void update_headers();//更新proxey
 				Headers &headers();//得到headers
 				void add_header(const char *key,const char *value);
-				EasyPackage create(const char *url);//直接从模板里克隆一个 在栈上
-				EasyPackage create(const std::string &url);
-
-				EasyPackage *allocate(const char *url);//在堆上
-				EasyPackage *allocate(const std::string &url);
+				EasyPackage create(std::string_view url);
+				EasyPackage *allocate(std::string_view url);
 				//配置一下
 				inline Easy *operator ->(){
 					return &_easy;

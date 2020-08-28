@@ -25,6 +25,53 @@ namespace Box{
         extern BOXAPI void VPrintf(const char *fmt,va_list varg);
     } // namespace FmtImpl
     namespace Fmt{
+        struct StaticString{
+            //C的静态字符串
+            const char *data;
+            const char *c_str() const noexcept{
+                return data;
+            }
+        };
+        //静态字符串版本
+        inline StaticString ToString(const char *str){
+            return StaticString{
+                .data = str
+            };
+        }
+        inline StaticString ToString(char *str){
+            return StaticString{
+                .data = str
+            };
+        }
+        inline StaticString ToString(std::string_view str){
+            return StaticString {
+                .data = str.data()
+            };
+        }
+        //字符串的包装器
+        inline StaticString ToString(const std::string &str){
+            return {
+                .data = str.c_str()
+            };
+        };
+        //异常格式化
+        inline StaticString ToString(const std::exception &exp){
+            return {
+                .data = exp.what()
+            };
+        };
+        inline StaticString ToString(bool val){
+            if(val){
+                return {
+                    .data = "true"
+                };
+            }
+            else{
+                return {
+                    .data = "false"
+                };
+            }
+        };
         //到字符串
         template<class T>
         std::string ToString(const T &val){
@@ -36,35 +83,6 @@ namespace Box{
             char buf[20] = {'\0'};//这个指针字符串长度
             sprintf(buf,"%p",ptr);
             return buf;
-        };
-        //字符串的包装器
-        template<>
-        inline std::string ToString<std::string>(const std::string &str){
-            return str;
-        };
-        template<>
-        inline std::string ToString<std::string_view>(const std::string_view &str){
-            return std::string(str);
-        };
-        //异常格式化
-        template<>
-        inline std::string ToString<std::exception>(const std::exception &exp){
-            return exp.what();
-        };
-        template<>
-        inline std::string ToString<bool>(const bool &val){
-            if(val){
-                return "true";
-            }
-            else{
-                return "false";
-            }
-        };
-        inline std::string ToString(const char *str){
-            return str;
-        };
-        inline std::string ToString(char *str){
-            return str;
         };
         //格式化
         template<class ...Args>
@@ -96,6 +114,16 @@ namespace Box{
             FmtImpl::Printf(fmt,ToString(args).c_str()...);
             putchar('\n');
             fflush(stdout);
+        };
+        //直接想打印
+        template<class T>
+        void Printfln(FILE *fptr,const T &data){
+            fputs(ToString(data).c_str(),fptr);
+            fputc('\n',fptr);
+        };
+        template<class T>
+        void Printfln(const T &data){
+            puts(ToString(data).c_str());
         };
     } // namespace Fmt
     //在C++20之前勉强用用的format

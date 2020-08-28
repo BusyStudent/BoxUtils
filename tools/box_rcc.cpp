@@ -1,5 +1,5 @@
-#include <Box/sax.hpp>
-#include <Box/xml.hpp>
+#include <Box/libc/mem.h>
+#include <Box/json.hpp>
 #include <Box/fmt.hpp>
 #include <iostream>
 #include <sstream>
@@ -19,6 +19,7 @@ using namespace Box;
 inline bool cmp_argv(const char *arg,const char *s2){
     return strncasecmp(arg,s2,strlen(s2)) == 0;
 }
+void process(Json &json,FILE *);
 int main(int argc,char **argv){
     //内容
     std::string content;
@@ -49,7 +50,6 @@ int main(int argc,char **argv){
             }
         }
     }
-    std::stringstream stream;
     //读入
     if(input_file == "-"){
         std::istreambuf_iterator<char> begin(std::cin),end;
@@ -69,12 +69,97 @@ int main(int argc,char **argv){
         }
     }
     //处理
-    struct{
-        std::string lang;//语言
-    }res;
     //解析
-
-    LXml::Xml xml = LXml::Xml::ParseString(content);
-    //得到主要的
-    LXml::Node res = xml["res"];
+    Json json = Json::ParseString(content);
+    //加载内容
+    process(json,stdout);
+}
+std::string load_file(std::string_view filename){
+    std::ifstream s(filename.data());
+    std::istreambuf_iterator<char> begin(s),end;
+    std::string content(begin,end);
+    return content;
+}
+void process(Json &json,FILE *output){
+    enum class Lang{
+        C,
+        CXX
+    };
+    Lang lang;
+    if(not json.has("lang")){
+        Printfln(stderr,"Warning:Input does not set lang,default = c++");
+        lang = Lang::CXX;
+    }
+    else{
+        std::string_view language = json["lang"];
+        if(libc::strcasecmp(language.data(),"c") == 0){
+            lang = Lang::C;
+        }
+        else if(libc::strcasecmp(language.data(),"c++") == 0){
+            lang = Lang::CXX;
+        }
+        else if(libc::strcasecmp(language.data(),"cpp") == 0){
+            lang = Lang::CXX;
+        }
+        else if(libc::strcasecmp(language.data(),"default") == 0){
+            lang = Lang::CXX;
+        }
+        else{
+            Printfln(stderr,"Error:Unknown language {}",language);
+            exit(EXIT_FAILURE);
+        }
+    }
+    Printfln(output,"/*Auto generate by box-rcc*/");
+    Printfln(output,"#include <stdint.h>");
+    switch(lang){
+        case Lang::C:{
+            //C的保护部分
+            Printfln(output,R"(
+                #ifdef __cplusplus
+                extern "C"{
+                #endif
+            )");
+        }
+    }
+    for(auto &item:json){
+        if(item.name() != "lang"){
+            //解析一下
+            std::string_view type = item["type"];
+            if(type == "string"){
+                //字符串
+                std::string txt = load_file(item["file"]);
+                Printfln("char {}[] = R\"({})\";",item.name(),txt);
+            }
+            else if(type == "binary"){
+                //2进制
+                FILE *f = fopen(item["file"],"rb");
+                if(f == nullptr){
+                    Printfln(stderr,"Error:Failed open {}",item["file"]);
+                    exit(EXIT_FAILURE);
+                }
+                Printf(output,"uint8_t {}[] = {",item.name());
+                int ch = fgetc(f);
+                while(ch != EOF){
+                    fprintf(f,",&x",ch);
+                    ch = fgetc(f);
+                }
+                Printfln(output,"}");
+                fclose(f);
+            }
+            else{
+                Printfln(stderr,"Error:Unknown type {}",type);
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+    switch(lang){
+        case Lang::C:{
+            //C的保护部分
+            Printfln(output,R"(
+                #ifdef __cplusplus
+                }
+                #endif
+            )");
+        }
+    }
 }

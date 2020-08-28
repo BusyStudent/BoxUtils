@@ -46,6 +46,7 @@ namespace FmtImpl{
             fmt = ptr + len;//移动到后面
             ptr = strstr(fmt,"{}");//查找
         }
+        ostr << fmt;
         return ostr;
     };
     BOXAPI std::ostream &FPrintf(std::ostream &ostr,const char *fmt,...){
@@ -70,6 +71,7 @@ namespace FmtImpl{
             fmt = ptr + len;//移动到后面
             ptr = strstr(fmt,"{}");//查找
         }
+        fputs(fmt,fptr);//打印剩下的
     }
     BOXAPI void FPrintf(FILE *fptr,const char *fmt,...){
         va_list varg;

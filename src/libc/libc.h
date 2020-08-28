@@ -37,10 +37,8 @@
         abort();\
     }
 //Thread local
-#ifdef __gnu_linux__
-    #include <threads.h>
-    #define LIBC_TLS _Thread_local
-#elif defined(__GUNC__)
+//README 大部分都没有threads.h
+#if defined(__GUNC__)
     //GCC
     #define LIBC_TLS __thread
 #elif defined(_MSC_VER)
