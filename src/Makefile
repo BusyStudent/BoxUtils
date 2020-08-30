@@ -5,13 +5,15 @@ CXX=g++
 CXXFLAGS=-g -std=c++17 -fPIC -Wall -Wextra
 INCLUDE=../include/Box/
 #主要的对象
-OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o net/easy.o net/factory.o net/headers.o net/exception.o\
-	exception.o iconv.o sync/sem.o base64.o socket.o string.o dns.o filesystem.o net/multi.o\
-	xml.o xpath.o sax.o timer.o os.o backtrace.o net/share.o\
+OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o\
+	exception.o iconv.o sync/sem.o base64.o socket.o string.o dns.o filesystem.o\
+	xml.o xpath.o sax.o timer.o os.o backtrace.o\
 	dylib.o logger.o subprocess.o buffer.o table.o\
 	assert.o threadpool.o fmt.o net/url.o net/poll.o\
 	co/context.o co/ucontext.o\
-	os/handle.o os/exception.o os/proc.o os/fs.o
+	os/handle.o os/exception.o os/proc.o os/fs.o\
+	curl/easy.o curl/multi.o curl/share.o curl/curl.o curl/headers.o curl/exception.o\
+	curl/factory.o
 LIBC_OBJ=libc/mem.o libc/inet.o libc/atexit.o libc/io.o
 
 OBJ+=$(LIBC_OBJ)
@@ -44,14 +46,16 @@ cJSON_Utils.o:cJSON_Utils.c cJSON_Utils.h
 	$(CC) $(CFLAGS) cJSON_Utils.c -c
 #依赖的cJSON
 net.o:net.cpp $(INCLUDE)net.hpp
-net_headers.o:net_headers.cpp $(INCLUDE)net/headers.hpp
 #net_callback.o:net_callback.cpp net.hpp
 #net_response.o:net_response.cpp net.hpp
-net/factory.o:net/factory.cpp $(INCLUDE)net/factory.hpp
-net/exception.o:net/exception.cpp $(INCLUDE)net/exception.hpp
-net/easy.o:net/easy.cpp $(INCLUDE)net/easy.hpp
-net/multi.o:net/multi.cpp $(INCLUDE)net/multi.hpp
-net/share.o:net/share.cpp $(INCLUDE)net/share.hpp
+curl/headers.o:curl/headers.cpp $(INCLUDE)curl/headers.hpp
+curl/factory.o:curl/factory.cpp $(INCLUDE)curl/factory.hpp
+curl/exception.o:curl/exception.cpp $(INCLUDE)curl/exception.hpp
+curl/easy.o:curl/easy.cpp $(INCLUDE)curl/easy.hpp
+curl/multi.o:curl/multi.cpp $(INCLUDE)curl/multi.hpp
+curl/share.o:curl/share.cpp $(INCLUDE)curl/share.hpp
+curl/curl.o:curl/curl.cpp $(INCLUDE)curl/curl.hpp
+
 net/poll.o:net/poll.cpp $(INCLUDE)net/poll.hpp
 net/url.o:net/url.cpp $(INCLUDE)net/url.hpp
 #异常

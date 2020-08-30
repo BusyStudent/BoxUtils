@@ -4,12 +4,9 @@
 #include <functional>
 #include "common/def.hpp"
 #include "exception.hpp"
-#include "net/exception.hpp"
-#include "net/easy.hpp"
-#include "net/multi.hpp"
-#include "net/factory.hpp"
+#include "curl/curl.hpp"
 namespace Box{
-namespace Net{
+namespace Curl{
 	/*
 	static auto multi_select = [](void * handle,struct timeval *tv) -> int{
 		fd_set wset,rset,eset;

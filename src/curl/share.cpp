@@ -3,14 +3,11 @@
 #include <mutex>
 //狐池锁
 #include "common/def.hpp"
-#include "net/easy.hpp"
-#include "net/share.hpp"
-#include "net/factory.hpp"
-
+#include "curl/curl.hpp"
 #include "backtrace.hpp"
 
 namespace Box{
-namespace Net{
+namespace Curl{
 	struct Share::Mutexs{
 		//一个共享接口锁的结构体
 		std::mutex m_cookie;//对于cookie的锁定

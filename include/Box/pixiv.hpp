@@ -5,13 +5,13 @@
 #include <optional>
 #include "json.hpp"
 namespace Box{
-    namespace Net{
+    namespace Curl{
         class EasyFactory;
         class Share;
     };
     namespace Pixiv{
         //实现
-        using namespace Net;
+        using namespace Curl;
         struct ArtWorks;
         class Interface{
             //接口

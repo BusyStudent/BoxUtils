@@ -1,7 +1,7 @@
 #ifndef _BOX_NET_SHARE_HPP_
 #define _BOX_NET_SHARE_HPP_
 namespace Box{
-	namespace Net{
+	namespace Curl{
 		//共享接口
 		class Easy;
 		class EasyPackage;

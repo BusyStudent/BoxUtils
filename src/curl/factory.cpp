@@ -1,9 +1,8 @@
 #include <utility>
 #include "common/def.hpp"
-#include "net/headers.hpp"
-#include "net/factory.hpp"
+#include "curl/curl.hpp"
 namespace Box{
-namespace Net{
+namespace Curl{
 	EasyPackage::EasyPackage(Easy *e,const Headers &h)
 		:_headers(h){
 		//产出的对象

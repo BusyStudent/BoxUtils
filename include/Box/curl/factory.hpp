@@ -6,7 +6,7 @@
 #include "easy.hpp"
 #include "headers.hpp"
 namespace Box{
-	namespace Net{
+	namespace Curl{
 		class EasyPackage{
 			//工厂产出的对象
 			public:
@@ -20,7 +20,7 @@ namespace Box{
 				inline Easy &operator *() const{
 					return *easy_handle;
 				}
-				inline const char *operator [](const char *key) const{
+				inline std::string_view operator [](std::string_view key) const{
 					return resp_headers[key];
 				}
 				inline Headers &headers(){

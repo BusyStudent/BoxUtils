@@ -35,17 +35,19 @@ target("box_utils")
 		add_defines("NDEBUG")
 	end
 	--检查LIBXML2
-	if has_package("xml2") then
+	if has_package("libxml-2.0") then
 		--LIBXML2
 		add_files("./src/xpath.cpp")
 		add_files("./src/xml.cpp")
 	end
 	
-	if has_package("curl") then
+	if has_package("libcurl") then
 		--CURL网络部分
-		add_files("./src/net/*.cpp")
-		add_files("./src/net.cpp")
+		add_files("./src/curl/*.cpp")
 	end
+	--Socket
+	add_files("./src/net/*.cpp")
+	add_files("./src/net.cpp")
 	--OS API
 	add_files("./src/os/*.cpp")
 	add_files("./src/table.cpp")

@@ -1,13 +1,15 @@
 #include <cstring>
 #include <string>
 #include <sstream>
+#include <string_view>
 #include <curl/curl.h>
 #include <functional>
 #include <initializer_list>
 #include "common/def.hpp"
 #include "json.hpp"
+#include "fmt.hpp"
 #include "exception.hpp"
-#include "net/headers.hpp"
+#include "curl/curl.hpp"
 #if defined(_MSC_VER) 
 	#define strncasecmp _strnicmp 
 #elif defined(_WIN32)
@@ -17,17 +19,21 @@
 #endif
 #define LEN(STR) ((strchr((STR),':') - (STR))/sizeof(char))
 namespace Box{
-namespace Net{
-	Headers::Headers(){
+namespace Curl{
+	//通过Json格式化
+	Headers::Headers(JsonRef ref){
 		slist = nullptr;
+		for(auto &item:ref){
+			add(item.name(),item.get_value<std::string_view>());
+		}
 	}
-	Headers::Headers(const std::initializer_list<const char *> &vlist){
+	Headers::Headers(std::initializer_list<std::string_view> vlist){
 		for(auto &s:vlist){
 			//添加字符串
 			add_string(s);
 		}
 	}
-	Headers::Headers(const std::initializer_list<const std::initializer_list<const char*>>& vlist){
+	Headers::Headers(std::initializer_list<std::initializer_list<std::string_view>> vlist){
 		for(auto &l:vlist){
 			//add(l.begin(),--l.end());
 			if(l.size() != 2){
@@ -51,13 +57,13 @@ namespace Net{
 	Headers::~Headers(){
 		curl_slist_free_all((struct curl_slist*)slist);
 	}
-	void Headers::add_string(const char *str){
+	void Headers::add_string(std::string_view str){
 		//添加字符串
-		slist = curl_slist_append((struct curl_slist*)slist,str);
+		slist = curl_slist_append((struct curl_slist*)slist,str.data());
 	}
-	void Headers::add(const char *key,const char *value){
+	void Headers::add(std::string_view key,std::string_view value){
 		//加入值
-		add_string((key + std::string(":") + value).c_str());
+		add_string(Format("{}:{}",key,value));
 	}
 	void Headers::update(const Headers &h){
 		//从另一个头里加入值
@@ -68,27 +74,27 @@ namespace Net{
 			next = next->next;
 		}
 	}
-	const char *Headers::get_value(const char *key) const{
+	std::string_view Headers::get_value(std::string_view key) const{
 		//查找值
 		//size_t keylen = strlen(key);//key的长度
 		struct curl_slist *next = (struct curl_slist*)(slist);
 		while(next != nullptr){
-			if(strncasecmp(next->data,key,LEN(next->data)) == 0){
+			if(strncasecmp(next->data,key.data(),LEN(next->data)) == 0){
 				//找到了
 				return strchr(next->data,':') + 1;
 			}
 			next = next->next;
 		}
-		return nullptr;
+		return std::string_view();//返回一个空的
 	}
-	const char *Headers::operator [](const char *key) const{
+	std::string_view Headers::operator [](std::string_view key) const{
 		auto value = get_value(key);
 		if(value == nullptr){
-			throw Box::KeyError(key);
+			throwKeyError(key);
 		}
 		return value;
 	}
-	bool Headers::has_key(const char *key) const{
+	bool Headers::has_key(std::string_view key) const{
 		//有这个值
 		auto val = get_value(key);
 		if(val == nullptr){
@@ -98,14 +104,14 @@ namespace Net{
 			return true;
 		}
 	}
-	bool Headers::remove(const char *key){
+	bool Headers::remove(std::string_view key){
 		bool status = false;
 		//size_t keylen = strlen(key);//key的长度
 		struct curl_slist *new_list = nullptr;//新的链表
 		struct curl_slist *next = (struct curl_slist*)(slist);
 		while(next != nullptr){
 			//遍历链表 加入值
-			if(strncasecmp(next->data,key,LEN(next->data)) == 0){
+			if(strncasecmp(next->data,key.data(),LEN(next->data)) == 0){
 				//找到这个值 忽略它
 				status = true;//找到
 			}

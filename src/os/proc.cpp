@@ -207,7 +207,7 @@ namespace OS{
         #endif
     }
     //是否存活
-    bool Proc::alive(){
+    bool Proc::is_alive() const{
         #ifdef _WIN32
 
         #else

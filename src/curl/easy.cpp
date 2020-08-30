@@ -7,14 +7,10 @@
 #include <chrono>
 
 #include "common/def.hpp"
-
+#include "curl/curl.hpp"
 #include "exception.hpp"
-#include "net/exception.hpp"
-#include "net/headers.hpp"
-#include "net/easy.hpp"
-#include "net.hpp"
 namespace Box{
-namespace Net{
+namespace Curl{
 	//检查EASY的返回代码
 	#define CURL_ASSERT(CODE) {CURLcode _code_ = CODE;\
 		if(_code_ != CURLE_OK){\
@@ -137,13 +133,16 @@ namespace Net{
 	}
 	void Easy::set_ostream(std::string &str){
 		//设置输出字符串
-		curl_easy_setopt(handle,CURLOPT_WRITEFUNCTION,WriteToString);
-		curl_easy_setopt(handle,CURLOPT_WRITEDATA,&str);
+		set_write_cb([](char *buf,size_t size,size_t block,void *str) -> size_t{
+			static_cast<std::string*>(str)->append(buf,size * block);
+			return size * block;
+		},&str);
 	}
 	void Easy::set_ostream(FILE *f){
 		//设置输出流
-		curl_easy_setopt(handle,CURLOPT_WRITEFUNCTION,WriteToFILE);
-		curl_easy_setopt(handle,CURLOPT_WRITEDATA,f);
+		set_write_cb([](char *buf,size_t size,size_t block,void *fstream) -> size_t{
+			return fwrite(buf,size,block,static_cast<FILE*>(fstream));
+		},f);
 	}
 	//设置输出流到std::ostream
 	void Easy::set_ostream(std::ostream &stream){
@@ -161,8 +160,27 @@ namespace Net{
 	}
 	void Easy::set_oheaders(Headers &h){
 		//设置输出的响应头
-		curl_easy_setopt(handle,CURLOPT_HEADERFUNCTION,WriteToHeaders);
-		curl_easy_setopt(handle,CURLOPT_HEADERDATA,&h);
+		set_header_cb([](char *buf,size_t size,size_t block,void *headers) -> size_t{
+			std::string strbuf(buf,block);
+			if(strbuf.find(':') == strbuf.npos){
+				//没找到:
+				//跳过
+				return size * block;
+			}
+			#if 1
+			//这里处理末尾的\r\n
+			std::string::iterator iter = --strbuf.end();
+			while(*iter == '\r' or *iter == '\n'){
+				//取出\r\n
+				strbuf.pop_back();
+				iter = --strbuf.end();
+			}
+			#endif
+			//直接加入
+			//strbuf.replace(strbuf.begin(),strbuf.end(),"\r\n","");
+			static_cast<Headers*>(headers)->add_string(strbuf.c_str());
+			return size * block;
+		},&h);
 	}
 	void Easy::set_followlocation(){
 		//自动更寻重定向
@@ -266,8 +284,8 @@ namespace Net{
 	}
 	//URL编码和解码
 
-	std::string Easy::escape_url(const char *url) const{
-		char *s = curl_easy_escape(handle,url,0);
+	std::string Easy::escape_url(std::string_view url) const{
+		char *s = curl_easy_escape(handle,url.data(),url.length());
 		//编码一下
 		if(s == nullptr){
 			throw Box::NullPtrException();
@@ -277,9 +295,9 @@ namespace Net{
 		curl_free(s);
 		return str;
 	}
-	std::string Easy::unescape_url(const char *url) const{
+	std::string Easy::unescape_url(std::string_view url) const{
 		//解码URL
-		char *s = curl_easy_escape(handle,url,0);
+		char *s = curl_easy_escape(handle,url.data(),url.length());
 		if(s == nullptr){
 			throw Box::NullPtrException();
 		}
@@ -292,39 +310,6 @@ namespace Net{
 		if(code != 200){
 			throw HttpError(code);
 		}
-	}
-
-	//回调函数
-	size_t Easy::WriteToFILE(char *buf,size_t size,size_t block,void *param){
-		//写到文件
-		return fwrite(buf,size,block,(FILE*)param);
-	}
-	size_t Easy::WriteToString(char *buf,size_t size,size_t block,void *param){
-		//写到字符串里
-		size_t s = size*block;
-		((std::string*)param)->append(buf,s);
-		return s;
-	}
-	size_t Easy::WriteToHeaders(char *buf,size_t size,size_t block,void *param){
-		std::string strbuf(buf,block);
-		if(strbuf.find(':') == strbuf.npos){
-			//没找到:
-			//跳过
-			return size * block;
-		}
-		#if 1
-		//这里处理末尾的\r\n
-		std::string::iterator iter = --strbuf.end();
-		while(*iter == '\r' or *iter == '\n'){
-			//取出\r\n
-			strbuf.pop_back();
-			iter = --strbuf.end();
-		}
-		#endif
-		//直接加入
-		//strbuf.replace(strbuf.begin(),strbuf.end(),"\r\n","");
-		((Headers*)param)->add_string(strbuf.c_str());
-		return size*block;
 	}
 	//得到引用
 	Easy &Easy::GetRefFrom(void *handle){
@@ -360,7 +345,13 @@ namespace Net{
 		CURLcode code;
 		if(copy){
 			//要复制一下
-			code = curl_mime_headers(part,SListDup(headers.slist),1);
+			curl_slist *current = headers.slist;
+			curl_slist *new_list = nullptr;
+			while(current != nullptr){
+				new_list = curl_slist_append(new_list,current->data);
+				current = current->next;
+			}
+			code = curl_mime_headers(part,new_list,1);
 		}
 		else{
 			code = curl_mime_headers(part,headers.slist,0);

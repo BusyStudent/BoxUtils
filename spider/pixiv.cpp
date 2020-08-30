@@ -2,10 +2,7 @@
 #include <cstdlib>
 #include <string>
 #include <algorithm>
-#include "net/easy.hpp"
-#include "net/factory.hpp"
-#include "net/exception.hpp"
-#include "net/share.hpp"
+#include "curl/curl.hpp"
 #include "exception.hpp"
 #include "string.hpp"
 #include "pixiv.hpp"

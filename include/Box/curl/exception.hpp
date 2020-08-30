@@ -4,7 +4,7 @@
 #include <string>
 #include "../libc/attr.h"
 namespace Box{
-	namespace Net{
+	namespace Curl{
 		class EasyException:public std::exception{
 			public:
 				EasyException(int curlcode);

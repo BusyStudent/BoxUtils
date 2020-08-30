@@ -6,7 +6,6 @@
 #include <cstdarg>
 #include "common/def.hpp"
 #include "raii/scope.hpp"
-#include "net/exception.hpp"
 #include "net/socket.hpp"
 #include "backtrace.hpp"
 #include "exception.hpp"
@@ -36,18 +35,18 @@ namespace{
 	};
 };
 //内连函数
-Socket::Socket(NativeSocket fd){
-	this->fd = fd;
+Socket::Socket(NativeSocket fd):SocketRef(fd){
+
 }
-Socket::Socket(Socket &&sock){
+Socket::Socket(Socket &&sock):
+	SocketRef(sock.detach_fd()){
 	//移动函数
-	fd = sock.detach_fd();
 }
 Socket::~Socket(){
 	//关闭流
 	this->close();
 }
-void Socket::close(){
+void SocketRef::close(){
 	//关掉
 	if(not BOX_SOCKET_INVAID(fd)){
 		libc::closesocket(fd);
@@ -59,20 +58,20 @@ void Socket::close(){
 		#endif
 	}
 }
-void Socket::shutdown(Shut how){
+void SocketRef::shutdown(Shut how){
 	if(::shutdown(fd,static_cast<int>(how)) == -1){
 		throwSocketError();
 	}
 }
 //读写
-ssize_t Socket::recv(void *buf,size_t buflen,int flags) noexcept{
+ssize_t SocketRef::recv(void *buf,size_t buflen,int flags) noexcept{
 	return libc::recv(fd,buf,buflen,flags);
 }
-ssize_t Socket::send(const void *buf,size_t buflen,int flags) noexcept{
+ssize_t SocketRef::send(const void *buf,size_t buflen,int flags) noexcept{
 	return libc::send(fd,buf,buflen,flags);
 }
 //设置不堵塞
-void Socket::set_nonblock(bool val){
+void SocketRef::set_nonblock(bool val){
 	#ifdef _WIN32
 	u_long arg;
 	if(val == true){
@@ -105,7 +104,7 @@ void Socket::set_nonblock(bool val){
 	#endif
 }
 //设置可以继承
-void Socket::set_inherit(bool val){
+void SocketRef::set_inherit(bool val){
 	#ifdef _WIN32
 
 	#else
@@ -133,7 +132,7 @@ void Socket::set_inherit(bool val){
 	#endif
 }
 //是否可继承
-bool Socket::is_inherit() const{
+bool SocketRef::is_inherit() const{
 	#ifdef _WIN32
 
 	#else
@@ -145,25 +144,25 @@ bool Socket::is_inherit() const{
 	#endif
 }
 //绑定地址
-void Socket::bind(const AddrV4 &addr){
+void SocketRef::bind(const AddrV4 &addr){
 	if(libc::bind(fd,&addr,sizeof(sockaddr_in)) != 0){
 		throwSocketError();
 	}
 }
 //IPV6
-void Socket::bind(const AddrV6 &addr){
+void SocketRef::bind(const AddrV6 &addr){
 	if(libc::bind(fd,&addr,sizeof(sockaddr_in6)) != 0){
 		throwSocketError();
 	}
 }
 //OS
-void Socket::bind(const void *addr,size_t addrsize){
+void SocketRef::bind(const void *addr,size_t addrsize){
 	if(libc::bind(fd,addr,addrsize) != 0){
 		throwSocketError();
 	}
 }
 //听
-void Socket::listen(int backlog){
+void SocketRef::listen(int backlog){
 	int ret = ::listen(fd,backlog);
 	if(ret != 0){
 		//失败
@@ -171,36 +170,36 @@ void Socket::listen(int backlog){
 	}
 }
 //连接
-void Socket::connect(const AddrV4 &addr){
+void SocketRef::connect(const AddrV4 &addr){
 	if(libc::connect(fd,&addr,sizeof(sockaddr_in)) != 0){
 		throwSocketError();
 	}
 }
 //IPV6的连接
-void Socket::connect(const AddrV6 &addr){
+void SocketRef::connect(const AddrV6 &addr){
 	if(libc::connect(fd,&addr,sizeof(sockaddr_in6)) != 0){
 		throwSocketError();
 	}
 }
 //原始连接
-void Socket::connect(const void *addr,size_t addrsize){
+void SocketRef::connect(const void *addr,size_t addrsize){
 	if(libc::connect(fd,addr,addrsize) != 0){
 		throwSocketError();
 	}
 }
 //得到Socketd的地址
-AddrV4 Socket::get_addrv4_name()const{
+AddrV4 SocketRef::get_addrv4_name()const{
 	AddrV4 addr;
 	get_name(addr);
 	return addr;
 }
-AddrV6 Socket::get_addrv6_name()const{
+AddrV6 SocketRef::get_addrv6_name()const{
 	AddrV6 addr;
 	get_name(addr);
 	return addr;
 }
 //IPV4版本
-void Socket::get_name(AddrV4 &addr)const{
+void SocketRef::get_name(AddrV4 &addr)const{
 	#ifdef _WIN32
 	int len = sizeof(sockaddr_in);
 	auto code = getsockname(fd,(sockaddr*)&addr,&len);
@@ -214,7 +213,7 @@ void Socket::get_name(AddrV4 &addr)const{
 	}
 }
 //IPV6版本
-void Socket::get_name(AddrV6 &addr)const{
+void SocketRef::get_name(AddrV6 &addr)const{
 	#ifdef _WIN32
 	int len = sizeof(sockaddr_in6);
 	auto code = getsockname(fd,(sockaddr*)&addr,&len);
@@ -228,7 +227,7 @@ void Socket::get_name(AddrV6 &addr)const{
 	}
 }
 //通过地址大小的到
-void Socket::get_name(void *addr,size_t addrsize) const{
+void SocketRef::get_name(void *addr,size_t addrsize) const{
 	#ifdef _WIN32
 	int len = static_cast<int>(addrsize);
 	auto code = getsockname(fd,(sockaddr*)&addr,&len);
@@ -242,7 +241,7 @@ void Socket::get_name(void *addr,size_t addrsize) const{
 	}
 }
 //得到与他相连的Socket名字
-void Socket::get_peer_name(AddrV4 &addr)const{
+void SocketRef::get_peer_name(AddrV4 &addr)const{
 	#ifdef _WIN32
 	int len = sizeof(sockaddr_in);
 	auto code = getpeername(fd,(sockaddr*)&addr,&len);
@@ -256,7 +255,7 @@ void Socket::get_peer_name(AddrV4 &addr)const{
 	}
 }
 //IPV6
-void Socket::get_peer_name(AddrV6 &addr)const{
+void SocketRef::get_peer_name(AddrV6 &addr)const{
 	#ifdef _WIN32
 	int len = sizeof(sockaddr_in6);
 	auto code = getpeername(fd,(sockaddr*)&addr,&len);
@@ -270,7 +269,7 @@ void Socket::get_peer_name(AddrV6 &addr)const{
 	}
 }
 //原始的接口
-void Socket::get_peer_name(void *addr,size_t addrsize) const{
+void SocketRef::get_peer_name(void *addr,size_t addrsize) const{
 	#ifdef _WIN32
 	int len = static_cast<int>(addrsize);
 	auto code = getpeername(fd,static_cast<sockaddr*>(addr),&len);
@@ -285,16 +284,16 @@ void Socket::get_peer_name(void *addr,size_t addrsize) const{
 }
 //OS API 接受数据和发送数据
 
-ssize_t Socket::sendto(const void *buf,size_t buflen,int flags,const AddrV4 *addr) noexcept{
+ssize_t SocketRef::sendto(const void *buf,size_t buflen,int flags,const AddrV4 *addr) noexcept{
 	return libc::sendto(fd,buf,buflen,flags,(const sockaddr*)(addr),sizeof(sockaddr_in));
 }
-ssize_t Socket::recvfrom(void *buf,size_t buflen,int flags,AddrV4 *addr) noexcept{
+ssize_t SocketRef::recvfrom(void *buf,size_t buflen,int flags,AddrV4 *addr) noexcept{
 	libc::socklen_t len = sizeof(sockaddr_in);
 	return libc::recvfrom(fd,buf,buflen,flags,(sockaddr*)addr,&len);
 }
 
 //得到文件描述符号
-NativeSocket Socket::get_fd() const{
+NativeSocket SocketRef::get_fd() const{
 	return fd;
 }
 //分离描述符号
@@ -307,8 +306,8 @@ NativeSocket Socket::detach_fd(){
 	#endif
 	return sock;
 }
-ssize_t Socket::operator <<(const std::string & str){
-	return this->send(str.c_str(),str.length() * sizeof(char));
+ssize_t SocketRef::operator <<(std::string_view str){
+	return this->send(str.data(),str.length() * sizeof(char));
 }
 //复制Socket
 Socket Socket::dup(){
@@ -369,21 +368,21 @@ AddrV4::AddrV4(){
 	//清空自己
 	this->clear();
 }
-AddrV4::AddrV4(const std::string &ip,uint16_t port){
+AddrV4::AddrV4(std::string_view ip,uint16_t port){
 	//通过ip和port得到地址
 	this->clear();
 	sin_port = htons(port);
-	sin_addr.s_addr = inet_addr(ip.c_str());
+	sin_addr.s_addr = inet_addr(ip.data());
 	//sin_addr = (ip.c_str());;
 }
 //从IP构建
-AddrV4 AddrV4::From(const std::string &ip,uint16_t port){
+AddrV4 AddrV4::From(std::string_view ip,uint16_t port){
 	return AddrV4(ip,port);
 }
 //从主机名字构建
-AddrV4 AddrV4::FromHost(const std::string &host,uint16_t port){
+AddrV4 AddrV4::FromHost(std::string_view host,uint16_t port){
 	AddrV4 addr;
-	hostent *ent = ::gethostbyname(host.c_str());
+	hostent *ent = ::gethostbyname(host.data());
 	if(ent == nullptr){
 		//失败
 		throwSocketError(BOX_H_ERRNO);
@@ -401,8 +400,8 @@ void AddrV4::clear() noexcept{
 	sin_family = AF_INET;
 }
 //设置IP
-void AddrV4::set_ip(const std::string &ip) noexcept{
-	sin_addr.s_addr = inet_addr(ip.c_str());
+void AddrV4::set_ip(std::string_view ip) noexcept{
+	sin_addr.s_addr = inet_addr(ip.data());
 }
 //设置Port
 void AddrV4::set_port(uint16_t port) noexcept{
@@ -436,18 +435,18 @@ bool AddrV4::operator !=(const AddrV4 &addr) const{
 AddrV6::AddrV6(){
 	this->clear();
 }
-AddrV6::AddrV6(const std::string &ip,uint16_t port){
-	inet_pton(AF_INET6,ip.c_str(),&sin6_addr);
+AddrV6::AddrV6(std::string_view ip,uint16_t port){
+	inet_pton(AF_INET6,ip.data(),&sin6_addr);
 	//转换IP到里面去
 	//转换Port
 	sin6_port = htons(port);
 }
-AddrV6 AddrV6::From(const std::string &ip,uint16_t port){
+AddrV6 AddrV6::From(std::string_view ip,uint16_t port){
 	return AddrV6(ip,port);
 }
 //设置IP
-void AddrV6::set_ip(const std::string &ip) noexcept{
-	inet_pton(AF_INET6,ip.c_str(),&sin6_addr);
+void AddrV6::set_ip(std::string_view ip) noexcept{
+	inet_pton(AF_INET6,ip.data(),&sin6_addr);
 }
 //设置端口
 void AddrV6::set_port(uint16_t port) noexcept{
@@ -491,7 +490,7 @@ Tcp::Tcp(SockFamily family)
 		//创建一个TCPSocket
 }
 //接受连接
-Socket *Socket::accept(AddrV4 *addr){
+Socket *SocketRef::accept(AddrV4 *addr){
 	libc::socklen_t len = sizeof(sockaddr_in);
 	libc::socket_t ret = libc::accept(fd,addr,&len);
 	if(BOX_SOCKET_INVAID(ret)){
@@ -515,7 +514,7 @@ void SockSet::clear(){
 	max_fd = -1;
 	#endif
 }
-void SockSet::add(Socket &sock){
+void SockSet::add(SocketRef sock){
 	FD_SET(sock.fd,this);
 	//设置fd
 	#ifndef _WIN32
@@ -524,7 +523,7 @@ void SockSet::add(Socket &sock){
 	}
 	#endif
 }
-bool SockSet::is_set(Socket &sock){
+bool SockSet::is_set(SocketRef sock){
 	return FD_ISSET(sock.fd,this);
 }
 int Socket::Poll(NativePollfd fds[],size_t n,int timeout) noexcept{
@@ -671,39 +670,4 @@ namespace Net{
 		throw SocketError(code);
 	}
 };
-};
-//OS Socket版本
-namespace Box{
-namespace OS{
-	bool Socket::close() noexcept{
-		if(not bad()){
-			return libc::closesocket(fd);
-		}
-		else{
-			return false;
-		}
-	}
-	Socket Socket::accept(void *addr,size_t *addrsize) noexcept{
-		if(addr == nullptr){
-			return {::accept(fd,nullptr,nullptr)};
-		}
-		else{
-			NativeSocket sock;
-			libc::socklen_t len;
-			sock = ::accept(fd,static_cast<struct sockaddr*>(addr),&len);
-			if(addrsize != nullptr){
-				*addrsize = len;
-			}
-			return {sock};
-		}
-	}
-	//写
-	ssize_t Socket::send(const void *buf,size_t bufsize,int flags) noexcept{
-		return libc::send(fd,buf,bufsize,flags);
-	}
-	//读
-	ssize_t Socket::recv(void *buf,size_t bufsize,int flags) noexcept{
-		return libc::recv(fd,buf,bufsize,flags);
-	}
-}
 };

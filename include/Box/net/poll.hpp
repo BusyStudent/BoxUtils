@@ -27,8 +27,8 @@ namespace Box{
                 return (revents & POLLIN) == POLLIN;
             }
             //得到文件描述符
-            OS::Socket sockfd() const noexcept{
-                return {fd};
+            SocketRef sockfd() const noexcept{
+                return fd;
             }
         };
         class BOXAPI Pollfds{
@@ -43,10 +43,10 @@ namespace Box{
                 Pollfds(Pollfds &&);
                 ~Pollfds();
                 void add(const Pollfd &);
-                void add(Socket &,short event);
+                void add(SocketRef,short event);
                 void add(NativeSocket,short event);//添加一个
                 //移除一个
-                bool remove(Socket &);
+                bool remove(SocketRef);
                 bool remove(NativeSocket);
                 int poll(int timeout = -1) noexcept;//查询 默认无限等待
                 template<class T>
@@ -94,8 +94,8 @@ namespace Box{
             T *userdata() const noexcept{
                 return static_cast<T*>(data.ptr);
             }
-            OS::Socket sockfd() const noexcept{
-                return {data.fd};
+            SocketRef sockfd() const noexcept{
+                return data.fd;
             }
         };
         /*
@@ -115,13 +115,13 @@ namespace Box{
                 typedef decltype(EpollEvent::events) EventsType;//事件类型
                 //添加一个Socket 可以加用户数据
                 bool add(int fd,EventsType events,void *userdata = nullptr);
-                bool add(Socket &,EventsType events,void *userdata = nullptr);
+                bool add(SocketRef,EventsType events,void *userdata = nullptr);
                 //移除
                 bool remove(int fd);
-                bool remove(Socket &sock);
+                bool remove(SocketRef sock);
                 //重新设置
                 bool set(int fd,EventsType events,void *userdata = nullptr);
-                bool set(Socket &sock,EventsType events,void *userdata = nullptr);
+                bool set(SocketRef sock,EventsType events,void *userdata = nullptr);
                 //进行poll
                 int wait(int timeout = -1) noexcept;
                 int poll(int timeout = -1) noexcept;

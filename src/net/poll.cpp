@@ -29,7 +29,7 @@ namespace Net{
             0
         });
     }
-    void Pollfds::add(Socket &sock,short event){
+    void Pollfds::add(SocketRef sock,short event){
         pfds.push_back({
             sock.get_fd(),
             event,
@@ -48,7 +48,7 @@ namespace Net{
         }
         return false;
     }
-    bool Pollfds::remove(Socket &sock){
+    bool Pollfds::remove(SocketRef sock){
         return Pollfds::remove(sock.fd);
     }
     //进行poll
@@ -106,7 +106,7 @@ namespace Net{
             return true;
         }
     }
-    bool Epollfds::add(Socket &sock,EventsType events,void *data){
+    bool Epollfds::add(SocketRef sock,EventsType events,void *data){
         return Epollfds::add(sock.fd,events,data);
     }
     //设置fd
@@ -117,7 +117,7 @@ namespace Net{
         ev.data.ptr = data;
         return epoll_ctl(epfd,EPOLL_CTL_MOD,fd,&ev) == 0;
     }
-    bool Epollfds::set(Socket &sock,EventsType events,void *data){
+    bool Epollfds::set(SocketRef sock,EventsType events,void *data){
         return set(sock.fd,events,data);
     }
     //移除fd
@@ -133,7 +133,7 @@ namespace Net{
             return true;
         }
     }
-    bool Epollfds::remove(Socket &sock){
+    bool Epollfds::remove(SocketRef sock){
         return Epollfds::remove(sock.fd);
     }
     //迭代器版本

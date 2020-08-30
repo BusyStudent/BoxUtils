@@ -19,8 +19,8 @@ namespace Box{
         struct BOXAPI Proc{
             ProcID pid;//进程ID
             bool terminate();//终止
-            bool alive();//是否存活
             int  wait();//等待结束
+            bool is_alive() const;//是否存活
             //转换
             operator ProcID() const noexcept{
                 return pid;

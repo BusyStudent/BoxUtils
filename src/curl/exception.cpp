@@ -3,11 +3,10 @@
 #include <cstring>
 #include <string>
 #include "common/def.hpp"
+#include "curl/curl.hpp"
 #include "exception.hpp"
-#include "net/socket.hpp"
-#include "net/exception.hpp"
 namespace Box{
-namespace Net{
+namespace Curl{
 	//异常
 	EasyException::EasyException(int code):curlcode(code){
 		//Easy出现了错误

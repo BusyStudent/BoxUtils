@@ -4,7 +4,7 @@
 #include <functional>
 #include <chrono>
 namespace Box{
-	namespace Net{
+	namespace Curl{
 		class EasyPackage;
 		class Easy;
 		class Multi;

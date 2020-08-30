@@ -15,12 +15,13 @@
 #endif
 #include <ctime>
 #include <string>
+#include <string_view>
 #include <exception>
 #include "libc/attr.h"
 namespace Box{
 	class OSError;//定义在exception.hpp 
 	//基本的Socket
-	namespace OS{
+	namespace Net{
 		#ifdef _WIN32
 			typedef SOCKET NativeSocket;
 			typedef WSAPOLLFD NativePollfd;
@@ -28,35 +29,6 @@ namespace Box{
 			typedef int NativeSocket;//本地的Socket
 			typedef pollfd NativePollfd;
 		#endif
-		//OS::Socket 你要自己手动close
-		struct BOXAPI Socket{
-			#ifdef _WIN32
-				using ssize_t = SSIZE_T;
-			#else
-				using ssize_t = ::ssize_t;//使用ssize_t
-			#endif
-			NativeSocket fd;
-			operator NativeSocket() const noexcept{
-				return fd;
-			}
-			bool bad() const noexcept{
-				//是否无效
-				#ifdef _WIN32
-				return fd == INVAID_SOCKET;
-				#else
-				return fd < 0;
-				#endif
-			}
-			//方法 都没有异常
-			bool close() noexcept;//关闭
-			ssize_t recv(      void *buf,size_t bufsize,int flags = 0) noexcept;
-			ssize_t send(const void *buf,size_t bufsize,int flags = 0) noexcept;
-			Socket accept(void *addr = nullptr,size_t *addrsize = nullptr) noexcept;
-		};
-	};
-	namespace Net{
-		using OS::NativeSocket;
-		using OS::NativePollfd;
 		enum class SockError{
 			//错误代码
 			#ifdef _WIN32
@@ -99,12 +71,12 @@ namespace Box{
 		struct BOXAPI AddrV4:public sockaddr_in{
 			//IPV4的地址
 			AddrV4();
-			AddrV4(const std::string &ip,uint16_t port);
+			AddrV4(std::string_view ip,uint16_t port);
 			//得到的参数
 			//构建从地址中
-			static AddrV4 From(const std::string &ip,uint16_t port);
-			static AddrV4 FromHost(const std::string &host,uint16_t port);//从地址主机名字
-			void set_ip(const std::string &ip) noexcept;//设置IP
+			static AddrV4 From(std::string_view ip,uint16_t port);
+			static AddrV4 FromHost(std::string_view host,uint16_t port);//从地址主机名字
+			void set_ip(std::string_view ip) noexcept;//设置IP
 			void set_port(uint16_t port) noexcept;//设置端口
 			void clear() noexcept;//清空
 			std::string get_host() const;//得到主机名字
@@ -117,11 +89,11 @@ namespace Box{
 		struct BOXAPI AddrV6:public sockaddr_in6{
 			//IPV6的地址
 			AddrV6();
-			AddrV6(const std::string &ip,uint16_t port);//从参数构建
+			AddrV6(std::string_view ip,uint16_t port);//从参数构建
 			//构建从地址
-			static AddrV6 From(const std::string &ip,uint16_t port);
+			static AddrV6 From(std::string_view ip,uint16_t port);
 			//操作
-			void set_ip(const std::string &ip) noexcept;//设置IP
+			void set_ip(std::string_view ip) noexcept;//设置IP
 			void set_port(uint16_t port) noexcept;//设置端口
 			void clear() noexcept;//清空
 			std::string get_host() const;//得到主机
@@ -135,32 +107,34 @@ namespace Box{
 		enum class SockFamily{
 			//类型
 			IPV4 = AF_INET,
-			IPV6 = AF_INET6
+			IPV6 = AF_INET6,
+			#ifndef _WIN32
+			UNIX = AF_UNIX
+			#endif
 		};
 		class Socket;
+		class SocketRef;
 		struct BOXAPI SockSet:public fd_set{
 			//集合 这里的方法都不会抛出异常
 			SockSet();//初始化会被清空
 			void clear();//清空
-			void add(Socket &sock);//添加一个
-			bool is_set(Socket &sock);//被设置了
+			void add(SocketRef sock);//添加一个
+			bool is_set(SocketRef sock);//被设置了
 			#ifndef _WIN32
 			//Win32 select不需要这个参数
 			NativeSocket max_fd;
 			#endif
 		};
-		class BOXAPI Socket{
+		class BOXAPI SocketRef{
 			public:
 				#ifdef _WIN32
 				using ssize_t = SSIZE_T;
+				SocketRef():fd(INVAID_SOCKET){};
 				#else
 				using ssize_t = ::ssize_t;//使用ssize_t
+				SocketRef():fd(-1){};
 				#endif
-				Socket(const Socket &) = delete;
-				Socket(Socket &&);
-				Socket(NativeSocket fd);
-				Socket(int family,int type,int protocol = 0);
-				~Socket();
+				SocketRef(NativeSocket fd):fd(fd){};
 				bool  is_inherit() const;//是否可继承
 				//设置是否可以继承 在子进程
                 void set_inherit(bool val = true);
@@ -186,7 +160,7 @@ namespace Box{
 				//接受从一个地址
 				Socket *accept(AddrV4 *addr = nullptr);//接受客户
 
-				ssize_t operator <<(const std::string &);//写入字符串
+				ssize_t operator <<(std::string_view str);//写入字符串
 				
 				AddrV4 get_addrv4_name() const;//返回Socket IPV4的地址 
 				AddrV6 get_addrv6_name() const;//返回Socket IPV6的地址 
@@ -214,13 +188,29 @@ namespace Box{
 				void get_peer_name(AddrV6 &addr) const;//得到与他相连的名字 IPV6
 				void get_peer_name(void *addr,size_t addrsize) const;//得到连接的地址名字
 				NativeSocket get_fd() const;//得到文件描述符号
-				NativeSocket detach_fd();//分离fd
-				//复制
-				Socket dup();
 				//转换为fd
 				explicit operator NativeSocket() const noexcept{
 					return fd;
 				}
+			protected:
+				NativeSocket fd;//文件描述符号
+			friend struct SockSet;
+			friend class Epollfds;
+			friend class Pollfds;
+			friend class TCP;
+			friend class UDP;
+		};
+		class Socket:public SocketRef{
+			public:
+				using SocketRef::SocketRef;
+				Socket(NativeSocket);
+				Socket(const Socket &) = delete;
+				Socket(Socket &&);
+				Socket(int family,int type,int protocol = 0);
+				~Socket();
+				//复制
+				Socket dup();
+				NativeSocket detach_fd();//分离fd
 				//得到错误和select poll
 				static int Poll(NativePollfd [],size_t n,int timeout) noexcept;
 				static int Select(SockSet *r_set,SockSet *w_set,SockSet *e_set,const timeval *t = nullptr) noexcept;
@@ -230,13 +220,7 @@ namespace Box{
 				static void Pair(Socket *[2]);
 				//创建操作系统的Socket 
 				static NativeSocket Create(int domain,int type,int protocol = 0);
-			protected:
-				NativeSocket fd;//文件描述符号
-			friend struct SockSet;
-			friend class Epollfds;
-			friend class Pollfds;
-			friend class TCP;
-			friend class UDP;
+				
 		};
 		//TCPSocket
 		class BOXAPI Tcp:public Socket{

@@ -4,6 +4,7 @@
 #include <string>
 #include <iosfwd>
 #include <exception>
+#include <string_view>
 #include "libc/attr.h"
 #include "refptr.hpp"
 struct _xmlDoc;
