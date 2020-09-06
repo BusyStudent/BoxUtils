@@ -5,6 +5,7 @@
 	#include <ws2ipdef.h>
 	#include <io.h>
 	#include <process.h>
+    #include <alloca.h>
 #else
 	#include <unistd.h>
 	#include <sys/socket.h>
@@ -32,6 +33,7 @@ BOXAPI void Box_socket_quit(){
     #ifdef _WIN32
     WSACleanup();
     #endif
+    
 }
 //关闭socket
 BOXAPI int Box_closesocket(Box_socket_t sock){
@@ -93,7 +95,11 @@ BOXAPI int Box_inet_pton(int type,const char *str,void *addr){
             return -1;
     }
     //这个函数的参数没有const不知道会不会改变参数
-    return WSAStringToAddressA(str,type,nullptr,addr,&len);
+    size_t slen = strlen(str);//临时字符串
+    char *tstr = alloca((slen + 1) * sizeof(char))
+    memcpy(tstr,str,slen * sizeof(char));
+    tstr[slen] = '\0';
+    return WSAStringToAddressA(tstr,type,nullptr,addr,&len);
 
     #else
     return inet_pton(type,str,addr);
@@ -115,7 +121,9 @@ BOXAPI const char *Box_inet_ntop(int type,const void *addr,char *buf,size_t bufl
             return -1;
     }
     //这个函数的参数没有const不知道会不会改变参数
-    if(WSAAddressToStringA(addr,len,nullptr,buf,buflen) != 0){
+    void *taddr = alloca(len);//临时的地址
+    memcpy(taddr,addr,len);
+    if(WSAAddressToStringA(taddr,len,nullptr,buf,buflen) != 0){
         return nullptr;
     }
     else{

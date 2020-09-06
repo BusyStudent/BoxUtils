@@ -136,6 +136,8 @@ namespace Box{
 				return;
 			}
 		}
+		//失败 释放
+		cJSON_Delete(helper.value);
 		throwTypeError("Array or Object",Format(
 			"Self:{} Arg:{}",type(),JsonRef(helper.value).type()
 		));
@@ -295,7 +297,11 @@ namespace Box{
 		cJSON_AddItemToArray(value,val);	
 	}
 	void JsonRef::insert(const Helper &helper){
-		check_is_array();
+		if(not is_array()){
+			//抛出异常后 防止内存泄漏
+			cJSON_Delete(helper.value);
+			throwTypeError("Array",type());
+		}
 		cJSON_AddItemToArray(value,helper.value);
 	}
 	//插入到数组或者表
@@ -320,6 +326,7 @@ namespace Box{
 	}
 	void JsonRef::insert(int index,const Helper &helper){
 		if(not(is_array() or is_object())){
+			cJSON_Delete(helper.value);
 			throwTypeError("Array or Object",type());
 		}
 		cJSON_InsertItemInArray(value,index,helper.value);
@@ -340,7 +347,10 @@ namespace Box{
 		cJSON_AddItemToObject(value,str.data(),val);
 	}
 	void JsonRef::insert(std::string_view str,const Helper &helper){
-		check_is_object();
+		if(not is_object()){
+			cJSON_Delete(helper.value);
+			throwTypeError("Object",type());
+		}
 		cJSON_AddItemToObject(value,str.data(),helper.value);
 	}
 	//移除所有项

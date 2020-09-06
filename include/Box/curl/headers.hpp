@@ -30,7 +30,7 @@ namespace Box{
 				Headers(const Headers &);
 				~Headers();
 				//构造器和析构器
-				Box::Json json();//到Json
+				Json json();//到Json
 				
 				void add_string(std::string_view str);//添加字符串
 				void add(std::string_view key,std::string_view value);

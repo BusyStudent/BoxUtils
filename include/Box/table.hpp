@@ -11,6 +11,7 @@ namespace Box{
     class AnyObject;
     class AnyTable;
     class AnyList;
+    class JsonRef;
     namespace AnyImpl{
         //常用类型
         //得到TypeInfo的函数
@@ -157,6 +158,7 @@ namespace Box{
             //查找列表
             const AnyObject &operator [](int index) const;
                   AnyObject &operator [](int index);
+            static AnyObject ConvertFrom(JsonRef);//从Json转换
         public:
             //得到原始指针
             void *get_ptr() const{
