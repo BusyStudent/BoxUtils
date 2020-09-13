@@ -33,7 +33,9 @@ namespace Box{
 			std::string to_string(bool formated = true) const;
 			//得到数据
 			template<class T>
-			T get_value() const;
+			T get_value() const{
+				return JsonRef::operator T();
+			};
 			//设置数据
 			void set_value(int);
 			void set_value(bool);
@@ -107,10 +109,13 @@ namespace Box{
 				return JsonRef::operator ==(data);
 			};
 			//operator
-			template<class T>
-			operator T() const{
-				return get_value<T>();
-			};
+			operator int() const;
+			operator bool() const;
+			operator float() const;
+			operator double() const;
+			operator const char *() const;
+			operator std::string () const;
+			operator std::string_view() const;
 			//查找数据
 			JsonRef operator [](int index) const;
 			JsonRef operator [](std::string_view) const;
@@ -266,28 +271,6 @@ namespace Box{
 		}
 	};
 	//JsonRef转换的函数
-	//转换到int
-	template<>
-	int    JsonRef::get_value<int>() const;
-	//转换到bool
-	template<>
-	bool   JsonRef::get_value<bool>() const;
-	//转换到float
-	template<>
-	float  JsonRef::get_value<float>() const;
-	//转换到double
-	template<>
-	double JsonRef::get_value<double>() const;
-	//转换到string
-	template<>
-	std::string JsonRef::get_value<std::string>() const;
-	//转换到string_view
-	template<>
-	std::string_view JsonRef::get_value<std::string_view>() const;
-	//转换到const char *
-	template<>
-	const char *JsonRef::get_value<const char*>() const;
-	//得到cjson
 	template<>
 	inline cJSON *JsonRef::get_value<cJSON*>() const{
 		return value;

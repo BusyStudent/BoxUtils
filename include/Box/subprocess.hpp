@@ -13,6 +13,7 @@
 #include "string.hpp"
 #include "refptr.hpp"
 namespace Box{
+	/*
 	class SubProcess{
 		public:
 			SubProcess();
@@ -51,5 +52,6 @@ namespace Box{
 			FILE *_stderr;
 			pid_t child_pid;
 	};
+	*/
 };
 #endif

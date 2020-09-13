@@ -5,7 +5,9 @@ if is_plat("windows") then
 	-- Win32的储存库
 	--print("不是Linux平台 coroutine被禁用")
 	add_links("ws2_32")
-	add_requires("libiconv")
+	--add_requires("libiconv")
+	--Windows上好像没有iconv包
+	add_defines("BOX_NICONV")
 	--WinSocket
 elseif is_plat("mingw") then
 	--Mingw编译
@@ -50,9 +52,12 @@ target("box_utils")
 	add_files("./src/net.cpp")
 	--OS API
 	add_files("./src/os/*.cpp")
+	
 	add_files("./src/table.cpp")
+
 	add_files("./src/cJSON.c")
 	add_files("./src/cJSON_Utils.c")
+	
 	add_files("./src/socket.cpp")
 	add_files("./src/string.cpp")
 	
@@ -71,10 +76,9 @@ target("box_utils")
 
 	add_files("./src/base64.cpp")
 	add_files("./src/json.cpp")
-	add_files("./src/iconv.cpp")
 	add_files("./src/dylib.cpp")
 	
-	
+	add_files("./src/posix/*.cpp")
 	
 	--add_files("./src/channal.cpp")
 	add_files("./src/backtrace.cpp")

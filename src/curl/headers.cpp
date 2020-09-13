@@ -6,10 +6,11 @@
 #include <functional>
 #include <initializer_list>
 #include "common/def.hpp"
-#include "json.hpp"
-#include "fmt.hpp"
 #include "exception.hpp"
 #include "curl/curl.hpp"
+#include "libc/mem.h"
+#include "json.hpp"
+#include "fmt.hpp"
 #if defined(_MSC_VER) 
 	#define strncasecmp _strnicmp 
 #elif defined(_WIN32)
@@ -20,6 +21,10 @@
 #define LEN(STR) ((strchr((STR),':') - (STR))/sizeof(char))
 namespace Box{
 namespace Curl{
+	//Value
+	const char *Headers::Value::data() const noexcept{
+		return current->data;
+	}
 	//通过Json格式化
 	Headers::Headers(JsonRef ref){
 		slist = nullptr;

@@ -20,12 +20,19 @@ namespace XPath{
 			xmlXPathFreeObject(objptr);
 		}
 	}
+	//构造空的Xml
+	Context::Context(XmlRef ref):
+		ctxt(xmlXPathNewContext(ref.value)),
+		xml(Xml::EmptyConstruct()){
+		if(ctxt == nullptr){
+			throwError();
+		}
+	}
 	Context::Context(Xml &xml)
-		:holder(xml.holder){
-		ctxt = xmlXPathNewContext(xml.holder->xml);
+		:ctxt(xmlXPathNewContext(xml.value)),xml(xml){
 		if(ctxt == nullptr){
 			//失败
-			throw Error(xmlGetLastError());
+			throwError();
 		}
 	}
 	Context::~Context(){
@@ -33,54 +40,48 @@ namespace XPath{
 	}
 	//移动一下
 	Context::Context(Context &&ctxt)
-		:holder(ctxt.holder){
+		:xml(ctxt.xml){
 		this->ctxt = ctxt.ctxt;
 		ctxt.ctxt = nullptr;
 	}
 	//解析
-	Object Context::eval(const char *exp){
-		xmlXPathObjectPtr obj = xmlXPathEvalExpression(BAD_CAST(exp),ctxt);
+	Object Context::eval(std::string_view exp){
+		xmlXPathObjectPtr obj = xmlXPathEvalExpression(BAD_CAST(exp.data()),ctxt);
 		if(obj == nullptr){
 			//解析失败
-			throw Error(xmlGetLastError());
+			throwError();
 		}
-		return Object(obj,holder);
-	}
-	Object Context::eval(const std::string &exp){
-		return eval(exp.c_str());
+		return Object(obj,xml);
 	}
 	Object Context::eval(const Expression &exp){
 		//解析编译过的表达式
 		xmlXPathObjectPtr obj = xmlXPathCompiledEval(exp.expr,ctxt);
 		if(obj == nullptr){
-			throw Error(xmlGetLastError());
+			throwError();
 		}
-		return Object(obj,holder);
+		return Object(obj,xml);
 	}
 	//编译
-	Expression Context::complie(const char *exp){
-		xmlXPathCompExprPtr expr =  xmlXPathCtxtCompile(ctxt,BAD_CAST(exp));
+	Expression Context::complie(std::string_view exp){
+		xmlXPathCompExprPtr expr =  xmlXPathCtxtCompile(ctxt,BAD_CAST(exp.data()));
 		if(expr == nullptr){
 			//失败
-			throw Error(xmlGetLastError());
+			throwError();
 		}
 		return Expression(expr);
 	}
-	Expression Context::complie(const std::string &exp){
-		return complie(exp.c_str());
-	}
 	//XPath对象
-	Object::Object(xmlXPathObjectPtr objptr,RefPtr <LXml::XmlHolder> &_holder)
-		:obj(objptr,free_xpath),holder(_holder){
+	Object::Object(xmlXPathObjectPtr objptr,const Xml &xml)
+		:obj(objptr,free_xpath),xml(xml){
 	}
 	//复制
 	Object::Object(const Object &o)
-		:obj(o.obj),holder(o.holder){
+		:obj(o.obj),xml(o.xml){
 
 	}
 	//移动
 	Object::Object(Object &&o)
-		:obj(o.obj),holder(o.holder){
+		:obj(o.obj),xml(o.xml){
 
 	}
 	Object::~Object(){
@@ -130,7 +131,7 @@ namespace XPath{
 	}
 	//迭代器操作
 	ObjectIter::ObjectIter(const RefData <_xmlXPathObject*> &_obj,_xmlNode *nodeptr,int where)
-		:obj(_obj),node(nodeptr,true){
+		:obj(_obj),node(nodeptr){
 		//初始化
 		this->where = where;
 	}
@@ -140,11 +141,11 @@ namespace XPath{
 	//操作符号
 	bool ObjectIter::operator ==(const ObjectIter &iter) const{
 		//判断指针是否相等
-		return node.holder->node == iter.node.holder->node;
+		return node.value == iter.node.value;
 	}
 	bool ObjectIter::operator !=(const ObjectIter &iter) const{
 		//判断指针是否不相等
-		return node.holder->node != iter.node.holder->node;
+		return node.value != iter.node.value;
 	}
 	void ObjectIter::operator++(){
 		//递增
@@ -152,12 +153,12 @@ namespace XPath{
 		if(where + 1 >= max){
 			//移动到最后一个
 			where = -1;
-			node.holder->node = nullptr;
+			node.value = nullptr;
 			return;
 		}
 		else{
 			where ++;
-			node.holder->node = obj.get()->nodesetval->nodeTab[where];
+			node.value = obj.get()->nodesetval->nodeTab[where];
 		}
 	}
 	void ObjectIter::operator--(){
@@ -169,7 +170,7 @@ namespace XPath{
 		else if(where -1 >= 0){
 			where --;
 		}
-		node.holder->node = obj.get()->nodesetval->nodeTab[where];
+		node.value = obj.get()->nodesetval->nodeTab[where];
 	}
 	//表达式
 	Expression::Expression(const char *exp){
@@ -177,14 +178,14 @@ namespace XPath{
 		expr = xmlXPathCompile(BAD_CAST(exp));
 		if(expr == nullptr){
 			//失败
-			throw Error(xmlGetLastError());
+			throwError();
 		}
 	}
 	Expression::Expression(const std::string &exp){
 		expr = xmlXPathCompile(BAD_CAST(exp.c_str()));
 		if(expr == nullptr){
 			//失败
-			throw Error(xmlGetLastError());
+			throwError();
 		}
 	}
 	Expression::Expression(_xmlXPathCompExpr *ex)

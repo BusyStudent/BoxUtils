@@ -6,7 +6,7 @@ CXXFLAGS=-g -std=c++17 -fPIC -Wall -Wextra
 INCLUDE=../include/Box/
 #主要的对象
 OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o\
-	exception.o iconv.o sync/sem.o base64.o socket.o string.o dns.o filesystem.o\
+	exception.o posix/iconv.o sync/sem.o base64.o socket.o string.o dns.o filesystem.o\
 	xml.o xpath.o sax.o timer.o os.o backtrace.o\
 	dylib.o logger.o subprocess.o buffer.o table.o\
 	assert.o threadpool.o fmt.o net/url.o net/poll.o\
@@ -60,7 +60,7 @@ net/poll.o:net/poll.cpp $(INCLUDE)net/poll.hpp
 net/url.o:net/url.cpp $(INCLUDE)net/url.hpp
 #异常
 excepton.o:exception.cpp $(INCLUDE)exception.hpp
-iconv.o:iconv.cpp $(INCLUDE)iconv.hpp
+posix/iconv.o:posix/iconv.cpp $(INCLUDE)posix/iconv.hpp
 #字符串编码
 #线程同步通讯
 sync/sem.o:sync/sem.cpp $(INCLUDE)sync/sem.hpp

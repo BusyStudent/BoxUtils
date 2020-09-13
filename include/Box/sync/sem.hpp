@@ -15,7 +15,7 @@ namespace Box{
 				void post() noexcept;//增加数字
 				void wait() noexcept;//减去1 如果为0就等待 
 				bool trywait() noexcept;//尝试减去1 如果失败就返回false
-				bool trywait(const std::chrono::microseconds &) noexcept;
+				bool trywait(std::chrono::microseconds) noexcept;
 				inline void operator ++() noexcept{
 					//和上面一样
 					post();
@@ -66,7 +66,7 @@ namespace Box{
 				void wait()  noexcept;//等待
 				void set()   noexcept;//设置它 唤醒所有线程
 
-				bool wait(const std::chrono::microseconds &) noexcept;//有超时的等待 超时返回false
+				bool wait(std::chrono::microseconds) noexcept;//有超时的等待 超时返回false
 				//返回true当已经被设置 和在时间内返回
 			private:
 				//条件变量

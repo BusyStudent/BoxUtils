@@ -1,4 +1,3 @@
-#include <iconv.h>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
@@ -6,7 +5,7 @@
 #include <vector>
 #include <string>
 #include "common/def.hpp"
-#include "iconv.hpp"
+#include "posix/iconv.hpp"
 /*
 from https://stackoverflow.com/questions/7153935/how-to-convert-utf-8-stdstring-to-utf-16-stdwstring
 std::wstring utf8_to_utf16(const std::string& utf8)
@@ -82,7 +81,11 @@ std::wstring utf8_to_utf16(const std::string& utf8)
 }
 
 */
+#ifndef BOX_NICONV
+//判断是否有iconv
+#include <iconv.h>
 namespace Box{
+namespace Posix{
 	//Iconv错误
 	IconvError::IconvError(int code):err_code(code){}
 	IconvError::~IconvError(){}
@@ -178,3 +181,5 @@ namespace Box{
 		const char *UTF8 = "UTF8";
 	};
 };
+};
+#endif

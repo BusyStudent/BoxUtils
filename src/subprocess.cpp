@@ -19,6 +19,7 @@
 #include <stdexcept>
 #include "exception.hpp"
 #include "subprocess.hpp"
+/*
 #define FCLOSE(PTR) \
 	if(PTR != nullptr){\
 		fclose(PTR);\
@@ -183,3 +184,4 @@ std::vector<std::string> SubProcess::Split(const std::string &val){
 int SubProcess::System(const std::vector<std::string> &args){
 	return Popen(args)->wait();
 }
+*/

@@ -50,38 +50,37 @@ namespace Box{
 namespace Box{
 	//JsonRef的实现空间
 	//JsonRef转换数值
-	template<>
-	int JsonRef::get_value<int>() const{
+	
+	JsonRef::operator int() const{
 		check_is_number();
 		return value->valueint;
 	};
-	template<>
-	bool JsonRef::get_value<bool>() const{
+	JsonRef::operator bool() const{
 		check_is_bool();
 		return value->valueint;
 	};
-	template<>
-	float JsonRef::get_value<float>() const{
+
+	JsonRef::operator float() const{
 		check_is_number();
 		return value->valuedouble;
 	};
-	template<>
-	double JsonRef::get_value<double>() const{
+	
+	JsonRef::operator double() const{
 		check_is_number();
 		return value->valuedouble;
 	};
-	template<>
-	std::string JsonRef::get_value<std::string>() const{
+	
+	JsonRef::operator std::string() const{
 		check_is_string();
 		return value->valuestring;
 	};
-	template<>
-	const char* JsonRef::get_value<const char *>() const{
+	
+	JsonRef::operator const char *() const{
 		check_is_string();
 		return value->valuestring;
 	};
-	template<>
-	std::string_view JsonRef::get_value<std::string_view>() const{
+	
+	JsonRef::operator std::string_view() const{
 		check_is_string();
 		return value->valuestring;
 	};
@@ -146,7 +145,7 @@ namespace Box{
 		check_is_string();
 		cJSON_free(value->valuestring);
 		//拷贝字符串
-		value->valuestring = libc::strdup(str.data(),cJSON_malloc);
+		value->valuestring = libc::strndup(str.data(),str.length(),cJSON_malloc);
 	}
 	//Json&&的set value
 	void JsonRef::set_value(Json &&json){
@@ -439,7 +438,13 @@ namespace Box{
 	}
 	//到字符串
 	std::string JsonRef::to_string(bool formated) const{
-		char *str = cJSON_PrintBuffered(value,0,formated);
+		char *str;
+		if(formated){
+			str = cJSON_Print(value);
+		}
+		else{
+			str = cJSON_PrintUnformatted(value);
+		}
 		if(str == nullptr){
 			throwNullPtrException();
 		}
@@ -486,11 +491,12 @@ namespace Box{
 				//没有内容
 				return JsonIterator(nullptr,nullptr);
 			}
-			cJSON *prev = value->child;
-			//一直到末尾
-			while(prev->next != nullptr){
-				prev = prev->next;
-			}
+			//cJSON  1.7.14版本 value->child->prev为最后一个item
+			cJSON *prev = value->child->prev;
+			// //一直到末尾
+			// while(prev->next != nullptr){
+			// 	prev = prev->next;
+			// }
 			return JsonIterator(nullptr,prev);
 		}
 		else{
@@ -535,12 +541,9 @@ namespace Box{
 		}
 	}
 	Json Json::ParseString(std::string_view str){
-		#if !defined(__GNUC__) &&  !defined(_MSC_VER)
-		//线程不安全 加锁
-		static std::mutex mtx;
-		std::lock_guard<std::mutex> locker(mtx);
-		#endif
-		cJSON *cjson = cJSON_Parse(str.data());
+		//增加了长度
+		const char *end_ptr = nullptr;
+		cJSON *cjson = cJSON_ParseWithLengthOpts(str.data(),str.length(),&end_ptr,false);
 		if(cjson == nullptr){
 			//解析失败
 			throw JsonParseError(GetError());

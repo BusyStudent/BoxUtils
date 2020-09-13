@@ -3,13 +3,25 @@
 #include <functional>
 #include <string_view>
 #include <initializer_list>
+#include "../libc/attr.h"
 struct curl_slist;
 namespace Box{
 	struct JsonRef;
 	class Json;
 	namespace Curl{
-		class Headers{
+		class BOXAPI Headers{
 			//头的实现(里面的值可能重复)
+			public:
+				struct BOXAPI Value{
+					curl_slist *current;
+					const char *data() const noexcept;
+				};
+				struct BOXAPI Iterator{
+					//迭代器
+					Iterator(curl_slist *slist):current({slist}){};
+					Value current;
+				};
+				typedef Iterator iterator;
 			public:
 				explicit Headers(JsonRef);
 				Headers():slist(nullptr){};
@@ -40,6 +52,13 @@ namespace Box{
 				void for_each(const std::function <void(const char*,const char*)>&) const;//遍历头
 				std::string_view operator[](std::string_view key) const;//有异常的
 				std::string_view get_value (std::string_view key) const;//得到值(没有异常) 失败返回空指针
+				//迭代器
+				Iterator begin() const{
+					return slist;
+				};
+				Iterator end() const{
+					return nullptr;
+				};
 			private:
 				curl_slist *slist;
 			friend class Easy;

@@ -46,7 +46,7 @@ namespace Sync{
 		cond_var.wait(locker);
 		//锁定
 	}
-	bool Event::wait(const std::chrono::microseconds &ms) noexcept{
+	bool Event::wait(std::chrono::microseconds ms) noexcept{
 		//超时等待
 		val_mutex.lock();
 		if(val_isset){
@@ -115,7 +115,7 @@ namespace Sync{
 		sem_value --;
 		return true;
 	}
-	bool Semaphore::trywait(const std::chrono::microseconds &ms) noexcept{
+	bool Semaphore::trywait(std::chrono::microseconds ms) noexcept{
 		//尝试等待ms
 		val_mutex.lock();
 		if(sem_value == 0){

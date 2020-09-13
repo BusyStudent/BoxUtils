@@ -173,7 +173,11 @@ namespace OS{
     //得到工作目录
     std::string GetWorkDir(){
         //return std::string(std::filesystem::current_path());
+        #ifdef _WIN32
+        char *workdir = _getcwd(nullptr,0);
+        #else
         char *workdir = getcwd(nullptr,0);
+        #endif
         if(workdir == nullptr){
             throwError();
         }
