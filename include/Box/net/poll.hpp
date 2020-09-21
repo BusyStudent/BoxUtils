@@ -159,7 +159,6 @@ namespace Box{
                 }
             private:
                 std::vector<EpollEvent> events;//事件们
-                int nfds;//fd的多少
                 int epfd;//epoll的fd
         };
         #endif

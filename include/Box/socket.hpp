@@ -82,6 +82,7 @@ namespace Box{
 			std::string get_host() const;//得到主机名字
 			std::string get_ip() const;//得到IP
 			uint16_t get_port() const;//得到port
+			std::string to_string() const;//到字符串
 			//比较地址
 			bool operator ==(const AddrV4 &) const;
 			bool operator !=(const AddrV4 &) const;
@@ -99,6 +100,7 @@ namespace Box{
 			std::string get_host() const;//得到主机
 			std::string get_ip() const;//得到IP
 			uint16_t get_port() const;//得到端口
+			std::string to_string() const;//到字符串
 			//比较地址
 			bool operator ==(const AddrV6 &) const;
 			bool operator !=(const AddrV6 &) const;
@@ -239,5 +241,13 @@ namespace Box{
 	//兼容之前写的代码
 	typedef Net::Tcp TCPSocket;
 	typedef Net::Udp UDPSocket;
+	namespace Fmt{
+		inline std::string ToString(const Net::AddrV4 &addr){
+			return addr.to_string();
+		}
+		inline std::string ToString(const Net::AddrV6 &addr){
+			return addr.to_string();
+		}
+	};
 };
 #endif

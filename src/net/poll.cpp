@@ -59,7 +59,6 @@ namespace Net{
     //Epoll的部分
     Epollfds::Epollfds(Epollfds &&e):
         events(e.events),
-        nfds(e.nfds),
         epfd(e.epfd){
         //清空原来的epfd
         e.epfd = -1;
@@ -71,7 +70,7 @@ namespace Net{
             //出错了
             throwSocketError();
         }
-        nfds = 0;
+        //nfds = 0;
     }
     Epollfds::~Epollfds(){
         if(epfd > 0){
@@ -80,10 +79,10 @@ namespace Net{
     }
     int Epollfds::wait(int timeout) noexcept{
         //进行等候
-        return epoll_wait(epfd,events.data(),nfds,timeout);
+        return epoll_wait(epfd,events.data(),events.size(),timeout);
     }
     int Epollfds::poll(int timeout) noexcept{
-        return epoll_wait(epfd,events.data(),nfds,timeout);
+        return epoll_wait(epfd,events.data(),events.size(),timeout);
     }
     bool Epollfds::add(NativeSocket fd,EventsType events,void *userdata){
         //创建事件
@@ -101,8 +100,7 @@ namespace Net{
         }
         else{
             //扩大vector
-            this->events.reserve(nfds + 1);
-            nfds ++;
+            this->events.push_back(ev);
             return true;
         }
     }
@@ -128,8 +126,7 @@ namespace Net{
         }
         else{
             //缩小vector
-            this->events.reserve(nfds - 1);
-            nfds --;
+            this->events.pop_back();
             return true;
         }
     }
@@ -143,7 +140,6 @@ namespace Net{
             //失败了
             throwSocketError();
         }
-        nfds --;
         return events.erase(iter);
     }
     #endif

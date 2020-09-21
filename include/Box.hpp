@@ -5,8 +5,9 @@
 #include <Box/assert.hpp>
 #include <Box/buffer.hpp>
 
-#include <Box/channal.hpp>
-#include <Box/sem.hpp>
+#include <Box/sync/channal.hpp>
+#include <Box/sync/pipe.hpp>
+#include <Box/sync/sem.hpp>
 
 #include <Box/base64.hpp>
 
@@ -21,12 +22,15 @@
 
 #include <Box/timer.hpp>
 #include <Box/threadpool.hpp>
+//Curl
+#include <Box/curl/easy.hpp>
+#include <Box/curl/multi.hpp>
+#include <Box/curl/share.hpp>
+#include <Box/curl/factory.hpp>
+#include <Box/curl/headers.hpp>
+#include <Box/curl/exception.hpp>
+#include <Box/curl/curl.hpp>
 //Net
-#include <Box/net/easy.hpp>
-#include <Box/net/multi.hpp>
-#include <Box/net/share.hpp>
-#include <Box/net/factory.hpp>
-#include <Box/net/headers.hpp>
-#include <Box/net/exception.hpp>
-#include <Box/net.hpp>
+#include <Box/net/socket.hpp>
+#include <Box/net/poll.hpp>
 #endif

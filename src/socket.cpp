@@ -423,6 +423,9 @@ std::string AddrV4::get_ip() const{
 uint16_t AddrV4::get_port() const{
 	return ntohs(sin_port);
 }
+std::string AddrV4::to_string() const{
+	return Format("{}:{}",get_ip(),get_port());
+}
 //比较地址
 bool AddrV4::operator ==(const AddrV4 &addr) const{
 	return memcmp(this,&addr,sizeof(AddrV4)) == 0;
@@ -475,6 +478,9 @@ std::string AddrV6::get_ip() const{
 }
 uint16_t AddrV6::get_port() const{
 	return ntohs(sin6_port);
+}
+std::string AddrV6::to_string() const{
+	return Format("{}:{}",get_ip(),get_port());
 }
 //比较地址
 bool AddrV6::operator ==(const AddrV6 &addr) const{

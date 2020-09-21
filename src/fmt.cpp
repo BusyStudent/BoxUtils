@@ -6,13 +6,14 @@
 #include "common/def.hpp"
 #include "raii/scope.hpp"
 #include "fmt.hpp"
+#define STATIC_STRLEN(STRING) (sizeof(STRING) - sizeof("")) / sizeof(char)
 namespace Box{
 namespace FmtImpl{
     BOXAPI std::string VFormat(const char *fmt,va_list varg){
         //可变参数
         std::string ret;
         //指针
-        size_t len = strlen("{}");
+        size_t len = STATIC_STRLEN("{}");
         const char *ptr = nullptr;
         ptr = strstr(fmt,"{}");//查找
         while(ptr != nullptr){
@@ -35,7 +36,7 @@ namespace FmtImpl{
     };
     //输出到流里面
     BOXAPI std::ostream &VFPrintf(std::ostream &ostr,const char *fmt,va_list varg){
-        size_t len = strlen("{}");
+        size_t len = STATIC_STRLEN("{}");
         const char *ptr = nullptr;
         ptr = strstr(fmt,"{}");//查找
         while(ptr != nullptr){
@@ -60,7 +61,7 @@ namespace FmtImpl{
     };
     //C版本的
     BOXAPI void VFPrintf(FILE *fptr,const char *fmt,va_list varg){
-        size_t len = strlen("{}");
+        size_t len = STATIC_STRLEN("{}");
         const char *ptr = nullptr;
         ptr = strstr(fmt,"{}");//查找
         while(ptr != nullptr){

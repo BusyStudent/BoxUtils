@@ -12,8 +12,10 @@ namespace Box{
     namespace OS{
         #ifdef _WIN32
         typedef void *NativeHandle;
+        constexpr void *InvaidNativeHandle = static_cast<void*>(-1);
         #else
         typedef int NativeHandle;
+        constexpr int InvaidNativeHandle = -1;
         #endif
         class BOXAPI Handle{
             public:
@@ -22,8 +24,11 @@ namespace Box{
                 #else
                 using ssize_t = ::ssize_t;
                 #endif
-                explicit Handle();
-                Handle(NativeHandle);
+                //初始化空句柄
+                explicit Handle():handle(InvaidNativeHandle){};
+                //填充一个句柄
+                Handle(NativeHandle h):handle(h){};
+
                 Handle(const Handle &) = delete;
                 Handle(Handle &&);
                 ~Handle();

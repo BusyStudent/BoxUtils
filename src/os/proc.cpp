@@ -172,7 +172,7 @@ namespace OS{
             //写错误代码
             write(err_fds[1],&code,sizeof(int));
             //关闭
-            _Exit(EXIT_FAILURE);
+            _exit(EXIT_FAILURE);
         }
         else{
             close(err_fds[1]);//关闭写入端

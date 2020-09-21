@@ -147,7 +147,7 @@ namespace Box{
 			timer_impl = nullptr;
 		}
 	}
-	Timer::ID Timer::Create(const MicroSeconds&ms,Callback callback,void *param){
+	Timer::ID Timer::Create(MicroSeconds ms,Callback callback,void *param,void(*delete_fn)(void*)){
 		//创建一个计时器
 		if(callback == nullptr){
 			return nullptr;
@@ -159,7 +159,7 @@ namespace Box{
 			{
 				.callback = callback,
 				.ms = ms,
-				.delete_fn = nullptr,
+				.delete_fn = delete_fn,
 				.param = param
 			}
 		);
@@ -190,4 +190,53 @@ namespace Box{
 		impl.unlock_timers();
 		return false;
 	}
+	Timer::Timer(MicroSeconds ms,const std::function<MicroSeconds(MicroSeconds)> &fn){
+		Timer::Init();//初始化一下
+		timer_id = Timer::Create(
+			ms,
+			[](MicroSeconds ms,void *param) -> MicroSeconds{
+				auto fn = static_cast<std::function<MicroSeconds(MicroSeconds)>*>(param);
+				return (*fn)(ms);
+			},
+			new std::function<MicroSeconds(MicroSeconds)>(fn),
+			[](void *param){
+				delete static_cast<std::function<MicroSeconds(MicroSeconds)>*>(param);
+			}
+		);
+	}
+	Timer::~Timer(){
+		Timer::Delete(timer_id);
+	}
 };
+//C API
+extern "C"{
+	struct Box_timer_t{
+		uint64_t (*fn)(uint64_t,void*);
+		void *data;
+	};
+	BOXAPI void *Box_timer_create(uint64_t milliseconds,uint64_t(* fn)(uint64_t,void*),void *data){
+		static std::once_flag flags;
+		std::call_once(flags,[](){
+			Box::Timer::Init();
+		});
+		return (void*)(Box::Timer::Create(
+			std::chrono::milliseconds(milliseconds),
+			[](std::chrono::microseconds ms,void *param) -> std::chrono::microseconds{
+				Box_timer_t *timer = static_cast<Box_timer_t*>(param);
+				return std::chrono::milliseconds( 
+					timer->fn(std::chrono::milliseconds(ms.count()).count(),timer->data)
+				);
+			},
+			new Box_timer_t{
+				fn,
+				data
+			},
+			[](void *param){
+				delete static_cast<Box_timer_t*>(param);
+			}
+		));
+	};
+	BOXAPI int Box_timer_delete(void *timer){
+		return Box::Timer::Delete((Box::Timer::ID)timer) == true;
+	}
+}

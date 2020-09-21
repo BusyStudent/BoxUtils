@@ -19,12 +19,6 @@
 #include "os/exception.hpp"
 namespace Box{
 namespace OS{
-    Handle::Handle(NativeHandle h){
-        handle = h;
-    }
-    Handle::Handle(){
-        handle = HANDLE_INVAID;
-    }
     Handle::Handle(Handle && h){
         handle = h.handle;
         h.handle = HANDLE_INVAID;

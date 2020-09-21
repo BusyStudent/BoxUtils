@@ -41,11 +41,13 @@ target("box_utils")
 		--LIBXML2
 		add_files("./src/xpath.cpp")
 		add_files("./src/xml.cpp")
+		add_links("xml2")
 	end
 	
 	if has_package("libcurl") then
 		--CURL网络部分
 		add_files("./src/curl/*.cpp")
+		add_links("curl")
 	end
 	--Socket
 	add_files("./src/net/*.cpp")

@@ -76,7 +76,8 @@
 		"regex": "cpp",
 		"climits": "cpp",
 		"filesystem": "cpp",
-		"dynamic_bitset": "cpp"
+		"dynamic_bitset": "cpp",
+		"source_location": "cpp"
 	},
 	"files.exclude": {
 		"**/.git": true,
