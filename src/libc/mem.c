@@ -10,12 +10,16 @@
 #include "libc.h"
 #ifdef __linux
     #include <sys/random.h>
+    #include <malloc.h>
 #endif
 #ifdef _WIN32
     #include <windows.h>
 #else
     #include <unistd.h>
     #include <sys/mman.h>
+#endif
+#ifdef __APPLE__
+    #include <malloc/malloc.h>
 #endif
 LIBC_BEGIN
 //内存
@@ -249,4 +253,13 @@ BOXAPI void *Box_memrand(void *mem,size_t n){
     }
     return mem;
 };
+BOXAPI size_t Box_msize(void *ptr){
+    #if defined(__APPLE__)
+    return malloc_size(ptr);
+    #elif defined(_WIN32)
+    return _msize(ptr);
+    #else
+    return malloc_usable_size(ptr);
+    #endif
+}
 LIBC_END

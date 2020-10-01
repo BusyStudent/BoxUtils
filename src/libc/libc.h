@@ -44,4 +44,21 @@
 #elif defined(_MSC_VER)
     #define LIBC_TLS __declspec(thread)
 #endif
+//Mutex
+#ifdef _WIN32
+    #include <windows.h>
+    typedef HANDLE libc_mutex_t;
+    #define LIBC_MUTEX_LOCK(M) WaitForSingleObject((M),INFINITE)
+    #define LIBC_MUTEX_UNLOCK(M) ReleaseMutex((M))
+    #define LIBC_MUTEX_INIT(M) (M) = CreateMutex(nullptr,FALSE,nullptr)
+    #define LIBC_MUTEX_DESTROY(M) CloseHandle((M))
+#else
+    #include <pthread.h>
+    typedef pthread_mutex_t libc_mutex_t;
+    #define LIBC_MUTEX_LOCK(M) pthread_mutex_lock(&(M))
+    #define LIBC_MUTEX_UNLOCK(M) pthread_mutex_unlock(&(M))
+    #define LIBC_MUTEX_INIT(M) pthread_mutex_init(&(M),nullptr)
+    #define LIBC_MUTEX_DESTROY(M) pthread_mutex_destroy(&(M))
+#endif
+#define LIBC_ALLOC(TYPE) malloc(sizeof(TYPE))
 #endif

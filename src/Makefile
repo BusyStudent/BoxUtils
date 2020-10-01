@@ -14,7 +14,7 @@ OBJ=random.o cJSON.o cJSON_Utils.o json.o net.o\
 	os/handle.o os/exception.o os/proc.o os/fs.o\
 	curl/easy.o curl/multi.o curl/share.o curl/curl.o curl/headers.o curl/exception.o\
 	curl/factory.o
-LIBC_OBJ=libc/mem.o libc/inet.o libc/atexit.o libc/io.o
+LIBC_OBJ=libc/mem.o libc/inet.o libc/atexit.o libc/io.o libc/thread.o
 
 OBJ+=$(LIBC_OBJ)
 

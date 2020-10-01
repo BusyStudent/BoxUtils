@@ -37,6 +37,8 @@ extern BOXAPI int   Box_strcasecmp(const char *s1,const char *s2);
 extern BOXAPI int   Box_strncasecmp(const char *s1,const char *s2,size_t n);
 //得到分页大小
 extern BOXAPI long Box_getpagesize();
+//得到标准malloc请求内存的大小
+extern BOXAPI size_t Box_msize(void *ptr);
 #ifdef __cplusplus
 }
 //C++的包装

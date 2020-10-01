@@ -34,6 +34,7 @@ namespace Box{
 				Easy(const Easy&);
 				~Easy();
 				void perform();//执行
+				void perform(uint32_t retry);//执行 不过有重试机制
 				void enable_cookie();//启动Cookie引擎
 				void add_cookie(std::string_view cookie);//添加cookie 在引擎内
 				void set_cookie(std::string_view cookie);//设置cookie 在cookie引擎外部

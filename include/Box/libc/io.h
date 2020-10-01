@@ -31,11 +31,14 @@ extern int Box_fd_errno();//得到错误代码
 extern const char *Box_fd_strerror(int);//格式化错误代码
 extern Box_fd_t Box_open(const char *path,int flags);//打开
 extern int Box_close(Box_fd_t);//关闭
-
+extern int Box_ttysize(Box_fd_t fd,int *w,int *h);//得到终端大小
 #ifdef __cplusplus
 namespace Box{
     namespace libc{
         using fd_t = Box_fd_t;
+        inline int ttysize(Box_fd_t fd,int *w,int *h){
+            return Box_ttysize(fd,w,h);
+        };
     };
 };
 #endif

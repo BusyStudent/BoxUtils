@@ -70,7 +70,17 @@ namespace Curl{
 		//进行传输
 		CURL_ASSERT(curl_easy_perform(handle));
 	}
-
+	void Easy::perform(uint32_t retry){
+		CURLcode code;
+		for(uint32_t i = 0; i < retry; i ++){
+			code = curl_easy_perform(handle);
+			if(code == CURLE_OK){
+				return;
+			}
+		}
+		//Error
+		throwEasyException(code);
+	}
 	//启动cookie引擎
 	void Easy::enable_cookie(){
 		curl_easy_setopt(handle,CURLOPT_COOKIEFILE,"");

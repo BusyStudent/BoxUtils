@@ -32,6 +32,8 @@
 //MSVC
     #define BOX_EXPORT __declspec(dllexport)
     #define BOX_IMPORT __declspec(dllimport)
+    #define BOX_INLINE __forceinline
+    #define BOX_NORETURN __declspec(noreturn)
 #else
     #warning do not support it
 #endif
