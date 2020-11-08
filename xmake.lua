@@ -8,6 +8,7 @@ if is_plat("windows") then
 	--add_requires("libiconv")
 	--Windows上好像没有iconv包
 	add_defines("BOX_NICONV")
+	add_requires("libxml2")
 	--WinSocket
 elseif is_plat("mingw") then
 	--Mingw编译
@@ -17,7 +18,7 @@ elseif is_plat("linux") then
 elseif is_plat("macosx") then
 	add_requires("libiconv")
 end
-add_requires("libxml-2.0","libcurl")
+add_requires("libcurl")
 add_cxxflags("-std=c++17")
 -- 库
 target("box_utils")
@@ -31,13 +32,13 @@ target("box_utils")
 	--add_links("curl")
 	-- add files
 	on_load(function(target)
-		target:add(find_packages("libxml-2.0","libcurl"))
+		target:add(find_packages("libxml-2.0","libcurl","libxml2"))
 	end)
 	if not is_mode("debug") then
 		add_defines("NDEBUG")
 	end
 	--检查LIBXML2
-	if has_package("libxml-2.0") then
+	if has_package("libxml-2.0") or has_package("libxml2") then
 		--LIBXML2
 		add_files("./src/lxml/*.cpp")
 		add_links("xml2")
@@ -63,3 +64,6 @@ target("box_utils")
 	add_files("./src/utils/*.cpp")
 	add_files("./src/thread/*.cpp")
 	add_files("./src/libc/*.c")
+if is_mode("debug") then
+	--debug
+end
