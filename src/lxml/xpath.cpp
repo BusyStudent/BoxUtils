@@ -7,10 +7,9 @@
 #include <cstdlib>
 #include <cmath>
 #include "common/def.hpp"
-#include "refptr.hpp"
 #include "exception.hpp"
-#include "xpath.hpp"
-#include "xml.hpp"
+#include "lxml/xpath.hpp"
+#include "lxml/xml.hpp"
 namespace Box{
 namespace LXml{
 namespace XPath{

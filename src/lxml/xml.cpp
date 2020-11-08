@@ -9,8 +9,8 @@
 #include <ostream>
 #include "common/def.hpp"
 #include "libc/atexit.h"
-#include "xml.hpp"
-#include "xpath.hpp"
+#include "lxml/xml.hpp"
+#include "lxml/xpath.hpp"
 #include "exception.hpp"
 namespace Box{
 namespace LXml{

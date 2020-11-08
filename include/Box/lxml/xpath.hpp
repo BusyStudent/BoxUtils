@@ -5,7 +5,7 @@
 #include <string_view>
 #include "libc/attr.h"
 #include "xml.hpp"
-#include "dataguard.hpp"
+#include "../raii/dataguard.hpp"
 struct _xmlXPathContext;
 struct _xmlXPathObject;
 struct _xmlXPathCompExpr;

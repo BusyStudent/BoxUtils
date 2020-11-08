@@ -39,85 +39,27 @@ target("box_utils")
 	--检查LIBXML2
 	if has_package("libxml-2.0") then
 		--LIBXML2
-		add_files("./src/xpath.cpp")
-		add_files("./src/xml.cpp")
+		add_files("./src/lxml/*.cpp")
 		add_links("xml2")
 	end
-	
 	if has_package("libcurl") then
 		--CURL网络部分
 		add_files("./src/curl/*.cpp")
 		add_links("curl")
 	end
-	--Socket
-	add_files("./src/net/*.cpp")
-	add_files("./src/net.cpp")
-	--OS API
+	-- Add thirdparty
+	add_files("./src/thirdparty/*.c")
+	--Common files
+	add_files("./src/*.cpp")
+	--Crypto
+	add_files("./src/crypto/*.cpp")
+	if is_plat("linux") or is_plat("macos") then
+		add_files("./src/posix/*.cpp")
+	end
+
 	add_files("./src/os/*.cpp")
-	
-	add_files("./src/table.cpp")
-
-	add_files("./src/cJSON.c")
-	add_files("./src/cJSON_Utils.c")
-	
-	add_files("./src/socket.cpp")
-	add_files("./src/string.cpp")
-	
-	--add_files("./src/xv.cpp")
-	add_files("./src/exception.cpp")
-	add_files("./src/dns.cpp")
-	
-	add_files("./src/os.cpp")
-	add_files("./src/random.cpp")
-	add_files("./src/filesystem.cpp")
-	--add_files("./src/sem.cpp")
+	add_files("./src/net/*.cpp")
 	add_files("./src/sync/*.cpp")
-
-	add_files("./src/timer.cpp")
-	add_files("./src/threadpool.cpp")
-
-	add_files("./src/base64.cpp")
-	add_files("./src/json.cpp")
-	add_files("./src/dylib.cpp")
-	
-	add_files("./src/posix/*.cpp")
-	
-	--add_files("./src/channal.cpp")
-	add_files("./src/backtrace.cpp")
-	add_files("./src/logger.cpp")
-	add_files("./src/buffer.cpp")
-	add_files("./src/assert.cpp")
-
-	add_files("./src/co/*.cpp")
-	--C组件
+	add_files("./src/utils/*.cpp")
+	add_files("./src/thread/*.cpp")
 	add_files("./src/libc/*.c")
-	--Fmt
-	add_files("./src/fmt.cpp")
---SDL部分
--- target("box_sdl")
--- 	set_kind("shared")
--- 	add_cxxflags("-std=c++17")
--- 	on_load(function (target)
--- 		target:add(find_packages("SDL2","SDL2_mixer","SDL2_ttf","SDL2_image"))
--- 	end)
--- 	add_files("./src/sdl/*.cpp")
---测试
-target("box_spider")
-	set_kind("shared")
-	add_includedirs("./include/Box")
-	add_files("./spider/*.cpp")
-	add_deps("box_utils")
-
-target("test_buffer")
-	set_kind("binary")
-	add_includedirs("./include")
-	add_files("./tests/test_buffer.cpp")
-	add_deps("box_utils")
-	add_includedirs("./src")
-target("thpool")
-	--thread pool
-	set_kind("binary")
-	add_includedirs("./include")
-	add_files("./tests/thpool_test.cpp")
-	add_deps("box_utils")
-	add_includedirs("./src")

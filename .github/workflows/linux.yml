@@ -11,8 +11,6 @@ jobs:
     - uses: actions/checkout@v2
     - name: configure
       run: sudo apt update && sudo apt install libcurl4-openssl-dev libxml2-dev -y
-    - name: make
-      run: cd ./src && make && cd ../
     - name: setup xmake
       uses: xmake-io/github-action-setup-xmake@v1
       with:

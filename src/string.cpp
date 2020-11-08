@@ -7,9 +7,8 @@
 #include <vector>
 #include <locale>
 #include <stdexcept>
-#include "common/def.hpp"
-#include "base64.hpp"
-#include "string.hpp"
+#include <Box/common/def.hpp>
+#include <Box/string.hpp>
 namespace Box{
 	String String::trim() const noexcept{
 		const_iterator i_begin = begin();

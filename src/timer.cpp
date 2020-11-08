@@ -8,7 +8,6 @@
 #include "common/def.hpp"
 #include "threadpool.hpp"
 #include "atomic.hpp"
-#include "debug.hpp"
 #include "timer.hpp"
 #include "sem.hpp"
 #ifdef _WIN32
@@ -78,7 +77,7 @@ namespace{
 };
 void ::TimerImpl::run(){
 	using std::chrono::steady_clock;
-	BOX_DEBUG("Timer thread started");
+	
 	std::list<::TimerData>::iterator iter;
 	std::chrono::microseconds sleep_ms(0);//睡眠时间
 	std::chrono::microseconds zero_ms(0);
@@ -130,7 +129,6 @@ void ::TimerImpl::run(){
 			event.clear();
 		}
 	}
-	BOX_DEBUG("Timer thread quited");
 }
 namespace Box{
 	void Timer::Init(){
@@ -208,35 +206,3 @@ namespace Box{
 		Timer::Delete(timer_id);
 	}
 };
-//C API
-extern "C"{
-	struct Box_timer_t{
-		uint64_t (*fn)(uint64_t,void*);
-		void *data;
-	};
-	BOXAPI void *Box_timer_create(uint64_t milliseconds,uint64_t(* fn)(uint64_t,void*),void *data){
-		static std::once_flag flags;
-		std::call_once(flags,[](){
-			Box::Timer::Init();
-		});
-		return (void*)(Box::Timer::Create(
-			std::chrono::milliseconds(milliseconds),
-			[](std::chrono::microseconds ms,void *param) -> std::chrono::microseconds{
-				Box_timer_t *timer = static_cast<Box_timer_t*>(param);
-				return std::chrono::milliseconds( 
-					timer->fn(std::chrono::milliseconds(ms.count()).count(),timer->data)
-				);
-			},
-			new Box_timer_t{
-				fn,
-				data
-			},
-			[](void *param){
-				delete static_cast<Box_timer_t*>(param);
-			}
-		));
-	};
-	BOXAPI int Box_timer_delete(void *timer){
-		return Box::Timer::Delete((Box::Timer::ID)timer) == true;
-	}
-}

@@ -9,7 +9,6 @@
 #include "net/socket.hpp"
 #include "backtrace.hpp"
 #include "exception.hpp"
-#include "socket.hpp"
 #include "fmt.hpp"
 #include "libc/mem.h"
 #include "libc/inet.h"
