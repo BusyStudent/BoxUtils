@@ -495,14 +495,10 @@ Tcp::Tcp(SockFamily family)
 		//创建一个TCPSocket
 }
 //接受连接
-Socket *SocketRef::accept(AddrV4 *addr){
+Socket SocketRef::accept(AddrV4 *addr){
 	libc::socklen_t len = sizeof(sockaddr_in);
 	libc::socket_t ret = libc::accept(fd,addr,&len);
-	if(BOX_SOCKET_INVAID(ret)){
-		//不是有效的
-		return nullptr;
-	}
-	return new Socket(ret);
+	return Socket(ret);
 }
 //UDP SOCKET
 Udp::Udp(SockFamily family):

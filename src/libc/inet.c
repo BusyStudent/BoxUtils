@@ -5,7 +5,8 @@
 	#include <ws2ipdef.h>
 	#include <io.h>
 	#include <process.h>
-    #include <alloca.h>
+    #include <malloc.h>
+    #define alloca _alloca	
 #else
 	#include <unistd.h>
 	#include <sys/socket.h>

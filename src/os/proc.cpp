@@ -3,7 +3,7 @@
 #else
     #include <unistd.h>
     #include <fcntl.h>
-    #include <wait.h>
+    #include <sys/wait.h>
 #endif
 #include <vector>
 #include <memory>

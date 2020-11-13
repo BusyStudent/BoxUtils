@@ -160,7 +160,7 @@ namespace Box{
 				ssize_t recvfrom(void *buf,size_t buflen,
 								 int flags = 0,AddrV4 *addr = nullptr) noexcept;
 				//接受从一个地址
-				Socket *accept(AddrV4 *addr = nullptr);//接受客户
+				Socket accept(AddrV4 *addr = nullptr);//接受客户
 
 				ssize_t operator <<(std::string_view str);//写入字符串
 				
@@ -190,6 +190,14 @@ namespace Box{
 				void get_peer_name(AddrV6 &addr) const;//得到与他相连的名字 IPV6
 				void get_peer_name(void *addr,size_t addrsize) const;//得到连接的地址名字
 				NativeSocket get_fd() const;//得到文件描述符号
+				//Is bad
+				bool bad() const noexcept{
+					#ifdef _WIN32
+					return fd == INVAID_SOCKET;
+					#else
+					return fd < 0;
+					#endif
+				};
 				//转换为fd
 				explicit operator NativeSocket() const noexcept{
 					return fd;

@@ -36,6 +36,3 @@
 /.xmake/
 /build/
 # Test
-/tests/
-!/tests/*.cpp
-/workspace

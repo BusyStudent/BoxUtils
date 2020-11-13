@@ -66,4 +66,8 @@ target("box_utils")
 	add_files("./src/libc/*.c")
 if is_mode("debug") then
 	--debug
+	target("json")
+		add_files("./tests/json.cpp")
+		add_deps("box_utils")
+		add_includedirs("./include")
 end
